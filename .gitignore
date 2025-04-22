@@ -1,0 +1,7 @@
+**/bin/
+**/obj/
+diagrams/
+.vscode/
+.idea/
+**/Migrations
+**/database

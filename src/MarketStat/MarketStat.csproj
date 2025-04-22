@@ -8,11 +8,28 @@
 
   <ItemGroup>
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="MarketStat.Tests\UnitTests.Services\obj\project.assets.json" />
     <_ContentIncludedByDefault Remove="MarketStat.Tests\UnitTests.Services\obj\UnitTests.Services.csproj.nuget.dgspec.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
+    <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Converter\MarketStat.Common.Converter.csproj" />
+    <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
+    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
+    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Models\MarketStat.Database.Models.csproj" />
+    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Core\MarketStat.Database.Core.csproj" />
+    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Repositories\MarketStat.Database.Repositories.csproj" />
+    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployerService\MarketStat.Services.Dimensions.DimEmployerService.csproj" />
+    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Facts\MarketStat.Services.Facts.FactSalaryService\MarketStat.Services.Facts.FactSalaryService.csproj" />
   </ItemGroup>
 
 </Project>
