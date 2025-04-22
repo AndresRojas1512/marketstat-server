@@ -5,6 +5,32 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat", "MarketStat\MarketStat.csproj", "{C2566FB0-5EA8-499F-8898-6DC719EF926F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Common", "MarketStat.Common", "{000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Common.Core", "MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj", "{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Database", "MarketStat.Database", "{75FD3B3F-F7B0-4555-B189-30AE64042622}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Database.Core", "MarketStat.Database\MarketStat.Database.Core\MarketStat.Database.Core.csproj", "{E996891D-A515-4872-8F49-78E07B54E8DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Database.Repositories", "MarketStat.Database\MarketStat.Database.Repositories\MarketStat.Database.Repositories.csproj", "{8F323089-436B-4B5E-840E-1CF4CC36D494}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Services", "MarketStat.Services", "{F41D1465-FB87-4FAF-B66D-EE51BFDBDB7D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Services.Dimensions", "MarketStat.Services.Dimensions", "{68ED94C7-8F02-4839-A900-4E3C5BE0924F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimEmployerService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployerService\MarketStat.Services.Dimensions.DimEmployerService.csproj", "{AAAA5DCC-9BB2-44EA-8567-7DE35E68E383}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Services.Facts", "MarketStat.Services.Facts", "{D3295C91-7D18-4D12-B459-8BFC142D670E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Facts.FactSalaryService", "MarketStat.Services\MarketStat.Services.Facts\MarketStat.Services.Facts.FactSalaryService\MarketStat.Services.Facts.FactSalaryService.csproj", "{0928D441-477A-4D74-852D-6092A92AE372}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Common.Dto", "MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj", "{6F76C035-0675-4228-BA9F-6BAE57B6736A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Tests", "MarketStat.Tests", "{305CB118-A42D-4660-8748-E1FD4D850C98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests.Services", "MarketStat.Tests\UnitTests.Services\UnitTests.Services.csproj", "{1831B72C-C4E4-49A8-ABB9-A68ED517042D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +44,44 @@ Global
 		{C2566FB0-5EA8-499F-8898-6DC719EF926F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2566FB0-5EA8-499F-8898-6DC719EF926F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2566FB0-5EA8-499F-8898-6DC719EF926F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E996891D-A515-4872-8F49-78E07B54E8DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E996891D-A515-4872-8F49-78E07B54E8DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E996891D-A515-4872-8F49-78E07B54E8DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E996891D-A515-4872-8F49-78E07B54E8DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F323089-436B-4B5E-840E-1CF4CC36D494}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F323089-436B-4B5E-840E-1CF4CC36D494}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F323089-436B-4B5E-840E-1CF4CC36D494}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F323089-436B-4B5E-840E-1CF4CC36D494}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAAA5DCC-9BB2-44EA-8567-7DE35E68E383}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAAA5DCC-9BB2-44EA-8567-7DE35E68E383}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAAA5DCC-9BB2-44EA-8567-7DE35E68E383}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAAA5DCC-9BB2-44EA-8567-7DE35E68E383}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0928D441-477A-4D74-852D-6092A92AE372}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0928D441-477A-4D74-852D-6092A92AE372}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0928D441-477A-4D74-852D-6092A92AE372}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0928D441-477A-4D74-852D-6092A92AE372}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F76C035-0675-4228-BA9F-6BAE57B6736A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F76C035-0675-4228-BA9F-6BAE57B6736A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F76C035-0675-4228-BA9F-6BAE57B6736A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F76C035-0675-4228-BA9F-6BAE57B6736A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1831B72C-C4E4-49A8-ABB9-A68ED517042D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1831B72C-C4E4-49A8-ABB9-A68ED517042D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1831B72C-C4E4-49A8-ABB9-A68ED517042D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1831B72C-C4E4-49A8-ABB9-A68ED517042D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB} = {000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}
+		{E996891D-A515-4872-8F49-78E07B54E8DC} = {75FD3B3F-F7B0-4555-B189-30AE64042622}
+		{8F323089-436B-4B5E-840E-1CF4CC36D494} = {75FD3B3F-F7B0-4555-B189-30AE64042622}
+		{68ED94C7-8F02-4839-A900-4E3C5BE0924F} = {F41D1465-FB87-4FAF-B66D-EE51BFDBDB7D}
+		{AAAA5DCC-9BB2-44EA-8567-7DE35E68E383} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{D3295C91-7D18-4D12-B459-8BFC142D670E} = {F41D1465-FB87-4FAF-B66D-EE51BFDBDB7D}
+		{0928D441-477A-4D74-852D-6092A92AE372} = {D3295C91-7D18-4D12-B459-8BFC142D670E}
+		{6F76C035-0675-4228-BA9F-6BAE57B6736A} = {000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}
+		{1831B72C-C4E4-49A8-ABB9-A68ED517042D} = {305CB118-A42D-4660-8748-E1FD4D850C98}
 	EndGlobalSection
 EndGlobal
