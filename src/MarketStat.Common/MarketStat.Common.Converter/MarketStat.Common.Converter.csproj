@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="MarketStat.Common.Converter.Facts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\MarketStat.Database\MarketStat.Database.Models\MarketStat.Database.Models.csproj" />
+    <ProjectReference Include="..\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
+  </ItemGroup>
+
+</Project>

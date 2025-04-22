@@ -55,15 +55,15 @@ public class DimEmployerService : IDimEmployerService
         return employers;
     }
 
-    public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, string industry, bool isPUblic)
+    public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, string industry, bool isPublic)
     {
         try
         {
-            DimEmployerValidator.ValidateParameters(employerId, employerName, industry, isPUblic);
+            DimEmployerValidator.ValidateParameters(employerId, employerName, industry, isPublic);
             var existingEmployer = await _dimEmployerRepository.GetEmployerByIdAsync(employerId);
             existingEmployer.EmployerName = employerName;
             existingEmployer.Industry = industry;
-            existingEmployer.IsPublic = isPUblic;
+            existingEmployer.IsPublic = isPublic;
             await _dimEmployerRepository.UpdateEmployerAsync(existingEmployer);
             _logger.LogInformation("Updated DimEmployer {EmployerId}", employerId);
             return existingEmployer;
