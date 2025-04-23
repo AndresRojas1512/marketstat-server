@@ -5,11 +5,11 @@ namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
 public class DimEmployerRepository : IDimEmployerRepository
 {
-    private readonly Dictionary<int, DimEmployer> _dimEmployers = new Dictionary<int, DimEmployer>();
+    private readonly Dictionary<int, DimEmployer> _employers = new Dictionary<int, DimEmployer>();
     
     public Task AddEmployerAsync(DimEmployer employer)
     {
-        if (!_dimEmployers.TryAdd(employer.EmployerId, employer))
+        if (!_employers.TryAdd(employer.EmployerId, employer))
         {
             throw new ArgumentException($"Employer {employer.EmployerId} already exists.");
         }
@@ -18,7 +18,7 @@ public class DimEmployerRepository : IDimEmployerRepository
 
     public Task<DimEmployer> GetEmployerByIdAsync(int employerId)
     {
-        if (_dimEmployers.TryGetValue(employerId, out var e))
+        if (_employers.TryGetValue(employerId, out var e))
         {
             return Task.FromResult(e);
         }
@@ -27,22 +27,22 @@ public class DimEmployerRepository : IDimEmployerRepository
 
     public Task<IEnumerable<DimEmployer>> GetAllEmployersAsync()
     {
-        return Task.FromResult<IEnumerable<DimEmployer>>(_dimEmployers.Values);
+        return Task.FromResult<IEnumerable<DimEmployer>>(_employers.Values);
     }
 
     public Task UpdateEmployerAsync(DimEmployer employer)
     {
-        if (!_dimEmployers.ContainsKey(employer.EmployerId))
+        if (!_employers.ContainsKey(employer.EmployerId))
         {
             throw new KeyNotFoundException($"Cannot update: {employer.EmployerId} not found.");
         }
-        _dimEmployers[employer.EmployerId] = employer;
+        _employers[employer.EmployerId] = employer;
         return Task.CompletedTask;
     }
 
     public Task DeleteEmployerAsync(int employerId)
     {
-        if (!_dimEmployers.ContainsKey(employerId))
+        if (!_employers.ContainsKey(employerId))
         {
             throw new KeyNotFoundException($"Cannot delete: {employerId} not found.");
         }

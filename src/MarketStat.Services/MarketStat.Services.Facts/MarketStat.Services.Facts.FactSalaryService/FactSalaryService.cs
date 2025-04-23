@@ -18,7 +18,7 @@ public class FactSalaryService : IFactSalaryService
 
     public async Task<decimal> GetAverageSalaryAsync(FactSalaryFilter filter)
     {
-        var facts = await _factSalaryRepository.GetSalaryByFilterAsync(filter);
+        var facts = await _factSalaryRepository.GetFactSalariesByFilterAsync(filter);
         var amounts = facts.Select(f => f.SalaryAmount).ToList();
         if (!amounts.Any())
         {

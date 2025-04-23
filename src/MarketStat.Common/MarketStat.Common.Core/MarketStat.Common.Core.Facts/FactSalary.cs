@@ -8,7 +8,6 @@ public class FactSalary
     public int EmployerId { get; set; }
     public int JobRoleId { get; set; }
     public int EmployeeId { get; set; }
-    
     public int SalaryAmount { get; set; }
     public int BonusAmount { get; set; }
 
