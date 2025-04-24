@@ -7,12 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="UnitTests.Services.Facts\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\MarketStat.Database\MarketStat.Database.Core\MarketStat.Database.Core.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployerService\MarketStat.Services.Dimensions.DimEmployerService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimCityService\MarketStat.Services.Dimensions.DimCityService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimDateService\MarketStat.Services.Dimensions.DimDateService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

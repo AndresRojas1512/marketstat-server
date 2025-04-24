@@ -31,6 +31,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Tests", "MarketS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests.Services", "MarketStat.Tests\UnitTests.Services\UnitTests.Services.csproj", "{1831B72C-C4E4-49A8-ABB9-A68ED517042D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimCityService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimCityService\MarketStat.Services.Dimensions.DimCityService.csproj", "{324B5B98-8CF6-47D8-9506-E42CF6288C09}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimDateService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimDateService\MarketStat.Services.Dimensions.DimDateService.csproj", "{4425170D-705E-4154-9632-454F8C0C41EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimEducationService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEducationService\MarketStat.Services.Dimensions.DimEducationService.csproj", "{B0106A01-3EB5-469B-959A-86D29A67C0D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimEmployeeService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployeeService\MarketStat.Services.Dimensions.DimEmployeeService.csproj", "{D1FB6189-9EF0-4C9F-843F-0ED8E0377715}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimEmployeeEducationService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployeeEducationService\MarketStat.Services.Dimensions.DimEmployeeEducationService.csproj", "{3AFFD2CE-5245-486B-9973-2270C93390F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimIndustryFieldService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimIndustryFieldService\MarketStat.Services.Dimensions.DimIndustryFieldService.csproj", "{9AAAA0E1-4FEB-4CF4-8187-E045F4C03102}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimJobRoleService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobRoleService\MarketStat.Services.Dimensions.DimJobRoleService.csproj", "{AB203C5C-EFE4-4ADD-9981-D248A0ECFB74}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +86,34 @@ Global
 		{1831B72C-C4E4-49A8-ABB9-A68ED517042D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1831B72C-C4E4-49A8-ABB9-A68ED517042D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1831B72C-C4E4-49A8-ABB9-A68ED517042D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{324B5B98-8CF6-47D8-9506-E42CF6288C09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{324B5B98-8CF6-47D8-9506-E42CF6288C09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{324B5B98-8CF6-47D8-9506-E42CF6288C09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{324B5B98-8CF6-47D8-9506-E42CF6288C09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4425170D-705E-4154-9632-454F8C0C41EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4425170D-705E-4154-9632-454F8C0C41EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4425170D-705E-4154-9632-454F8C0C41EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4425170D-705E-4154-9632-454F8C0C41EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0106A01-3EB5-469B-959A-86D29A67C0D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0106A01-3EB5-469B-959A-86D29A67C0D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0106A01-3EB5-469B-959A-86D29A67C0D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0106A01-3EB5-469B-959A-86D29A67C0D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1FB6189-9EF0-4C9F-843F-0ED8E0377715}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1FB6189-9EF0-4C9F-843F-0ED8E0377715}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1FB6189-9EF0-4C9F-843F-0ED8E0377715}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1FB6189-9EF0-4C9F-843F-0ED8E0377715}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AFFD2CE-5245-486B-9973-2270C93390F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AFFD2CE-5245-486B-9973-2270C93390F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AFFD2CE-5245-486B-9973-2270C93390F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AFFD2CE-5245-486B-9973-2270C93390F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AAAA0E1-4FEB-4CF4-8187-E045F4C03102}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AAAA0E1-4FEB-4CF4-8187-E045F4C03102}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AAAA0E1-4FEB-4CF4-8187-E045F4C03102}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AAAA0E1-4FEB-4CF4-8187-E045F4C03102}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB203C5C-EFE4-4ADD-9981-D248A0ECFB74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB203C5C-EFE4-4ADD-9981-D248A0ECFB74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB203C5C-EFE4-4ADD-9981-D248A0ECFB74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB203C5C-EFE4-4ADD-9981-D248A0ECFB74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB} = {000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}
@@ -83,5 +125,12 @@ Global
 		{0928D441-477A-4D74-852D-6092A92AE372} = {D3295C91-7D18-4D12-B459-8BFC142D670E}
 		{6F76C035-0675-4228-BA9F-6BAE57B6736A} = {000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}
 		{1831B72C-C4E4-49A8-ABB9-A68ED517042D} = {305CB118-A42D-4660-8748-E1FD4D850C98}
+		{324B5B98-8CF6-47D8-9506-E42CF6288C09} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{4425170D-705E-4154-9632-454F8C0C41EE} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{B0106A01-3EB5-469B-959A-86D29A67C0D6} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{D1FB6189-9EF0-4C9F-843F-0ED8E0377715} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{3AFFD2CE-5245-486B-9973-2270C93390F8} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{9AAAA0E1-4FEB-4CF4-8187-E045F4C03102} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{AB203C5C-EFE4-4ADD-9981-D248A0ECFB74} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
 	EndGlobalSection
 EndGlobal
