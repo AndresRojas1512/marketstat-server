@@ -26,6 +26,7 @@ public class DimEmployerService : IDimEmployerService
         try
         {
             await _dimEmployerRepository.AddEmployerAsync(employer);
+            _logger.LogInformation("Created DimEmployer {EmployerId}", newEmployerId);
             return employer;
         }
         catch (Exception ex)

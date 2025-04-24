@@ -11,6 +11,13 @@
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployerService\MarketStat.Services.Dimensions.DimEmployerService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimCityService\MarketStat.Services.Dimensions.DimCityService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimDateService\MarketStat.Services.Dimensions.DimDateService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEducationService\MarketStat.Services.Dimensions.DimEducationService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployeeEducationService\MarketStat.Services.Dimensions.DimEmployeeEducationService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployeeService\MarketStat.Services.Dimensions.DimEmployeeService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimIndustryFieldService\MarketStat.Services.Dimensions.DimIndustryFieldService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobRoleService\MarketStat.Services.Dimensions.DimJobRoleService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Facts\MarketStat.Services.Facts.FactSalaryService\MarketStat.Services.Facts.FactSalaryService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
