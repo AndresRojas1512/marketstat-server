@@ -23,18 +23,15 @@ public class DimIndustryFieldServiceUnitTests
     [Fact]
     public async Task CreateIndustryFieldAsync_WithValidName_ReturnsNewField()
     {
-        // Arrange
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.GetAllIndustryFieldsAsync())
             .ReturnsAsync(new List<DimIndustryField>());
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.AddIndustryFieldAsync(It.IsAny<DimIndustryField>()))
             .Returns(Task.CompletedTask);
-
-        // Act
+        
         var result = await _dimIndustryFieldService.CreateIndustryFieldAsync("Tech");
-
-        // Assert
+        
         Assert.NotNull(result);
         Assert.Equal(1, result.IndustryFieldId);
         Assert.Equal("Tech", result.IndustryFieldName);
@@ -43,15 +40,13 @@ public class DimIndustryFieldServiceUnitTests
     [Fact]
     public async Task CreateIndustryFieldAsync_WithEmptyName_ThrowsArgumentException()
     {
-        // Arrange
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.GetAllIndustryFieldsAsync())
             .ReturnsAsync(new List<DimIndustryField>());
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.AddIndustryFieldAsync(It.IsAny<DimIndustryField>()))
             .Returns(Task.CompletedTask);
-
-        // Act & Assert
+        
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimIndustryFieldService.CreateIndustryFieldAsync(""));
     }
@@ -59,28 +54,23 @@ public class DimIndustryFieldServiceUnitTests
     [Fact]
     public async Task GetIndustryFieldByIdAsync_ExistingId_ReturnsField()
     {
-        // Arrange
         var existing = new DimIndustryField(42, "Finance");
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.GetIndustryFieldByIdAsync(42))
             .ReturnsAsync(existing);
-
-        // Act
+        
         var result = await _dimIndustryFieldService.GetIndustryFieldByIdAsync(42);
-
-        // Assert
+        
         Assert.Same(existing, result);
     }
     
     [Fact]
     public async Task GetIndustryFieldByIdAsync_NonExistingId_ThrowsException()
     {
-        // Arrange
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.GetIndustryFieldByIdAsync(It.IsAny<int>()))
             .ThrowsAsync(new KeyNotFoundException());
-
-        // Act & Assert
+        
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimIndustryFieldService.GetIndustryFieldByIdAsync(99));
         Assert.Contains("99", ex.Message);
@@ -89,7 +79,6 @@ public class DimIndustryFieldServiceUnitTests
     [Fact]
     public async Task GetAllIndustryFieldsAsync_ReturnsList()
     {
-        // Arrange
         var list = new List<DimIndustryField>
         {
             new DimIndustryField(1, "A"),
@@ -98,11 +87,9 @@ public class DimIndustryFieldServiceUnitTests
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.GetAllIndustryFieldsAsync())
             .ReturnsAsync(list);
-
-        // Act
+        
         var result = await _dimIndustryFieldService.GetAllIndustryFieldsAsync();
-
-        // Assert
+        
         Assert.Equal(2, result.Count());
         Assert.Collection(result,
             item => Assert.Equal("A", item.IndustryFieldName),
@@ -113,7 +100,6 @@ public class DimIndustryFieldServiceUnitTests
     [Fact]
     public async Task UpdateIndustryFieldAsync_WithValidParameters_ReturnsUpdated()
     {
-        // Arrange
         var existing = new DimIndustryField(7, "OldName");
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.GetIndustryFieldByIdAsync(7))
@@ -121,11 +107,9 @@ public class DimIndustryFieldServiceUnitTests
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.UpdateIndustryFieldAsync(It.IsAny<DimIndustryField>()))
             .Returns(Task.CompletedTask);
-
-        // Act
+        
         var updated = await _dimIndustryFieldService.UpdateIndustryFieldAsync(7, "NewName");
-
-        // Assert
+        
         Assert.Equal(7, updated.IndustryFieldId);
         Assert.Equal("NewName", updated.IndustryFieldName);
     }
@@ -133,12 +117,10 @@ public class DimIndustryFieldServiceUnitTests
     [Fact]
     public async Task UpdateIndustryFieldAsync_NonExistingId_ThrowsException()
     {
-        // Arrange
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.GetIndustryFieldByIdAsync(It.IsAny<int>()))
             .ThrowsAsync(new KeyNotFoundException());
-
-        // Act & Assert
+        
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimIndustryFieldService.UpdateIndustryFieldAsync(123, "Name"));
         Assert.Contains("123", ex.Message);
@@ -147,7 +129,6 @@ public class DimIndustryFieldServiceUnitTests
     [Fact]
     public async Task UpdateIndustryFieldAsync_WithEmptyName_ThrowsArgumentException()
     {
-        // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimIndustryFieldService.UpdateIndustryFieldAsync(1, ""));
     }
@@ -155,27 +136,22 @@ public class DimIndustryFieldServiceUnitTests
     [Fact]
     public async Task DeleteIndustryFieldAsync_ExistingId_Completes()
     {
-        // Arrange
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.DeleteIndustryFieldAsync(5))
             .Returns(Task.CompletedTask);
-
-        // Act
+        
         await _dimIndustryFieldService.DeleteIndustryFieldAsync(5);
-
-        // Assert
+        
         _dimIndustryFieldRepositoryMock.Verify(r => r.DeleteIndustryFieldAsync(5), Times.Once);
     }
 
     [Fact]
     public async Task DeleteIndustryFieldAsync_NonExistingId_ThrowsException()
     {
-        // Arrange
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.DeleteIndustryFieldAsync(It.IsAny<int>()))
             .ThrowsAsync(new KeyNotFoundException());
-
-        // Act & Assert
+        
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimIndustryFieldService.DeleteIndustryFieldAsync(88));
         Assert.Contains("88", ex.Message);

@@ -23,7 +23,6 @@ public class DimCityServiceUnitTests
     [Fact]
     public async Task CreateCityAsync_ValidParameters_ReturnsNewCity()
     {
-        // Arrange
         _dimCityRepositoryMock
             .Setup(r => r.GetAllCitiesAsync())
             .ReturnsAsync(new List<DimCity>());
@@ -31,10 +30,8 @@ public class DimCityServiceUnitTests
             .Setup(r => r.AddCityAsync(It.IsAny<DimCity>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         var city = await _dimCityService.CreateCityAsync("Moscow", "Moscow Oblast", "Central");
 
-        // Assert
         Assert.NotNull(city);
         Assert.Equal(1, city.CityId);
         Assert.Equal("Moscow", city.CityName);
@@ -52,7 +49,6 @@ public class DimCityServiceUnitTests
     [Fact]
     public async Task CreateCityAsync_Duplicate_ThrowsException()
     {
-        // Arrange
         _dimCityRepositoryMock
             .Setup(r => r.GetAllCitiesAsync())
             .ReturnsAsync(new List<DimCity>());
@@ -60,7 +56,6 @@ public class DimCityServiceUnitTests
             .Setup(r => r.AddCityAsync(It.IsAny<DimCity>()))
             .ThrowsAsync(new ArgumentException("duplicate"));
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimCityService.CreateCityAsync("Moscow", "Oblast", "District"));
 

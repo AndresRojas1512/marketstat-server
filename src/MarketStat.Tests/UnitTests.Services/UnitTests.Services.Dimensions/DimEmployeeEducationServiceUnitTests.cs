@@ -23,13 +23,10 @@ public class DimEmployeeEducationServiceUnitTests
     [Fact]
     public async Task AddEmployeeEducationAsync_ValidParameters_CallsRepositoryOnce()
     {
-        // Arrange
         const int empId = 1, eduId = 2;
-
-        // Act
+        
         await _dimEmployeeEducationService.AddEmployeeEducationAsync(empId, eduId);
-
-        // Assert
+        
         _dimEmployeeEducationRepositoryMock.Verify(r =>
                 r.AddEmployeeEducationAsync(
                     It.Is<DimEmployeeEducation>(l => l.EmployeeId == empId && l.EducationId == eduId)
@@ -57,13 +54,11 @@ public class DimEmployeeEducationServiceUnitTests
     [Fact]
     public async Task AddEmployeeEducationAsync_RepositoryThrows_WrapsAndThrowsException()
     {
-        // Arrange
         const int empId = 1, eduId = 2;
         _dimEmployeeEducationRepositoryMock
             .Setup(r => r.AddEmployeeEducationAsync(It.IsAny<DimEmployeeEducation>()))
             .ThrowsAsync(new InvalidOperationException("db error"));
-
-        // Act & Assert
+        
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimEmployeeEducationService.AddEmployeeEducationAsync(empId, eduId)
         );
@@ -73,13 +68,10 @@ public class DimEmployeeEducationServiceUnitTests
     [Fact]
     public async Task RemoveEmployeeEducationAsync_ValidParameters_CallsRepositoryOnce()
     {
-        // Arrange
         const int empId = 5, eduId = 7;
-
-        // Act
+        
         await _dimEmployeeEducationService.RemoveEmployeeEducationAsync(empId, eduId);
-
-        // Assert
+        
         _dimEmployeeEducationRepositoryMock.Verify(r =>
                 r.RemoveEmployeeEducationAsync(empId, eduId),
             Times.Once
@@ -105,13 +97,11 @@ public class DimEmployeeEducationServiceUnitTests
     [Fact]
     public async Task RemoveEmployeeEducationAsync_RepositoryThrows_WrapsAndThrowsException()
     {
-        // Arrange
         const int empId = 3, eduId = 4;
         _dimEmployeeEducationRepositoryMock
             .Setup(r => r.RemoveEmployeeEducationAsync(empId, eduId))
             .ThrowsAsync(new KeyNotFoundException("not found"));
-
-        // Act & Assert
+        
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimEmployeeEducationService.RemoveEmployeeEducationAsync(empId, eduId)
         );
@@ -121,7 +111,6 @@ public class DimEmployeeEducationServiceUnitTests
     [Fact]
     public async Task GetEducationsByEmployeeIdAsync_ValidId_ReturnsLinks()
     {
-        // Arrange
         const int empId = 10;
         var fakeList = new[]
         {
@@ -131,11 +120,9 @@ public class DimEmployeeEducationServiceUnitTests
         _dimEmployeeEducationRepositoryMock
             .Setup(r => r.GetEducationsByEmployeeIdAsync(empId))
             .ReturnsAsync(fakeList);
-
-        // Act
+        
         var result = await _dimEmployeeEducationService.GetEducationsByEmployeeIdAsync(empId);
-
-        // Assert
+        
         Assert.Equal(fakeList, result.ToList());
     }
     

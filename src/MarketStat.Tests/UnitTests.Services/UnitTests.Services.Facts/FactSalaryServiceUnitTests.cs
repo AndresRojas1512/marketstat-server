@@ -24,7 +24,6 @@ public class FactSalaryServiceUnitTests
     [Fact]
     public async Task CreateFactSalaryAsync_ValidParameters_ReturnsNewFact()
     {
-        // Arrange
         _factSalaryRepositoryMock
             .Setup(r => r.GetAllFactSalariesAsync())
             .ReturnsAsync(new List<FactSalary>());
@@ -33,13 +32,11 @@ public class FactSalaryServiceUnitTests
             .Setup(r => r.AddFactSalaryAsync(It.IsAny<FactSalary>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         var fact = await _factSalaryService.CreateFactSalaryAsync(
             dateId: 1, cityId: 2, employerId: 3, jobRoleId: 4,
             employeeId: 5, salaryAmount: 1000, bonusAmount: 100
         );
 
-        // Assert
         Assert.NotNull(fact);
         Assert.Equal(1, fact.SalaryFactId);
         Assert.Equal(1000, fact.SalaryAmount);
@@ -49,15 +46,12 @@ public class FactSalaryServiceUnitTests
     [Fact]
     public async Task CreateFactSalaryAsync_InvalidParameters_ThrowsArgumentException()
     {
-        // ID zero
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _factSalaryService.CreateFactSalaryAsync(
                 0, 1,1,1,1,1000,100));
-        // negative salary
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _factSalaryService.CreateFactSalaryAsync(
                 1, 1,1,1,1,-5,0));
-        // bonus negative
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _factSalaryService.CreateFactSalaryAsync(
                 1, 1,1,1,1,100, -1));
@@ -66,28 +60,23 @@ public class FactSalaryServiceUnitTests
     [Fact]
     public async Task GetFactSalaryByIdAsync_ExistingId_ReturnsFact()
     {
-        // Arrange
         var expected = new FactSalary(7,1,2,3,4,5,2000,200);
         _factSalaryRepositoryMock
             .Setup(r => r.GetFactSalaryByIdAsync(7))
             .ReturnsAsync(expected);
 
-        // Act
         var actual = await _factSalaryService.GetFactSalaryByIdAsync(7);
 
-        // Assert
         Assert.Same(expected, actual);
     }
     
     [Fact]
     public async Task GetFactSalaryByIdAsync_NotFound_ThrowsException()
     {
-        // Arrange
         _factSalaryRepositoryMock
             .Setup(r => r.GetFactSalaryByIdAsync(It.IsAny<int>()))
             .ThrowsAsync(new KeyNotFoundException());
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _factSalaryService.GetFactSalaryByIdAsync(99));
         Assert.Contains("99", ex.Message);
@@ -96,7 +85,6 @@ public class FactSalaryServiceUnitTests
     [Fact]
     public async Task GetAllFactSalariesAsync_ReturnsList()
     {
-        // Arrange
         var list = new List<FactSalary>
         {
             new FactSalary(1,1,1,1,1,1,100,0),
@@ -106,17 +94,14 @@ public class FactSalaryServiceUnitTests
             .Setup(r => r.GetAllFactSalariesAsync())
             .ReturnsAsync(list);
 
-        // Act
         var actual = await _factSalaryService.GetAllFactSalariesAsync();
 
-        // Assert
         Assert.Equal(2, actual.Count());
     }
     
     [Fact]
     public async Task GetFactSalariesByFilterAsync_FilteredCorrectly()
     {
-        // Arrange
         var all = new[]
         {
             new FactSalary(1,1,10,1,1,1,100,0),
@@ -130,10 +115,8 @@ public class FactSalaryServiceUnitTests
 
         var filter = new FactSalaryFilter { CityId = 10 };
 
-        // Act
         var actual = await _factSalaryService.GetFactSalariesByFilterAsync(filter);
 
-        // Assert
         Assert.All(actual, f => Assert.Equal(10, f.CityId));
         Assert.Equal(2, actual.Count());
     }
@@ -141,7 +124,6 @@ public class FactSalaryServiceUnitTests
     [Fact]
     public async Task UpdateFactSalaryAsync_ValidParameters_ReturnsUpdatedFact()
     {
-        // Arrange
         var existing = new FactSalary(5,1,1,1,1,1,500,50);
         _factSalaryRepositoryMock
             .Setup(r => r.GetFactSalaryByIdAsync(5))
@@ -150,7 +132,6 @@ public class FactSalaryServiceUnitTests
             .Setup(r => r.UpdateFactSalaryAsync(It.IsAny<FactSalary>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         var updated = await _factSalaryService.UpdateFactSalaryAsync(
             salaryFactId: 5,
             dateId: 2, cityId: 2, employerId: 2,
@@ -158,7 +139,6 @@ public class FactSalaryServiceUnitTests
             salaryAmount: 600, bonusAmount: 60
         );
 
-        // Assert
         Assert.Equal(5, updated.SalaryFactId);
         Assert.Equal(600, updated.SalaryAmount);
         Assert.Equal(60, updated.BonusAmount);
@@ -183,12 +163,10 @@ public class FactSalaryServiceUnitTests
     [Fact]
     public async Task UpdateFactSalaryAsync_NotFound_ThrowsException()
     {
-        // Arrange
         _factSalaryRepositoryMock
             .Setup(r => r.GetFactSalaryByIdAsync(It.IsAny<int>()))
             .ThrowsAsync(new KeyNotFoundException());
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _factSalaryService.UpdateFactSalaryAsync(
                 salaryFactId: 42, dateId:1, cityId:1,
@@ -200,27 +178,22 @@ public class FactSalaryServiceUnitTests
     [Fact]
     public async Task DeleteFactSalaryAsync_Existing_Completes()
     {
-        // Arrange
         _factSalaryRepositoryMock
             .Setup(r => r.DeleteFactSalaryByIdAsync(9))
             .Returns(Task.CompletedTask);
 
-        // Act
         await _factSalaryService.DeleteFactSalaryAsync(9);
 
-        // Assert
         _factSalaryRepositoryMock.Verify(r => r.DeleteFactSalaryByIdAsync(9), Times.Once);
     }
     
     [Fact]
     public async Task DeleteFactSalaryAsync_NotFound_ThrowsException()
     {
-        // Arrange
         _factSalaryRepositoryMock
             .Setup(r => r.DeleteFactSalaryByIdAsync(It.IsAny<int>()))
             .ThrowsAsync(new KeyNotFoundException());
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _factSalaryService.DeleteFactSalaryAsync(123));
         Assert.Contains("123", ex.Message);
@@ -229,22 +202,18 @@ public class FactSalaryServiceUnitTests
     [Fact]
     public async Task GetAverageSalaryAsync_NoMatches_ReturnsZero()
     {
-        // Arrange
         _factSalaryRepositoryMock
             .Setup(r => r.GetFactSalariesByFilterAsync(It.IsAny<FactSalaryFilter>()))
             .ReturnsAsync(Array.Empty<FactSalary>());
 
-        // Act
         var avg = await _factSalaryService.GetAverageSalaryAsync(new FactSalaryFilter());
 
-        // Assert
         Assert.Equal(0m, avg);
     }
     
     [Fact]
     public async Task GetAverageSalaryAsync_WithMatches_ReturnsCorrectAverage()
     {
-        // Arrange
         var list = new[]
         {
             new FactSalary(1,1,1,1,1,1,100,0),
@@ -255,10 +224,8 @@ public class FactSalaryServiceUnitTests
             .Setup(r => r.GetFactSalariesByFilterAsync(It.IsAny<FactSalaryFilter>()))
             .ReturnsAsync(list);
 
-        // Act
         var avg = await _factSalaryService.GetAverageSalaryAsync(new FactSalaryFilter());
 
-        // Assert
         Assert.Equal(200m, avg);
     }
 

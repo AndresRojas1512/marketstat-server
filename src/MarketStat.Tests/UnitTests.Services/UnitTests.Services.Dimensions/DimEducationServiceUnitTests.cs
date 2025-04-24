@@ -23,7 +23,6 @@ public class DimEducationServiceUnitTests
     [Fact]
     public async Task CreateEducationAsync_ValidParameters_ReturnsNewDimEducation()
     {
-        // Arrange
         _dimEducationRepositoryMock
             .Setup(r => r.GetAllEducationsAsync())
             .ReturnsAsync(new List<DimEducation>());
@@ -31,12 +30,10 @@ public class DimEducationServiceUnitTests
             .Setup(r => r.AddEducationAsync(It.IsAny<DimEducation>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         var result = await _dimEducationService.CreateEducationAsync(
             "Computer Science", "Master"
         );
 
-        // Assert
         Assert.Equal(1, result.EducationId);
         Assert.Equal("Computer Science", result.Specialization);
         Assert.Equal("Master", result.EducationLevel);
@@ -52,7 +49,6 @@ public class DimEducationServiceUnitTests
     [Fact]
     public async Task CreateEducationAsync_Duplicate_ThrowsException()
     {
-        // Arrange
         _dimEducationRepositoryMock
             .Setup(r => r.GetAllEducationsAsync())
             .ReturnsAsync(new List<DimEducation>());
@@ -60,7 +56,6 @@ public class DimEducationServiceUnitTests
             .Setup(r => r.AddEducationAsync(It.IsAny<DimEducation>()))
             .ThrowsAsync(new InvalidOperationException("duplicate"));
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimEducationService.CreateEducationAsync("Math", "PhD")
         );
@@ -86,28 +81,23 @@ public class DimEducationServiceUnitTests
     [Fact]
     public async Task GetEducationByIdAsync_Existing_ReturnsDimEducation()
     {
-        // Arrange
         var expected = new DimEducation(5, "Bio", "Bachelor");
         _dimEducationRepositoryMock
             .Setup(r => r.GetEducationByIdAsync(5))
             .ReturnsAsync(expected);
 
-        // Act
         var actual = await _dimEducationService.GetEducationByIdAsync(5);
 
-        // Assert
         Assert.Same(expected, actual);
     }
     
     [Fact]
     public async Task GetEducationByIdAsync_NotFound_ThrowsException()
     {
-        // Arrange
         _dimEducationRepositoryMock
             .Setup(r => r.GetEducationByIdAsync(7))
             .ThrowsAsync(new KeyNotFoundException());
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimEducationService.GetEducationByIdAsync(7)
         );
@@ -117,7 +107,6 @@ public class DimEducationServiceUnitTests
     [Fact]
     public async Task GetAllEducationsAsync_ReturnsList()
     {
-        // Arrange
         var list = new List<DimEducation>
         {
             new DimEducation(1, "CS", "BSc"),
@@ -127,10 +116,8 @@ public class DimEducationServiceUnitTests
             .Setup(r => r.GetAllEducationsAsync())
             .ReturnsAsync(list);
 
-        // Act
         var result = (await _dimEducationService.GetAllEducationsAsync()).ToList();
-
-        // Assert
+        
         Assert.Equal(2, result.Count);
         Assert.Equal(list, result);
     }
@@ -138,7 +125,6 @@ public class DimEducationServiceUnitTests
     [Fact]
     public async Task UpdateEducationAsync_ValidParameters_UpdatesAndReturns()
     {
-        // Arrange
         var existing = new DimEducation(3, "Eng", "BEng");
         _dimEducationRepositoryMock
             .Setup(r => r.GetEducationByIdAsync(3))
@@ -147,10 +133,8 @@ public class DimEducationServiceUnitTests
             .Setup(r => r.UpdateEducationAsync(It.IsAny<DimEducation>()))
             .Returns(Task.CompletedTask);
 
-        // Act
         var updated = await _dimEducationService.UpdateEducationAsync(3, "Engineering", "MEng");
 
-        // Assert
         Assert.Equal(3, updated.EducationId);
         Assert.Equal("Engineering", updated.Specialization);
         Assert.Equal("MEng", updated.EducationLevel);
@@ -166,12 +150,10 @@ public class DimEducationServiceUnitTests
     [Fact]
     public async Task UpdateEducationAsync_NotFound_ThrowsException()
     {
-        // Arrange
         _dimEducationRepositoryMock
             .Setup(r => r.GetEducationByIdAsync(9))
             .ThrowsAsync(new KeyNotFoundException());
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimEducationService.UpdateEducationAsync(9, "X", "Y")
         );
@@ -197,7 +179,6 @@ public class DimEducationServiceUnitTests
     [Fact]
     public async Task UpdateEducationAsync_EmptyEducationLevel_ThrowsArgumentException()
     {
-        // educationLevel empty or whitespace
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimEducationService.UpdateEducationAsync(1, "History", "")
         );
@@ -206,27 +187,22 @@ public class DimEducationServiceUnitTests
     [Fact]
     public async Task DeleteEducationAsync_Existing_Completes()
     {
-        // Arrange
         _dimEducationRepositoryMock
             .Setup(r => r.DeleteEducationAsync(4))
             .Returns(Task.CompletedTask);
 
-        // Act
         await _dimEducationService.DeleteEducationAsync(4);
 
-        // Assert
         _dimEducationRepositoryMock.Verify(r => r.DeleteEducationAsync(4), Times.Once);
     }
     
     [Fact]
     public async Task DeleteEducationAsync_NotFound_ThrowsException()
     {
-        // Arrange
         _dimEducationRepositoryMock
             .Setup(r => r.DeleteEducationAsync(6))
             .ThrowsAsync(new KeyNotFoundException());
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimEducationService.DeleteEducationAsync(6)
         );
