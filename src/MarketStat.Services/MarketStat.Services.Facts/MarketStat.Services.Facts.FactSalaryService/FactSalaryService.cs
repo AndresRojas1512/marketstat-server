@@ -1,6 +1,7 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Database.Core.Repositories.Facts;
+using MarketStat.Services.Facts.FactSalaryService.Validators;
 using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Services.Facts.FactSalaryService;
@@ -15,17 +16,109 @@ public class FactSalaryService : IFactSalaryService
         _factSalaryRepository = factSalaryRepository;
         _logger = logger;
     }
+    
+    public async Task<FactSalary> CreateFactSalaryAsync(int dateId, int cityId, int employerId, int jobRoleId, 
+        int employeeId, int salaryAmount, int bonusAmount)
+    {
+        var all = (await _factSalaryRepository.GetAllFactSalariesAsync()).ToList();
+        var newId = all.Any() ? all.Max(f => f.SalaryFactId) + 1 : 1;
+        FactSalaryValidator.ValidateParameters(
+            newId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount, checkId: false);
+
+        var fact = new FactSalary(newId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
+
+        try
+        {
+            await _factSalaryRepository.AddFactSalaryAsync(fact);
+            _logger.LogInformation("Created FactSalary {FactId}", newId);
+            return fact;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create FactSalary (duplicate {FactId})", newId);
+            throw new Exception($"Could not create salary fact {newId}");
+        }
+    }
+    
+    public async Task<FactSalary> GetFactSalaryByIdAsync(int salaryFactId)
+    {
+        try
+        {
+            return await _factSalaryRepository.GetFactSalaryByIdAsync(salaryFactId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "FactSalary {FactId} not found", salaryFactId);
+            throw new Exception($"Salary fact {salaryFactId} was not found.");
+        }
+    }
+    
+    public async Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync()
+    {
+        var list = await _factSalaryRepository.GetAllFactSalariesAsync();
+        _logger.LogInformation("Fetched {Count} salary fact records", list.Count());
+        return list;
+    }
+    
+    public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(FactSalaryFilter filter)
+    {
+        var list = (await _factSalaryRepository.GetFactSalariesByFilterAsync(filter)).ToList();
+        _logger.LogInformation("Fetched {Count} facts by filter {@Filter}", list.Count, filter);
+        return list;
+    }
+    
+    public async Task<FactSalary> UpdateFactSalaryAsync(int salaryFactId, int dateId, int cityId, int employerId,
+        int jobRoleId, int employeeId, int salaryAmount, int bonusAmount)
+    {
+        FactSalaryValidator.ValidateParameters(
+            salaryFactId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
+
+        try
+        {
+            var existing = await _factSalaryRepository.GetFactSalaryByIdAsync(salaryFactId);
+            existing.DateId = dateId;
+            existing.CityId = cityId;
+            existing.EmployerId = employerId;
+            existing.JobRoleId = jobRoleId;
+            existing.EmployeeId = employeeId;
+            existing.SalaryAmount = salaryAmount;
+            existing.BonusAmount = bonusAmount;
+
+            await _factSalaryRepository.UpdateFactSalaryAsync(existing);
+            _logger.LogInformation("Updated FactSalary {FactId}", salaryFactId);
+            return existing;
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Cannot update, FactSalary {FactId} not found", salaryFactId);
+            throw new Exception($"Cannot update: salary fact {salaryFactId} not found.");
+        }
+    }
+    
+    public async Task DeleteFactSalaryAsync(int salaryFactId)
+    {
+        try
+        {
+            await _factSalaryRepository.DeleteFactSalaryByIdAsync(salaryFactId);
+            _logger.LogInformation("Deleted FactSalary {FactId}", salaryFactId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Cannot delete, FactSalary {FactId} not found", salaryFactId);
+            throw new Exception($"Cannot delete: salary fact {salaryFactId} not found.");
+        }
+    }
 
     public async Task<decimal> GetAverageSalaryAsync(FactSalaryFilter filter)
     {
-        var facts = await _factSalaryRepository.GetSalaryByFilterAsync(filter);
+        var facts   = await _factSalaryRepository.GetFactSalariesByFilterAsync(filter);
         var amounts = facts.Select(f => f.SalaryAmount).ToList();
         if (!amounts.Any())
         {
-            _logger.LogInformation("No salary records match filter {@filter}", filter);
+            _logger.LogInformation("No salary records match filter {@Filter}", filter);
             return 0m;
         }
-        var avg = (decimal)amounts.Average();
+        var avg = amounts.Select(a => (decimal)a).Average();
         _logger.LogInformation("Computed average {Average} for filter {@Filter}", avg, filter);
         return avg;
     }

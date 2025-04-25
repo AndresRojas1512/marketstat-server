@@ -11,6 +11,6 @@ public class DimEmployerValidator
         if (employerName.Length > 255)
             throw new ArgumentException("Employer name must be 255 less characters or fewer");
         if (!string.IsNullOrEmpty(industry) && industry.Length > 255)
-            throw new ArgumentException("Industry must be 100 characters or fewer");
+            throw new ArgumentException("Industry must be 255 characters or fewer");
     }
 }

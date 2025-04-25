@@ -5,13 +5,13 @@ public class DimJobRole
     public int JobRoleId { get; set; }
     public string JobRoleTitle { get; set; }
     public string SeniorityLevel { get; set; }
-    public int FieldId { get; set; }
+    public int IndustryFieldId { get; set; }
 
-    public DimJobRole(int jobRoleId, string jobRoleTitle, string seniorityLevel, int fieldId)
+    public DimJobRole(int jobRoleId, string jobRoleTitle, string seniorityLevel, int industryFieldId)
     {
         JobRoleId = jobRoleId;
         JobRoleTitle = jobRoleTitle;
         SeniorityLevel = seniorityLevel;
-        FieldId = fieldId;
+        IndustryFieldId = industryFieldId;
     }
 }
