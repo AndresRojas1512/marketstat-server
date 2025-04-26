@@ -2,7 +2,7 @@
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEmployerService;
-using MarketStat.TechUI.Commands.Domains.DimEmployerCommands;
+using MarketStat.TechUI.Commands.Dimensions.DimEmployerCommands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
