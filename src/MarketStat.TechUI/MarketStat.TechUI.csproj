@@ -4,6 +4,8 @@
     <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployerService\MarketStat.Services.Dimensions.DimEmployerService.csproj" />
     <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Converter\MarketStat.Common.Converter.csproj" />
     <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Core\MarketStat.Database.Core.csproj" />
+    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
+    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Repositories\MarketStat.Database.Repositories.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -14,6 +16,18 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Commands\Facts\" />
   </ItemGroup>
 
   <PropertyGroup>
