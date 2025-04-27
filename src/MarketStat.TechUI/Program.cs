@@ -33,4 +33,3 @@ class Program
         await host.Services.GetRequiredService<ConsoleApp>().RunAsync();
     }
 }
-
