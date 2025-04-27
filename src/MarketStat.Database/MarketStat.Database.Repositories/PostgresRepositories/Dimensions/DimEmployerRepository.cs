@@ -16,7 +16,6 @@ public class DimEmployerRepository : IDimEmployerRepository
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
     
-    // TODO: use db context
     public async Task AddEmployerAsync(DimEmployer employer)
     {
         var dbEmployer = DimEmployerConverter.ToDbModel(employer);
