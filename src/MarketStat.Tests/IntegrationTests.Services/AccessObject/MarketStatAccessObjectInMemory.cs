@@ -4,6 +4,7 @@ using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Models;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
+using MarketStat.Services.Dimensions.DimDateService;
 using MarketStat.Services.Dimensions.DimEmployerService;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using MarketStat.Services.Dimensions.DimJobRoleService;
@@ -17,10 +18,12 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimEmployerRepository EmployerRepository { get; }
     public IDimIndustryFieldRepository IndustryFieldRepository { get; }
     public IDimJobRoleRepository JobRoleRepository { get; }
+    public IDimDateRepository DimDateRepository { get; }
     
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
     public IDimJobRoleService JobRoleService { get; }
+    public IDimDateService DimDateService { get; }
 
     public MarketStatAccessObjectInMemory()
     {
@@ -34,6 +37,9 @@ public class MarketStatAccessObjectInMemory : IDisposable
         
         JobRoleRepository = new DimJobRoleRepository(Context);
         JobRoleService = new DimJobRoleService(JobRoleRepository, NullLogger<DimJobRoleService>.Instance);
+        
+        DimDateRepository = new DimDateRepository(Context);
+        DimDateService = new DimDateService(DimDateRepository, NullLogger<DimDateService>.Instance);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)
@@ -59,6 +65,15 @@ public class MarketStatAccessObjectInMemory : IDisposable
         foreach (var j in items)
         {
             Context.DimJobRoles.Add(DimJobRoleConverter.ToDbModel(j));
+        }
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedDateAsync(IEnumerable<DimDate> items)
+    {
+        foreach (var d in items)
+        {
+            Context.DimDates.Add(DimDateConverter.ToDbModel(d));
         }
         await Context.SaveChangesAsync();
     }
