@@ -32,12 +32,12 @@ public class DimEmployerServiceIntegrationTests : IDisposable
     {
         var seed = new List<DimEmployer>
         {
-            new DimEmployer(1, "A Corp", "Tech", true),
-            new DimEmployer(2, "B LLC", "Retail", false)
+            new DimEmployer(1, "A Corp", true),
+            new DimEmployer(2, "B LLC", false)
         };
         await _accessObject.SeedEmployerAsync(seed);
         var all = (await _dimEmployerService.GetAllEmployersAsync()).ToList();
-        Assert.Contains(all, e => e.EmployerName == "A Corp" && e.Industry == "Tech");
-        Assert.Contains(all, e => e.EmployerName == "B LLC"  && e.Industry == "Retail");
+        Assert.Contains(all, e => e.EmployerName == "A Corp");
+        Assert.Contains(all, e => e.EmployerName == "B LLC");
     }
 }

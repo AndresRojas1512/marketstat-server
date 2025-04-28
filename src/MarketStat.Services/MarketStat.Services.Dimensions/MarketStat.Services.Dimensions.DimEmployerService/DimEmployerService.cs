@@ -16,12 +16,12 @@ public class DimEmployerService : IDimEmployerService
         _logger = logger;
     }
 
-    public async Task<DimEmployer> CreateEmployerAsync(string employerName, string industry, bool isPublic)
+    public async Task<DimEmployer> CreateEmployerAsync(string employerName, bool isPublic)
     {
         var allEmployers = (await _dimEmployerRepository.GetAllEmployersAsync()).ToList();
         int newEmployerId = allEmployers.Any() ? allEmployers.Max(e => e.EmployerId) + 1 : 1;
-        DimEmployerValidator.ValidateParameters(newEmployerId, employerName, industry, isPublic);
-        var employer = new DimEmployer(newEmployerId, employerName, industry, isPublic);
+        DimEmployerValidator.ValidateParameters(newEmployerId, employerName, isPublic);
+        var employer = new DimEmployer(newEmployerId, employerName, isPublic);
         
         try
         {
@@ -56,14 +56,13 @@ public class DimEmployerService : IDimEmployerService
         return employers;
     }
 
-    public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, string industry, bool isPublic)
+    public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, bool isPublic)
     {
         try
         {
-            DimEmployerValidator.ValidateParameters(employerId, employerName, industry, isPublic);
+            DimEmployerValidator.ValidateParameters(employerId, employerName, isPublic);
             var existingEmployer = await _dimEmployerRepository.GetEmployerByIdAsync(employerId);
             existingEmployer.EmployerName = employerName;
-            existingEmployer.Industry = industry;
             existingEmployer.IsPublic = isPublic;
             await _dimEmployerRepository.UpdateEmployerAsync(existingEmployer);
             _logger.LogInformation("Updated DimEmployer {EmployerId}", employerId);

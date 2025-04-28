@@ -10,7 +10,6 @@ public static class DimEmployerConverter
         return new DimEmployerDbModel(
             dimEmployer.EmployerId,
             dimEmployer.EmployerName,
-            dimEmployer.Industry,
             dimEmployer.IsPublic
         );
     }
@@ -20,7 +19,6 @@ public static class DimEmployerConverter
         return new DimEmployer(
             dbDimEmployer.EmployerId,
             dbDimEmployer.EmployerName,
-            dbDimEmployer.Industry,
             dbDimEmployer.IsPublic
         );
     }

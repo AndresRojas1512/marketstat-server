@@ -41,7 +41,6 @@ public class DimEmployerRepository : IDimEmployerRepository
         var dbEmployer = await _dbContext.DimEmployers.FindAsync(employer.EmployerId) 
                          ?? throw new KeyNotFoundException($"Cannot update Employer {employer.EmployerId}.");
         dbEmployer.EmployerName = employer.EmployerName;
-        dbEmployer.Industry = employer.Industry;
         dbEmployer.IsPublic = employer.IsPublic;
         await _dbContext.SaveChangesAsync();
     }
