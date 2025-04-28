@@ -31,7 +31,7 @@ public class DimEmployerService : IDimEmployerService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimEmployer (duplicate {EmployerId})", employer.EmployerId);
+            _logger.LogError(ex, "Failed to create DimEmployer {EmployerId}.", employer.EmployerId);
             throw new Exception($"An employer with ID {employer.EmployerId} already exists.");
         }
     }

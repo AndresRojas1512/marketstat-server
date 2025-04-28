@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Services.Dimensions.DimIndustryFieldService;
 
-public class DimIndustryFieldService
+public class DimIndustryFieldService : IDimIndustryFieldService
 {
     private readonly IDimIndustryFieldRepository _dimIndustryFieldRepository;
     private readonly ILogger<DimIndustryFieldService> _logger;
@@ -19,21 +19,20 @@ public class DimIndustryFieldService
     
     public async Task<DimIndustryField> CreateIndustryFieldAsync(string industryFieldName)
     {
-        var all = (await _dimIndustryFieldRepository.GetAllIndustryFieldsAsync()).ToList();
-        var newId = all.Any() ? all.Max(f => f.IndustryFieldId) + 1 : 1;
-
+        var allIndustryFields = (await _dimIndustryFieldRepository.GetAllIndustryFieldsAsync()).ToList();
+        var newId = allIndustryFields.Any() ? allIndustryFields.Max(f => f.IndustryFieldId) + 1 : 1;
         DimIndustryFieldValidator.ValidateParameters(newId, industryFieldName, checkId: false);
-        var field = new DimIndustryField(newId, industryFieldName);
+        var industryField = new DimIndustryField(newId, industryFieldName);
 
         try
         {
-            await _dimIndustryFieldRepository.AddIndustryFieldAsync(field);
+            await _dimIndustryFieldRepository.AddIndustryFieldAsync(industryField);
             _logger.LogInformation("Created DimIndustryField {IndustryFieldId}", newId);
-            return field;
+            return industryField;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimIndustryField {IndustryFieldId}", newId);
+            _logger.LogError(ex, "Failed to create DimIndustryField {IndustryFieldId}.", newId);
             throw new Exception($"Could not create industry field {industryFieldName}");
         }
     }
@@ -53,21 +52,21 @@ public class DimIndustryFieldService
     
     public async Task<IEnumerable<DimIndustryField>> GetAllIndustryFieldsAsync()
     {
-        var list = await _dimIndustryFieldRepository.GetAllIndustryFieldsAsync();
-        _logger.LogInformation("Fetched {Count} industry fields", list.Count());
-        return list;
+        var industryFields = await _dimIndustryFieldRepository.GetAllIndustryFieldsAsync();
+        _logger.LogInformation("Fetched {Count} industry fields", industryFields.Count());
+        return industryFields;
     }
     
     public async Task<DimIndustryField> UpdateIndustryFieldAsync(int industryFieldId, string industryFieldName)
     {
-        DimIndustryFieldValidator.ValidateParameters(industryFieldId, industryFieldName);
         try
         {
-            var existing = await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId);
-            existing.IndustryFieldName = industryFieldName;
-            await _dimIndustryFieldRepository.UpdateIndustryFieldAsync(existing);
+            DimIndustryFieldValidator.ValidateParameters(industryFieldId, industryFieldName);
+            var existingIndustryField = await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId);
+            existingIndustryField.IndustryFieldName = industryFieldName;
+            await _dimIndustryFieldRepository.UpdateIndustryFieldAsync(existingIndustryField);
             _logger.LogInformation("Updated DimIndustryField {IndustryFieldId}", industryFieldId);
-            return existing;
+            return existingIndustryField;
         }
         catch (KeyNotFoundException ex)
         {

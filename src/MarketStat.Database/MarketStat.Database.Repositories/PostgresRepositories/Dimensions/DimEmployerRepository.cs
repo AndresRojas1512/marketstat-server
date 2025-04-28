@@ -25,8 +25,8 @@ public class DimEmployerRepository : IDimEmployerRepository
 
     public async Task<DimEmployer> GetEmployerByIdAsync(int employerId)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId)
-            ?? throw new KeyNotFoundException($"Employer {employerId} not found.");
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId) 
+                         ?? throw new KeyNotFoundException($"Employer {employerId} not found.");
         return DimEmployerConverter.ToDomain(dbEmployer);
     }
 
@@ -38,8 +38,8 @@ public class DimEmployerRepository : IDimEmployerRepository
 
     public async Task UpdateEmployerAsync(DimEmployer employer)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employer.EmployerId)
-            ?? throw new KeyNotFoundException($"Cannot update {employer.EmployerId}.");
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employer.EmployerId) 
+                         ?? throw new KeyNotFoundException($"Cannot update {employer.EmployerId}.");
         dbEmployer.EmployerName = employer.EmployerName;
         dbEmployer.Industry = employer.Industry;
         dbEmployer.IsPublic = employer.IsPublic;
@@ -48,9 +48,9 @@ public class DimEmployerRepository : IDimEmployerRepository
 
     public async Task DeleteEmployerAsync(int employerId)
     {
-        var dbModel = await _dbContext.DimEmployers.FindAsync(employerId)
-            ?? throw new KeyNotFoundException($"Cannot delete {employerId}.");
-        _dbContext.DimEmployers.Remove(dbModel);
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId) 
+                         ?? throw new KeyNotFoundException($"Cannot delete {employerId}.");
+        _dbContext.DimEmployers.Remove(dbEmployer);
         await _dbContext.SaveChangesAsync();
     }
 }

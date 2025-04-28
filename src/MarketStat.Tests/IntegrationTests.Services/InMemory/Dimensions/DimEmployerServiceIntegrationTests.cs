@@ -21,14 +21,14 @@ public class DimEmployerServiceIntegrationTests : IDisposable
     public void Dispose() => _accessObject.Dispose();
     
     [Fact]
-    public async Task GetAll_Empty_ReturnsEmpty()
+    public async Task GetAllEmployers_Empty_ReturnsEmpty()
     {
         var all = await _dimEmployerService.GetAllEmployersAsync();
         Assert.Empty(all);
     }
 
     [Fact]
-    public async Task GetAll_Seeded_ReturnsSeeded()
+    public async Task GetAllEmployers_Seeded_ReturnsSeeded()
     {
         var seed = new List<DimEmployer>
         {

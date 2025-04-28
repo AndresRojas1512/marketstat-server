@@ -11,10 +11,12 @@ public class MarketStatDbContext : DbContext
     }
     
     public DbSet<DimEmployerDbModel> DimEmployers { get; set; }
+    public DbSet<DimIndustryFieldDbModel> DimIndustryFields { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DimEmployerDbModel>().ToTable("dim_employers").HasKey(e => e.EmployerId);
+        modelBuilder.Entity<DimIndustryFieldDbModel>().ToTable("dim_industry_fields").HasKey(i => i.IndustryFieldId);
         base.OnModelCreating(modelBuilder);
     }
 }
