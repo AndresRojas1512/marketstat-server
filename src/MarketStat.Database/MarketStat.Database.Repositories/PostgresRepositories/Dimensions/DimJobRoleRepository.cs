@@ -1,51 +1,55 @@
+using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
 public class DimJobRoleRepository : IDimJobRoleRepository
 {
-    private readonly Dictionary<int, DimJobRole> _jobRoles = new Dictionary<int, DimJobRole>();
+    private readonly MarketStatDbContext _dbContext;
+
+    public DimJobRoleRepository(MarketStatDbContext dbContext)
+    {
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    }
     
-    public Task AddJobRoleAsync(DimJobRole jobRole)
+    public async Task AddJobRoleAsync(DimJobRole jobRole)
     {
-        if (!_jobRoles.TryAdd(jobRole.JobRoleId, jobRole))
-        {
-            throw new ArgumentException($"JobRole {jobRole.JobRoleId} already exists.");
-        }
-        return Task.CompletedTask;
+        var dbJobRole = DimJobRoleConverter.ToDbModel(jobRole);
+        await _dbContext.DimJobRoles.AddAsync(dbJobRole);
+        await _dbContext.SaveChangesAsync();
     }
 
-    public Task<DimJobRole> GetJobRoleByIdAsync(int jobRoleId)
+    public async Task<DimJobRole> GetJobRoleByIdAsync(int jobRoleId)
     {
-        if (_jobRoles.TryGetValue(jobRoleId, out var j))
-        {
-            return Task.FromResult(j);
-        }
-        throw new KeyNotFoundException($"JobRole {jobRoleId} not found.");
+        var dbJobRole = await _dbContext.DimJobRoles.FindAsync(jobRoleId) 
+                        ?? throw new KeyNotFoundException($"Job Role {jobRoleId} not found.");
+        return DimJobRoleConverter.ToDomain(dbJobRole);
     }
 
-    public Task<IEnumerable<DimJobRole>> GetAllJobRolesAsync()
+    public async Task<IEnumerable<DimJobRole>> GetAllJobRolesAsync()
     {
-        return Task.FromResult<IEnumerable<DimJobRole>>(_jobRoles.Values);
+        var allDbJobRoles = await _dbContext.DimJobRoles.ToListAsync();
+        return allDbJobRoles.Select(DimJobRoleConverter.ToDomain);
     }
 
-    public Task UpdateJobRoleAsync(DimJobRole jobRole)
+    public async Task UpdateJobRoleAsync(DimJobRole jobRole)
     {
-        if (!_jobRoles.ContainsKey(jobRole.JobRoleId))
-        {
-            throw new KeyNotFoundException($"Cannot update: JobRole {jobRole.JobRoleId} not found.");
-        }
-        _jobRoles[jobRole.JobRoleId] = jobRole;
-        return Task.CompletedTask;
+        var dbJobRole = await _dbContext.DimJobRoles.FindAsync(jobRole.JobRoleId) 
+                        ?? throw new KeyNotFoundException($"Cannot update Job Role {jobRole.JobRoleId}.");
+        dbJobRole.JobRoleTitle = jobRole.JobRoleTitle;
+        dbJobRole.IndustryFieldId = jobRole.IndustryFieldId;
+        dbJobRole.HierarchyLevelId = jobRole.HierarchyLevelId;
+        await _dbContext.SaveChangesAsync();
     }
 
-    public Task DeleteJobRoleAsync(int jobRoleId)
+    public async Task DeleteJobRoleAsync(int jobRoleId)
     {
-        if (!_jobRoles.ContainsKey(jobRoleId))
-        {
-            throw new KeyNotFoundException($"Cannot delete: JobRole {jobRoleId} not found.");
-        }
-        return Task.CompletedTask;
+        var dbJobRole = await _dbContext.DimJobRoles.FindAsync(jobRoleId) 
+                        ?? throw new KeyNotFoundException($"Cannot delete Job Role {jobRoleId}.");
+        _dbContext.DimJobRoles.Remove(dbJobRole);
+        await _dbContext.SaveChangesAsync();
     }
 }

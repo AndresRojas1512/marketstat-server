@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Services.Dimensions.DimJobRoleService;
 
-public class DimJobRoleService
+public class DimJobRoleService : IDimJobRoleService
 {
     private readonly IDimJobRoleRepository _dimJobRoleRepository;
     private readonly ILogger<DimJobRoleService> _logger;
@@ -16,12 +16,12 @@ public class DimJobRoleService
         _logger = logger;
     }
     
-    public async Task<DimJobRole> CreateJobRoleAsync(string jobRoleTitle, string seniorityLevel, int industryFieldId)
+    public async Task<DimJobRole> CreateJobRoleAsync(string jobRoleTitle, int industryFieldId, int hierarchyLevelId)
     {
         var all = (await _dimJobRoleRepository.GetAllJobRolesAsync()).ToList();
         var newId = all.Any() ? all.Max(r => r.JobRoleId) + 1 : 1;
-        DimJobRoleValidator.ValidateParameters(newId, jobRoleTitle, seniorityLevel, industryFieldId, checkId: false);
-        var role = new DimJobRole(newId, jobRoleTitle, seniorityLevel, industryFieldId);
+        DimJobRoleValidator.ValidateParameters(newId, jobRoleTitle, industryFieldId, hierarchyLevelId);
+        var role = new DimJobRole(newId, jobRoleTitle, industryFieldId, hierarchyLevelId);
         try
         {
             await _dimJobRoleRepository.AddJobRoleAsync(role);
@@ -55,15 +55,15 @@ public class DimJobRoleService
         return list;
     }
     
-    public async Task<DimJobRole> UpdateJobRoleAsync(int jobRoleId, string jobRoleTitle, string seniorityLevel, int industryFieldId)
+    public async Task<DimJobRole> UpdateJobRoleAsync(int jobRoleId, string jobRoleTitle, int industryFieldId, int hierarchyLevelId)
     {
-        DimJobRoleValidator.ValidateParameters(jobRoleId, jobRoleTitle, seniorityLevel, industryFieldId);
         try
         {
+            DimJobRoleValidator.ValidateParameters(jobRoleId, jobRoleTitle, industryFieldId, hierarchyLevelId);
             var existing = await _dimJobRoleRepository.GetJobRoleByIdAsync(jobRoleId);
             existing.JobRoleTitle   = jobRoleTitle;
-            existing.SeniorityLevel = seniorityLevel;
             existing.IndustryFieldId = industryFieldId;
+            existing.HierarchyLevelId = hierarchyLevelId;
 
             await _dimJobRoleRepository.UpdateJobRoleAsync(existing);
             _logger.LogInformation("Updated DimJobRole {JobRoleId}", jobRoleId);
