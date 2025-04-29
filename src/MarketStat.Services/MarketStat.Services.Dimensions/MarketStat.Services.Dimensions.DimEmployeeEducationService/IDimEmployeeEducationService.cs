@@ -4,7 +4,11 @@ namespace MarketStat.Services.Dimensions.DimEmployeeEducationService;
 
 public interface IDimEmployeeEducationService
 {
-    Task AddEmployeeEducationAsync(int employeeId, int educationId);
-    Task RemoveEmployeeEducationAsync(int employeeId, int educationId);
+    Task<DimEmployeeEducation> CreateEmployeeEducationAsync(int employeeId, int educationId, short graduationYear);
+    Task<DimEmployeeEducation> GetEmployeeEducationAsync(int employeeId, int educationId);
     Task<IEnumerable<DimEmployeeEducation>> GetEducationsByEmployeeIdAsync(int employeeId);
+    Task<IEnumerable<DimEmployeeEducation>> GetAllEmployeeEducationsAsync();
+    Task<DimEmployeeEducation> UpdateEmployeeEducationAsync(int employeeId, int educationId, short graduationYear);
+    Task DeleteEmployeeEducationAsync(int employeeId, int educationId);
+    
 }

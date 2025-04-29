@@ -6,6 +6,7 @@ using MarketStat.Database.Models;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Services.Dimensions.DimDateService;
 using MarketStat.Services.Dimensions.DimEducationService;
+using MarketStat.Services.Dimensions.DimEmployeeEducationService;
 using MarketStat.Services.Dimensions.DimEmployeeService;
 using MarketStat.Services.Dimensions.DimEmployerService;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
@@ -23,6 +24,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimDateRepository DimDateRepository { get; }
     public IDimEducationRepository DimEducationRepository { get; }
     public IDimEmployeeRepository DimEmployeeRepository { get; }
+    public IDimEmployeeEducationRepository DimEmployeeEducationRepository { get; }
     
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
@@ -30,6 +32,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimDateService DimDateService { get; }
     public IDimEducationService DimEducationService { get; }
     public IDimEmployeeService DimEmployeeService { get; }
+    public IDimEmployeeEducationService DimEmployeeEducationService { get; }
 
     public MarketStatAccessObjectInMemory()
     {
@@ -52,6 +55,10 @@ public class MarketStatAccessObjectInMemory : IDisposable
         
         DimEmployeeRepository = new DimEmployeeRepository(Context);
         DimEmployeeService = new DimEmployeeService(DimEmployeeRepository, NullLogger<DimEmployeeService>.Instance);
+
+        DimEmployeeEducationRepository = new DimEmployeeEducationRepository(Context);
+        DimEmployeeEducationService = new DimEmployeeEducationService(DimEmployeeEducationRepository,
+            NullLogger<DimEmployeeEducationService>.Instance);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)
@@ -105,6 +112,15 @@ public class MarketStatAccessObjectInMemory : IDisposable
         {
             Context.DimEmployees.Add(DimEmployeeConverter.ToDbModel(e));
         }
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedEmployeeEducationsAsync(IEnumerable<DimEmployeeEducation> items)
+    {
+        foreach (var ee in items)
+            Context.DimEmployeeEducations.Add(
+                DimEmployeeEducationConverter.ToDbModel(ee)
+            );
         await Context.SaveChangesAsync();
     }
     
