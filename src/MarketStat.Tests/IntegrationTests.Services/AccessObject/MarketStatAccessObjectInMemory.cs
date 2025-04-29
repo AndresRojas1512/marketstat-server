@@ -6,6 +6,7 @@ using MarketStat.Database.Models;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Services.Dimensions.DimDateService;
 using MarketStat.Services.Dimensions.DimEducationService;
+using MarketStat.Services.Dimensions.DimEmployeeService;
 using MarketStat.Services.Dimensions.DimEmployerService;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using MarketStat.Services.Dimensions.DimJobRoleService;
@@ -21,12 +22,14 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimJobRoleRepository JobRoleRepository { get; }
     public IDimDateRepository DimDateRepository { get; }
     public IDimEducationRepository DimEducationRepository { get; }
+    public IDimEmployeeRepository DimEmployeeRepository { get; }
     
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
     public IDimJobRoleService JobRoleService { get; }
     public IDimDateService DimDateService { get; }
     public IDimEducationService DimEducationService { get; }
+    public IDimEmployeeService DimEmployeeService { get; }
 
     public MarketStatAccessObjectInMemory()
     {
@@ -46,6 +49,9 @@ public class MarketStatAccessObjectInMemory : IDisposable
         
         DimEducationRepository = new DimEducationRepository(Context);
         DimEducationService = new DimEducationService(DimEducationRepository, NullLogger<DimEducationService>.Instance);
+        
+        DimEmployeeRepository = new DimEmployeeRepository(Context);
+        DimEmployeeService = new DimEmployeeService(DimEmployeeRepository, NullLogger<DimEmployeeService>.Instance);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)
@@ -89,6 +95,15 @@ public class MarketStatAccessObjectInMemory : IDisposable
         foreach (var e in items)
         {
             Context.DimEducations.Add(DimEducationConverter.ToDbModel(e));
+        }
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedEmployeeAsync(IEnumerable<DimEmployee> items)
+    {
+        foreach (var e in items)
+        {
+            Context.DimEmployees.Add(DimEmployeeConverter.ToDbModel(e));
         }
         await Context.SaveChangesAsync();
     }

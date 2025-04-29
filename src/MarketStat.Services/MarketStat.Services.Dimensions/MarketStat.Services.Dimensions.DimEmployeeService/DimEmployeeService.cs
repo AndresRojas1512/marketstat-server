@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Services.Dimensions.DimEmployeeService;
 
-public class DimEmployeeService
+public class DimEmployeeService : IDimEmployeeService
 {
     private readonly IDimEmployeeRepository _dimEmployeeRepository;
     private readonly ILogger<DimEmployeeService> _logger;
@@ -16,13 +16,12 @@ public class DimEmployeeService
         _logger = logger;
     }
     
-    public async Task<DimEmployee> CreateEmployeeAsync(DateOnly birthDate)
+    public async Task<DimEmployee> CreateEmployeeAsync(DateOnly birthDate, DateOnly careerStartDate)
     {
         var all = (await _dimEmployeeRepository.GetAllEmployeesAsync()).ToList();
         var newId = all.Any() ? all.Max(e => e.EmployeeId) + 1 : 1;
-
-        DimEmployeeValidator.ValidateParameters(newId, birthDate);
-        var emp = new DimEmployee(newId, birthDate);
+        DimEmployeeValidator.ValidateParameters(newId, birthDate, careerStartDate);
+        var emp = new DimEmployee(newId, birthDate, careerStartDate);
 
         try
         {
@@ -57,13 +56,14 @@ public class DimEmployeeService
         return list;
     }
     
-    public async Task<DimEmployee> UpdateEmployeeAsync(int employeeId, DateOnly birthDate)
+    public async Task<DimEmployee> UpdateEmployeeAsync(int employeeId, DateOnly birthDate, DateOnly careerStartDate)
     {
-        DimEmployeeValidator.ValidateParameters(employeeId, birthDate);
         try
         {
+            DimEmployeeValidator.ValidateParameters(employeeId, birthDate, careerStartDate);
             var existing = await _dimEmployeeRepository.GetEmployeeByIdAsync(employeeId);
             existing.BirthDate = birthDate;
+            existing.CareerStartDate = careerStartDate;
             await _dimEmployeeRepository.UpdateEmployeeAsync(existing);
             _logger.LogInformation("Updated DimEmployee {EmployeeId}", employeeId);
             return existing;

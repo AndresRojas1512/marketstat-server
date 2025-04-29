@@ -27,41 +27,54 @@ public class DimEmployeeServiceUnitTests
             .Setup(r => r.GetAllEmployeesAsync())
             .ReturnsAsync(Array.Empty<DimEmployee>());
 
-        var birthDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var birthDate = new DateOnly(1990, 1, 1);
+        var careerStartDate = new DateOnly(2019, 6, 15);
         
-        var emp = await _dimEmployeeService.CreateEmployeeAsync(birthDate);
+        var emp = await _dimEmployeeService.CreateEmployeeAsync(birthDate, careerStartDate);
         
         Assert.Equal(1, emp.EmployeeId);
         Assert.Equal(birthDate, emp.BirthDate);
+        Assert.Equal(careerStartDate, emp.CareerStartDate);
         _dimEmployeeRepositoryMock.Verify(r => r.AddEmployeeAsync(
-            It.Is<DimEmployee>(e => e.EmployeeId == 1 && e.BirthDate == birthDate)
-        ), Times.Once);
+            It.Is<DimEmployee>(e =>
+                e.EmployeeId == 1 &&
+                e.BirthDate == birthDate &&
+                e.CareerStartDate == careerStartDate
+            )), Times.Once);
     }
     
     [Fact]
     public async Task CreateEmployeeAsync_NonEmptyRepo_IncrementsId()
     {
-        var existing = new List<DimEmployee> { new DimEmployee(5, DateOnly.FromDateTime(DateTime.UtcNow)) };
+        var existing = new List<DimEmployee>
+        {
+            new DimEmployee(5, new DateOnly(1980, 2, 2), new DateOnly(2000, 2, 2))
+        };
         _dimEmployeeRepositoryMock
             .Setup(r => r.GetAllEmployeesAsync())
             .ReturnsAsync(existing);
 
-        var birthDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var birthDate = new DateOnly(1985, 3, 3);
+        var careerStartDate = new DateOnly(2005, 3, 3);
         
-        var emp = await _dimEmployeeService.CreateEmployeeAsync(birthDate);
+        var emp = await _dimEmployeeService.CreateEmployeeAsync(birthDate, careerStartDate);
         
         Assert.Equal(6, emp.EmployeeId);
         _dimEmployeeRepositoryMock.Verify(r => r.AddEmployeeAsync(
-            It.Is<DimEmployee>(e => e.EmployeeId == 6)
-        ), Times.Once);
+            It.Is<DimEmployee>(e => 
+                e.EmployeeId == 6 &&
+                e.CareerStartDate == careerStartDate
+        )), Times.Once);
     }
     
     [Fact]
     public async Task CreateEmployeeAsync_FutureBirthDate_ThrowsArgumentException()
     {
         var future = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+        var careerStartDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEmployeeService.CreateEmployeeAsync(future)
+            _dimEmployeeService.CreateEmployeeAsync(future, careerStartDate)
         );
     }
     
@@ -75,8 +88,11 @@ public class DimEmployeeServiceUnitTests
             .Setup(r => r.AddEmployeeAsync(It.IsAny<DimEmployee>()))
             .ThrowsAsync(new InvalidOperationException("db fail"));
         
+        var birthDate = new DateOnly(1990, 1, 1);
+        var careerStartDate = new DateOnly(2010, 1, 1);
+        
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEmployeeService.CreateEmployeeAsync(DateOnly.FromDateTime(DateTime.UtcNow))
+            _dimEmployeeService.CreateEmployeeAsync(birthDate, careerStartDate)
         );
         Assert.Contains("Could not create employee 1", ex.Message);
     }
@@ -84,7 +100,7 @@ public class DimEmployeeServiceUnitTests
     [Fact]
     public async Task GetEmployeeByIdAsync_Found_ReturnsEmployee()
     {
-        var emp = new DimEmployee(2, DateOnly.FromDateTime(DateTime.UtcNow));
+        var emp = new DimEmployee(2, new DateOnly(1985, 5, 5), new DateOnly(2005, 5, 5));
         _dimEmployeeRepositoryMock
             .Setup(r => r.GetEmployeeByIdAsync(2))
             .ReturnsAsync(emp);
@@ -112,7 +128,7 @@ public class DimEmployeeServiceUnitTests
     {
         var list = new List<DimEmployee>
         {
-            new DimEmployee(1, DateOnly.FromDateTime(DateTime.UtcNow))
+            new DimEmployee(1, new DateOnly(1990, 1, 1), new DateOnly(2010, 1, 1))
         };
         _dimEmployeeRepositoryMock
             .Setup(r => r.GetAllEmployeesAsync())
@@ -126,27 +142,35 @@ public class DimEmployeeServiceUnitTests
     [Fact]
     public async Task UpdateEmployeeAsync_ValidParameters_UpdatesAndReturns()
     {
-        var orig = new DimEmployee(3, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)));
+        var orig = new DimEmployee(3, new DateOnly(1980, 1, 1), new DateOnly(2000, 1, 1));
         _dimEmployeeRepositoryMock
             .Setup(r => r.GetEmployeeByIdAsync(3))
             .ReturnsAsync(orig);
+        _dimEmployeeRepositoryMock
+            .Setup(r => r.UpdateEmployeeAsync(It.IsAny<DimEmployee>()))
+            .Returns(Task.CompletedTask);
 
-        var newDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-2));
+        var newBirth = new DateOnly(1981, 2, 2);
+        var newCareerStart = new DateOnly(2001, 2, 2);
         
-        var updated = await _dimEmployeeService.UpdateEmployeeAsync(3, newDate);
+        var updated = await _dimEmployeeService.UpdateEmployeeAsync(3, newBirth, newCareerStart);
         
-        Assert.Equal(newDate, updated.BirthDate);
+        Assert.Equal(newBirth, updated.BirthDate);
+        Assert.Equal(newCareerStart, updated.CareerStartDate);
+
         _dimEmployeeRepositoryMock.Verify(r =>
-                r.UpdateEmployeeAsync(It.Is<DimEmployee>(e => e.EmployeeId == 3 && e.BirthDate == newDate)),
-            Times.Once
-        );
+            r.UpdateEmployeeAsync(It.Is<DimEmployee>(e =>
+                e.EmployeeId == 3 &&
+                e.BirthDate == newBirth &&
+                e.CareerStartDate == newCareerStart
+            )), Times.Once);
     }
     
     [Fact]
     public async Task UpdateEmployeeAsync_InvalidId_ThrowsArgumentException()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEmployeeService.UpdateEmployeeAsync(0, DateOnly.FromDateTime(DateTime.UtcNow))
+            _dimEmployeeService.UpdateEmployeeAsync(0, new DateOnly(1990, 1, 1), new DateOnly(2010, 1, 1))
         );
     }
     
@@ -158,7 +182,7 @@ public class DimEmployeeServiceUnitTests
             .ThrowsAsync(new KeyNotFoundException());
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEmployeeService.UpdateEmployeeAsync(5, DateOnly.FromDateTime(DateTime.UtcNow))
+            _dimEmployeeService.UpdateEmployeeAsync(5, new DateOnly(1990, 1, 1), new DateOnly(2010, 1, 1))
         );
         Assert.Contains("Cannot update: employee 5 not found", ex.Message);
     }
@@ -166,6 +190,10 @@ public class DimEmployeeServiceUnitTests
     [Fact]
     public async Task DeleteEmployeeAsync_ValidId_CallsRepository()
     {
+        _dimEmployeeRepositoryMock
+            .Setup(r => r.DeleteEmployeeAsync(4))
+            .Returns(Task.CompletedTask);
+        
         await _dimEmployeeService.DeleteEmployeeAsync(4);
         _dimEmployeeRepositoryMock.Verify(r => r.DeleteEmployeeAsync(4), Times.Once);
     }
