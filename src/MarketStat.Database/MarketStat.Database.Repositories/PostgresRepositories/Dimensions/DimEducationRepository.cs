@@ -1,50 +1,57 @@
+using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Database.Context;
+using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
-public class DimEducationRepository
+public class DimEducationRepository : IDimEducationRepository
 {
-    private readonly Dictionary<int, DimEducation> _educations = new Dictionary<int, DimEducation>();
+    private readonly MarketStatDbContext _dbContext;
+
+    public DimEducationRepository(MarketStatDbContext dbContext)
+    {
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    }
     
-    public Task AddEducationAsync(DimEducation education)
+    public async Task AddEducationAsync(DimEducation education)
     {
-        if (!_educations.TryAdd(education.EducationId, education))
-        {
-            throw new ArgumentException($"Education {education.EducationId} already exists.");
-        }
-        return Task.CompletedTask;
+        var dbEducation = DimEducationConverter.ToDbModel(education);
+        await _dbContext.DimEducations.AddAsync(dbEducation);
+        await _dbContext.SaveChangesAsync();
     }
 
-    public Task<DimEducation> GetEducationByIdAsync(int educationId)
+    public async Task<DimEducation> GetEducationByIdAsync(int educationId)
     {
-        if (_educations.TryGetValue(educationId, out var e))
-        {
-            return Task.FromResult(e);
-        }
-        throw new KeyNotFoundException($"Employer {educationId} not found.");
+        var dbEducation = await _dbContext.DimEducations.FindAsync(educationId) 
+                          ?? throw new KeyNotFoundException($"Education {educationId} not found.");
+        return DimEducationConverter.ToDomain(dbEducation);
     }
 
-    public Task<IEnumerable<DimEducation>> GetAllEducationsAsync()
+    public async Task<IEnumerable<DimEducation>> GetAllEducationsAsync()
     {
-        return Task.FromResult<IEnumerable<DimEducation>>(_educations.Values);
+        var allDbEducations = await _dbContext.DimEducations.ToListAsync();
+        return allDbEducations.Select(DimEducationConverter.ToDomain);
     }
 
-    public Task UpdateEducationAsync(DimEducation education)
+    public async Task UpdateEducationAsync(DimEducation education)
     {
-        if (!_educations.ContainsKey(education.EducationId))
-        {
-            throw new KeyNotFoundException($"Cannot update: education {education.EducationId} not found.");
-        }
-        _educations[education.EducationId] = education;
-        return Task.CompletedTask;
+        var dbEducation = await _dbContext.DimEducations.FindAsync(education.EducationId) 
+                          ?? throw new KeyNotFoundException($"Cannot update Education {education.EducationId}.");
+        dbEducation.EducationId = education.EducationId;
+        dbEducation.Specialization = education.Specialization;
+        dbEducation.EducationLevel = education.EducationLevel;
+        dbEducation.IndustryFieldId = education.IndustryField;
+        await _dbContext.SaveChangesAsync();
     }
 
-    public Task DeleteEducationAsync(int educationId)
+    public async Task DeleteEducationAsync(int educationId)
     {
-        if (!_educations.ContainsKey(educationId))
-        {
-            throw new KeyNotFoundException($"Cannot delete: education {educationId} not found.");
-        }
-        return Task.CompletedTask;
+        var dbEducation = await _dbContext.DimEducations.FindAsync(educationId) 
+                          ?? throw new KeyNotFoundException($"Cannot delete Education {educationId}.");
+        _dbContext.DimEducations.Remove(dbEducation);
+        await _dbContext.SaveChangesAsync();
     }
 }

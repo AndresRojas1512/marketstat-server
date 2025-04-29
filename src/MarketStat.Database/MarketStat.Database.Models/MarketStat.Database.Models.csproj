@@ -10,4 +10,8 @@
     <Folder Include="MarketStat.Database.Models.Facts\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Enums\MarketStat.Common.Enums.csproj" />
+  </ItemGroup>
+
 </Project>

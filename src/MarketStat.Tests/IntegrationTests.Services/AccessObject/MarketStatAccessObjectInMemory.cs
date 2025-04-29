@@ -5,6 +5,7 @@ using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Models;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Services.Dimensions.DimDateService;
+using MarketStat.Services.Dimensions.DimEducationService;
 using MarketStat.Services.Dimensions.DimEmployerService;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using MarketStat.Services.Dimensions.DimJobRoleService;
@@ -19,11 +20,13 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimIndustryFieldRepository IndustryFieldRepository { get; }
     public IDimJobRoleRepository JobRoleRepository { get; }
     public IDimDateRepository DimDateRepository { get; }
+    public IDimEducationRepository DimEducationRepository { get; }
     
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
     public IDimJobRoleService JobRoleService { get; }
     public IDimDateService DimDateService { get; }
+    public IDimEducationService DimEducationService { get; }
 
     public MarketStatAccessObjectInMemory()
     {
@@ -40,6 +43,9 @@ public class MarketStatAccessObjectInMemory : IDisposable
         
         DimDateRepository = new DimDateRepository(Context);
         DimDateService = new DimDateService(DimDateRepository, NullLogger<DimDateService>.Instance);
+        
+        DimEducationRepository = new DimEducationRepository(Context);
+        DimEducationService = new DimEducationService(DimEducationRepository, NullLogger<DimEducationService>.Instance);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)
@@ -74,6 +80,15 @@ public class MarketStatAccessObjectInMemory : IDisposable
         foreach (var d in items)
         {
             Context.DimDates.Add(DimDateConverter.ToDbModel(d));
+        }
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedEducationAsync(IEnumerable<DimEducation> items)
+    {
+        foreach (var e in items)
+        {
+            Context.DimEducations.Add(DimEducationConverter.ToDbModel(e));
         }
         await Context.SaveChangesAsync();
     }
