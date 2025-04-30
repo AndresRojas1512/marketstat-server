@@ -1,0 +1,15 @@
+namespace MarketStat.Services.Dimensions.DimHierarchyLevelService.Validators;
+
+public class DimHierarchyLevelValidator
+{
+    public static void ValidateParameters(int hierarchyLevelId, string hierarchyLevelName)
+    {
+        if (hierarchyLevelId <= 0)
+            throw new ArgumentException("Invalid hierarchy level id.");
+        
+        if (string.IsNullOrWhiteSpace(hierarchyLevelName))
+            throw new ArgumentException("HierarchyLevel name is required.");
+        if (hierarchyLevelName.Length > 255)
+            throw new ArgumentException("HierarchyLevel name must be 255 characters or fewer.");
+    }
+}

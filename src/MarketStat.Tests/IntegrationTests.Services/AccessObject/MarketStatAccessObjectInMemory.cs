@@ -9,6 +9,7 @@ using MarketStat.Services.Dimensions.DimEducationService;
 using MarketStat.Services.Dimensions.DimEmployeeEducationService;
 using MarketStat.Services.Dimensions.DimEmployeeService;
 using MarketStat.Services.Dimensions.DimEmployerService;
+using MarketStat.Services.Dimensions.DimHierarchyLevelService;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using MarketStat.Services.Dimensions.DimJobRoleService;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -25,6 +26,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimEducationRepository DimEducationRepository { get; }
     public IDimEmployeeRepository DimEmployeeRepository { get; }
     public IDimEmployeeEducationRepository DimEmployeeEducationRepository { get; }
+    public IDimHierarchyLevelRepository DimHierarchyLevelRepository { get; }
     
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
@@ -33,6 +35,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimEducationService DimEducationService { get; }
     public IDimEmployeeService DimEmployeeService { get; }
     public IDimEmployeeEducationService DimEmployeeEducationService { get; }
+    public IDimHierarchyLevelService DimHierarchyLevelService { get; }
 
     public MarketStatAccessObjectInMemory()
     {
@@ -57,8 +60,12 @@ public class MarketStatAccessObjectInMemory : IDisposable
         DimEmployeeService = new DimEmployeeService(DimEmployeeRepository, NullLogger<DimEmployeeService>.Instance);
 
         DimEmployeeEducationRepository = new DimEmployeeEducationRepository(Context);
-        DimEmployeeEducationService = new DimEmployeeEducationService(DimEmployeeEducationRepository,
+        DimEmployeeEducationService = new DimEmployeeEducationService(DimEmployeeEducationRepository, 
             NullLogger<DimEmployeeEducationService>.Instance);
+        
+        DimHierarchyLevelRepository = new DimHierarchyLevelRepository(Context);
+        DimHierarchyLevelService =
+            new DimHierarchyLevelService(DimHierarchyLevelRepository, NullLogger<DimHierarchyLevelService>.Instance);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)
@@ -121,6 +128,15 @@ public class MarketStatAccessObjectInMemory : IDisposable
             Context.DimEmployeeEducations.Add(
                 DimEmployeeEducationConverter.ToDbModel(ee)
             );
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedHierarchyLevelsAsync(IEnumerable<DimHierarchyLevel> items)
+    {
+        foreach (var h in items)
+        {
+            Context.DimHierarchyLevels.Add(DimHierarchyLevelConverter.ToDbModel(h));
+        }
         await Context.SaveChangesAsync();
     }
     
