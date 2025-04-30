@@ -41,14 +41,14 @@ public class DimEmployeeEducationServiceIntegrationTests : IDisposable
         var all = (await _dimEmployeeEducationService.GetAllEmployeeEducationsAsync()).ToList();
 
         Assert.Contains(all, ee =>
-            ee.EmployeeId     == 1 &&
-            ee.EducationId    == 100 &&
+            ee.EmployeeId == 1 &&
+            ee.EducationId == 100 &&
             ee.GraduationYear == 2010
         );
 
         Assert.Contains(all, ee =>
-            ee.EmployeeId     == 2 &&
-            ee.EducationId    == 200 &&
+            ee.EmployeeId == 2 &&
+            ee.EducationId == 200 &&
             ee.GraduationYear == 2015
         );
     }

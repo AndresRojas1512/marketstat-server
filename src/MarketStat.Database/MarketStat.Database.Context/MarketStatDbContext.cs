@@ -18,6 +18,8 @@ public class MarketStatDbContext : DbContext
     public DbSet<DimEmployeeDbModel> DimEmployees { get; set; }
     public DbSet<DimEmployeeEducationDbModel> DimEmployeeEducations { get; set; }
     public DbSet<DimHierarchyLevelDbModel> DimHierarchyLevels { get; set; }
+    
+    public DbSet<DimEmployerIndustryFieldDbModel> DimEmployerIndustryFields { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -52,6 +54,10 @@ public class MarketStatDbContext : DbContext
         modelBuilder.Entity<DimHierarchyLevelDbModel>()
             .ToTable("dim_hierarchy_levels")
             .HasKey(h => h.HierarchyLevelId);
+        
+        modelBuilder.Entity<DimEmployerIndustryFieldDbModel>()
+            .ToTable("dim_employer_industry_field")
+            .HasKey(e => new { e.EmployerId, e.IndustryFieldId });
         
         base.OnModelCreating(modelBuilder);
     }
