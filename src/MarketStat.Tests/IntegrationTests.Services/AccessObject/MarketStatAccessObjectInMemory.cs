@@ -11,9 +11,11 @@ using MarketStat.Services.Dimensions.DimEmployeeEducationService;
 using MarketStat.Services.Dimensions.DimEmployeeService;
 using MarketStat.Services.Dimensions.DimEmployerIndustryFieldService;
 using MarketStat.Services.Dimensions.DimEmployerService;
+using MarketStat.Services.Dimensions.DimFederalDistrictService;
 using MarketStat.Services.Dimensions.DimHierarchyLevelService;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using MarketStat.Services.Dimensions.DimJobRoleService;
+using MarketStat.Services.Dimensions.DimOblastService;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace IntegrationTests.Services.AccessObject;
@@ -30,6 +32,8 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimEmployeeEducationRepository DimEmployeeEducationRepository { get; }
     public IDimHierarchyLevelRepository DimHierarchyLevelRepository { get; }
     public IDimEmployerIndustryFieldRepository DimEmployerIndustryFieldRepository { get; }
+    public IDimFederalDistrictRepository DimFederalDistrictRepository { get; }
+    public IDimOblastRepository DimOblastRepository { get; }
     public IDimCityRepository DimCityRepository { get; }
     
     public IDimEmployerService EmployerService { get; }
@@ -41,6 +45,8 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimEmployeeEducationService DimEmployeeEducationService { get; }
     public IDimHierarchyLevelService DimHierarchyLevelService { get; }
     public IDimEmployerIndustryFieldService DimEmployerIndustryFieldService { get; }
+    public IDimFederalDistrictService DimFederalDistrictService { get; }
+    public IDimOblastService DimOblastService { get; }
     public IDimCityService DimCityService { get; }
 
     public MarketStatAccessObjectInMemory()
@@ -76,6 +82,13 @@ public class MarketStatAccessObjectInMemory : IDisposable
         DimEmployerIndustryFieldRepository = new DimEmployerIndustryFieldRepository(Context);
         DimEmployerIndustryFieldService = new DimEmployerIndustryFieldService(DimEmployerIndustryFieldRepository,
             NullLogger<DimEmployerIndustryFieldService>.Instance);
+        
+        DimFederalDistrictRepository = new DimFederalDistrictRepository(Context);
+        DimFederalDistrictService = new DimFederalDistrictService(DimFederalDistrictRepository,
+            NullLogger<DimFederalDistrictService>.Instance);
+        
+        DimOblastRepository = new DimOblastRepository(Context);
+        DimOblastService = new DimOblastService(DimOblastRepository, NullLogger<DimOblastService>.Instance);
         
         DimCityRepository = new DimCityRepository(Context);
         DimCityService = new DimCityService(DimCityRepository, NullLogger<DimCityService>.Instance);
@@ -159,6 +172,24 @@ public class MarketStatAccessObjectInMemory : IDisposable
             Context.DimEmployerIndustryFields.Add(
                 DimEmployerIndustryFieldConverter.ToDbModel(ei)
             );
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedFederalDistrictAsync(IEnumerable<DimFederalDistrict> items)
+    {
+        foreach (var f in items)
+        {
+            Context.DimFederalDistricts.Add(DimFederalDistrictConverter.ToDbModel(f));
+        }
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedOblastAsync(IEnumerable<DimOblast> items)
+    {
+        foreach (var o in items)
+        {
+            Context.DimOblasts.Add(DimOblastConverter.ToDbModel(o));
+        }
         await Context.SaveChangesAsync();
     }
     

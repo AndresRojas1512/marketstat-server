@@ -58,9 +58,9 @@ public class DimEmployerService : IDimEmployerService
 
     public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, bool isPublic)
     {
+        DimEmployerValidator.ValidateParameters(employerId, employerName, isPublic);
         try
         {
-            DimEmployerValidator.ValidateParameters(employerId, employerName, isPublic);
             var existingEmployer = await _dimEmployerRepository.GetEmployerByIdAsync(employerId);
             existingEmployer.EmployerName = employerName;
             existingEmployer.IsPublic = isPublic;

@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimHierarchyLevelService\MarketStat.Services.Dimensions.DimHierarchyLevelService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployerIndustryFieldService\MarketStat.Services.Dimensions.DimEmployerIndustryFieldService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimOblastService\MarketStat.Services.Dimensions.DimOblastService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimFederalDistrictService\MarketStat.Services.Dimensions.DimFederalDistrictService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
