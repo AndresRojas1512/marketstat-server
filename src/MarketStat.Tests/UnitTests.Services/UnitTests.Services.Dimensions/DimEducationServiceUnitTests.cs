@@ -1,5 +1,4 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using MarketStat.Common.Enums;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEducationService;
 using Microsoft.Extensions.Logging;
@@ -32,20 +31,20 @@ public class DimEducationServiceUnitTests
             .Returns(Task.CompletedTask);
 
         var result = await _dimEducationService.CreateEducationAsync(
-            "Computer Science", EducationLevel.Bachelors, 2
+            "Computer Science", 1, 2
         );
 
         Assert.Equal(1, result.EducationId);
         Assert.Equal("Computer Science", result.Specialization);
-        Assert.Equal(EducationLevel.Bachelors, result.EducationLevel);
-        Assert.Equal(2, result.IndustryField);
+        Assert.Equal(1, result.EducationLevelId);
+        Assert.Equal(2, result.IndustryFieldId);
 
         _dimEducationRepositoryMock.Verify(r => r.AddEducationAsync(
             It.Is<DimEducation>(e =>
                 e.EducationId     == 1 &&
                 e.Specialization  == "Computer Science" &&
-                e.EducationLevel == EducationLevel.Bachelors &&
-                e.IndustryField == 2
+                e.EducationLevelId == 1 &&
+                e.IndustryFieldId == 2
             )), Times.Once);
     }
     
@@ -60,7 +59,7 @@ public class DimEducationServiceUnitTests
             .ThrowsAsync(new InvalidOperationException("duplicate"));
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationService.CreateEducationAsync("Math", EducationLevel.Doctorate, 3)
+            _dimEducationService.CreateEducationAsync("Math", 3, 3)
         );
         Assert.Equal("An education record with ID 1 already exists.", ex.Message);
     }
@@ -69,14 +68,14 @@ public class DimEducationServiceUnitTests
     public async Task CreateEducationAsync_NullSpecialization_Throws()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEducationService.CreateEducationAsync(null!, EducationLevel.Bachelors, 1)
+            _dimEducationService.CreateEducationAsync(null!, 1, 1)
         );
     }
     
     [Fact]
     public async Task GetEducationByIdAsync_Existing_ReturnsDimEducation()
     {
-        var expected = new DimEducation(5, "Bio", EducationLevel.Bachelors, 1);
+        var expected = new DimEducation(5, "Bio", 1, 1);
         _dimEducationRepositoryMock
             .Setup(r => r.GetEducationByIdAsync(5))
             .ReturnsAsync(expected);
@@ -104,8 +103,8 @@ public class DimEducationServiceUnitTests
     {
         var list = new List<DimEducation>
         {
-            new DimEducation(1, "CS", EducationLevel.Bachelors, 1),
-            new DimEducation(2, "EE", EducationLevel.Masters, 2)
+            new DimEducation(1, "CS", 1, 1),
+            new DimEducation(2, "EE", 2, 2)
         };
         _dimEducationRepositoryMock
             .Setup(r => r.GetAllEducationsAsync())
@@ -120,7 +119,7 @@ public class DimEducationServiceUnitTests
     [Fact]
     public async Task UpdateEducationAsync_ValidParameters_UpdatesAndReturns()
     {
-        var existing = new DimEducation(3, "Eng", EducationLevel.Bachelors, 1);
+        var existing = new DimEducation(3, "Eng", 1, 1);
         _dimEducationRepositoryMock
             .Setup(r => r.GetEducationByIdAsync(3))
             .ReturnsAsync(existing);
@@ -128,19 +127,19 @@ public class DimEducationServiceUnitTests
             .Setup(r => r.UpdateEducationAsync(It.IsAny<DimEducation>()))
             .Returns(Task.CompletedTask);
 
-        var updated = await _dimEducationService.UpdateEducationAsync(3, "Engineering", EducationLevel.Masters, 2);
+        var updated = await _dimEducationService.UpdateEducationAsync(3, "Engineering", 2, 2);
 
         Assert.Equal(3, updated.EducationId);
         Assert.Equal("Engineering", updated.Specialization);
-        Assert.Equal(EducationLevel.Masters, updated.EducationLevel);
-        Assert.Equal(2, updated.IndustryField);
+        Assert.Equal(2, updated.EducationLevelId);
+        Assert.Equal(2, updated.IndustryFieldId);
 
         _dimEducationRepositoryMock.Verify(r => r.UpdateEducationAsync(
             It.Is<DimEducation>(e =>
                 e.EducationId     == 3 &&
                 e.Specialization  == "Engineering" &&
-                e.EducationLevel == EducationLevel.Masters &&
-                e.IndustryField == 2
+                e.EducationLevelId == 2 &&
+                e.IndustryFieldId == 2
             )), Times.Once);
     }
     
@@ -152,7 +151,7 @@ public class DimEducationServiceUnitTests
             .ThrowsAsync(new KeyNotFoundException());
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationService.UpdateEducationAsync(9, "X", EducationLevel.Bachelors, 1)
+            _dimEducationService.UpdateEducationAsync(9, "X", 1, 1)
         );
         Assert.Equal("Cannot update: education 9 was not found.", ex.Message);
     }
@@ -161,7 +160,7 @@ public class DimEducationServiceUnitTests
     public async Task UpdateEducationAsync_InvalidId_ThrowsArgumentException()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEducationService.UpdateEducationAsync(0, "History", EducationLevel.Bachelors, 1)
+            _dimEducationService.UpdateEducationAsync(0, "History", 1, 1)
         );
     }
     
@@ -169,14 +168,14 @@ public class DimEducationServiceUnitTests
     public async Task UpdateEducationAsync_EmptySpecialization_ThrowsArgumentException()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEducationService.UpdateEducationAsync(1, "", EducationLevel.Bachelors, 1)
+            _dimEducationService.UpdateEducationAsync(1, "", 1, 1)
         );
     }
     
     [Fact]
     public async Task UpdateEducationAsync_InvalidEducationLevel_ThrowsArgument()
     {
-        var invalidLevel = (EducationLevel)(-1);
+        var invalidLevel = -1;
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimEducationService.UpdateEducationAsync(1, "History", invalidLevel, 1));
     }
@@ -185,7 +184,7 @@ public class DimEducationServiceUnitTests
     public async Task UpdateEducationAsync_InvalidIndustryFieldId_ThrowsArgument()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEducationService.UpdateEducationAsync(1, "History", EducationLevel.Bachelors, 0));
+            _dimEducationService.UpdateEducationAsync(1, "History", 1, 0));
     }
     
     [Fact]

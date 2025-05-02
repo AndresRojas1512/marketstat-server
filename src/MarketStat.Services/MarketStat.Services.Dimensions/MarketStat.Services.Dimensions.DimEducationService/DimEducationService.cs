@@ -1,5 +1,4 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using MarketStat.Common.Enums;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEducationService.Validators;
 using Microsoft.Extensions.Logging;
@@ -17,12 +16,12 @@ public class DimEducationService : IDimEducationService
         _logger = logger;
     }
     
-    public async Task<DimEducation> CreateEducationAsync(string specialization, EducationLevel educationLevel, int industryFieldId)
+    public async Task<DimEducation> CreateEducationAsync(string specialization, int educationLevelId, int industryFieldId)
     {
         var allEducations = (await _dimEducationRepository.GetAllEducationsAsync()).ToList();
         int newId = allEducations.Any() ? allEducations.Max(e => e.EducationId) + 1 : 1;
-        DimEducationValidator.ValidateParameters(newId, specialization, educationLevel, industryFieldId);
-        var edu = new DimEducation(newId, specialization, educationLevel, industryFieldId);
+        DimEducationValidator.ValidateParameters(newId, specialization, educationLevelId, industryFieldId);
+        var edu = new DimEducation(newId, specialization, educationLevelId, industryFieldId);
         try
         {
             await _dimEducationRepository.AddEducationAsync(edu);
@@ -55,16 +54,16 @@ public class DimEducationService : IDimEducationService
         return list;
     }
     
-    public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialization, EducationLevel educationLevel, int industryFieldId)
+    public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialization, int educationLevelId, int industryFieldId)
     {
         try
         {
-            DimEducationValidator.ValidateParameters(educationId, specialization, educationLevel, industryFieldId);
+            DimEducationValidator.ValidateParameters(educationId, specialization, educationLevelId, industryFieldId);
 
             var existing = await _dimEducationRepository.GetEducationByIdAsync(educationId);
             existing.Specialization = specialization;
-            existing.EducationLevel = educationLevel;
-            existing.IndustryField = industryFieldId;
+            existing.EducationLevelId = educationLevelId;
+            existing.IndustryFieldId = industryFieldId;
 
             await _dimEducationRepository.UpdateEducationAsync(existing);
             _logger.LogInformation("Updated education {Id}", educationId);

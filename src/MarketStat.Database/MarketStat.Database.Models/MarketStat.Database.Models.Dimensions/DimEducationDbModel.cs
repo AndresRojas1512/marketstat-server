@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using MarketStat.Common.Enums;
 
 namespace MarketStat.Database.Models;
 
@@ -18,18 +17,17 @@ public class DimEducationDbModel
     
     [Required]
     [Column("education_level")]
-    public EducationLevel EducationLevel { get; set; }
+    public int EducationLevelId { get; set; }
     
     [Required]
     [Column("industry_field_id")]
     public int IndustryFieldId { get; set; }
 
-    public DimEducationDbModel(int educationId, string specialization, EducationLevel educationLevel,
-        int industryFieldId)
+    public DimEducationDbModel(int educationId, string specialization, int educationLevelId, int industryFieldId)
     {
         EducationId = educationId;
         Specialization = specialization;
-        EducationLevel = educationLevel;
+        EducationLevelId = educationLevelId;
         IndustryFieldId = industryFieldId;
     }
 }

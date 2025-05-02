@@ -1,6 +1,5 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using MarketStat.Common.Enums;
 using MarketStat.Database.Context;
 using MarketStat.Services.Dimensions.DimEducationService;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -32,8 +31,8 @@ public class DimEducationServiceIntegrationTests
     {
         var seed = new List<DimEducation>
         {
-            new DimEducation(1, "Software Engineer",  EducationLevel.Bachelors,   1),
-            new DimEducation(2, "Surgeon", EducationLevel.Masters, 2)
+            new DimEducation(1, "Software Engineer",  1,   1),
+            new DimEducation(2, "Surgeon", 2, 2)
         };
 
         foreach (var d in seed)

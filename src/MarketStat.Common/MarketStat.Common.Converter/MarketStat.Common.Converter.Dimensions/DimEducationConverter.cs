@@ -10,8 +10,8 @@ public class DimEducationConverter
         return new DimEducationDbModel(
             dimEducation.EducationId,
             dimEducation.Specialization,
-            dimEducation.EducationLevel,
-            dimEducation.IndustryField
+            dimEducation.EducationLevelId,
+            dimEducation.IndustryFieldId
         );
     }
 
@@ -20,7 +20,7 @@ public class DimEducationConverter
         return new DimEducation(
             dbEducation.EducationId,
             dbEducation.Specialization,
-            dbEducation.EducationLevel,
+            dbEducation.EducationLevelId,
             dbEducation.IndustryFieldId
         );
     }
