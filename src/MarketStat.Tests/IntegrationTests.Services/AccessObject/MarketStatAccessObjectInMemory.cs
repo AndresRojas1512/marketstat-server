@@ -4,6 +4,7 @@ using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Models;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
+using MarketStat.Services.Dimensions.DimCityService;
 using MarketStat.Services.Dimensions.DimDateService;
 using MarketStat.Services.Dimensions.DimEducationService;
 using MarketStat.Services.Dimensions.DimEmployeeEducationService;
@@ -29,6 +30,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimEmployeeEducationRepository DimEmployeeEducationRepository { get; }
     public IDimHierarchyLevelRepository DimHierarchyLevelRepository { get; }
     public IDimEmployerIndustryFieldRepository DimEmployerIndustryFieldRepository { get; }
+    public IDimCityRepository DimCityRepository { get; }
     
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
@@ -39,6 +41,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimEmployeeEducationService DimEmployeeEducationService { get; }
     public IDimHierarchyLevelService DimHierarchyLevelService { get; }
     public IDimEmployerIndustryFieldService DimEmployerIndustryFieldService { get; }
+    public IDimCityService DimCityService { get; }
 
     public MarketStatAccessObjectInMemory()
     {
@@ -73,6 +76,9 @@ public class MarketStatAccessObjectInMemory : IDisposable
         DimEmployerIndustryFieldRepository = new DimEmployerIndustryFieldRepository(Context);
         DimEmployerIndustryFieldService = new DimEmployerIndustryFieldService(DimEmployerIndustryFieldRepository,
             NullLogger<DimEmployerIndustryFieldService>.Instance);
+        
+        DimCityRepository = new DimCityRepository(Context);
+        DimCityService = new DimCityService(DimCityRepository, NullLogger<DimCityService>.Instance);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)
@@ -153,6 +159,15 @@ public class MarketStatAccessObjectInMemory : IDisposable
             Context.DimEmployerIndustryFields.Add(
                 DimEmployerIndustryFieldConverter.ToDbModel(ei)
             );
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedCityAsync(IEnumerable<DimCity> items)
+    {
+        foreach (var c in items)
+        {
+            Context.DimCities.Add(DimCityConverter.ToDbModel(c));
+        }
         await Context.SaveChangesAsync();
     }
     

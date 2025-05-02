@@ -16,12 +16,12 @@ public class DimCityService : IDimCityService
         _logger = logger;
     }
     
-    public async Task<DimCity> CreateCityAsync(string cityName, string oblastName, string federalDistrict)
+    public async Task<DimCity> CreateCityAsync(string cityName, int oblastId)
     {
         var all = (await _dimCityRepository.GetAllCitiesAsync()).ToList();
         var newId = all.Any() ? all.Max(c => c.CityId) + 1 : 1;
-        DimCityValidator.ValidateParameters(newId, cityName, oblastName, federalDistrict);
-        var city = new DimCity(newId, cityName, oblastName, federalDistrict);
+        DimCityValidator.ValidateParameters(newId, cityName, oblastId);
+        var city = new DimCity(newId, cityName, oblastId);
 
         try
         {
@@ -55,16 +55,15 @@ public class DimCityService : IDimCityService
         return cities;
     }
     
-    public async Task<DimCity> UpdateCityAsync(int cityId, string cityName, string oblastName, string federalDistrict)
+    public async Task<DimCity> UpdateCityAsync(int cityId, string cityName, int oblastId)
     {
         try
         {
-            DimCityValidator.ValidateParameters(cityId, cityName, oblastName, federalDistrict);
+            DimCityValidator.ValidateParameters(cityId, cityName, oblastId);
 
             var existing = await _dimCityRepository.GetCityByIdAsync(cityId);
             existing.CityName = cityName;
-            existing.OblastName = oblastName;
-            existing.FederalDistrict = federalDistrict;
+            existing.OblastId = oblastId;
 
             await _dimCityRepository.UpdateCityAsync(existing);
             _logger.LogInformation("Updated DimCity {CityId}", cityId);

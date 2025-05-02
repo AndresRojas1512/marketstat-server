@@ -30,19 +30,17 @@ public class DimCityServiceUnitTests
             .Setup(r => r.AddCityAsync(It.IsAny<DimCity>()))
             .Returns(Task.CompletedTask);
 
-        var city = await _dimCityService.CreateCityAsync("Moscow", "Moscow Oblast", "Central");
+        var city = await _dimCityService.CreateCityAsync("Moscow", 1);
 
         Assert.NotNull(city);
         Assert.Equal(1, city.CityId);
         Assert.Equal("Moscow", city.CityName);
-        Assert.Equal("Moscow Oblast", city.OblastName);
-        Assert.Equal("Central", city.FederalDistrict);
+        Assert.Equal(1, city.OblastId);
 
         _dimCityRepositoryMock.Verify(r => r.AddCityAsync(It.Is<DimCity>(c =>
             c.CityId == 1 &&
             c.CityName == "Moscow" &&
-            c.OblastName == "Moscow Oblast" &&
-            c.FederalDistrict == "Central"
+            c.OblastId == 1
         )), Times.Once);
     }
     
@@ -57,7 +55,7 @@ public class DimCityServiceUnitTests
             .ThrowsAsync(new ArgumentException("duplicate"));
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimCityService.CreateCityAsync("Moscow", "Oblast", "District"));
+            _dimCityService.CreateCityAsync("Moscow", 1));
 
         Assert.Equal("A city with ID 1 already exists.", ex.Message);
     }
@@ -66,13 +64,13 @@ public class DimCityServiceUnitTests
     public async Task CreateCityAsync_InvalidName_ThrowsArgumentException()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimCityService.CreateCityAsync("", "Oblast", "District"));
+            _dimCityService.CreateCityAsync("", 1));
     }
     
     [Fact]
     public async Task GetCityByIdAsync_Existing_ReturnsCity()
     {
-        var expected = new DimCity(5, "Paris", "Ile-de-France", "Europe");
+        var expected = new DimCity(5, "Tula", 2);
         _dimCityRepositoryMock
             .Setup(r => r.GetCityByIdAsync(5))
             .ReturnsAsync(expected);
@@ -100,8 +98,8 @@ public class DimCityServiceUnitTests
     {
         var list = new List<DimCity>
         {
-            new DimCity(1, "A", "OA", "FA"),
-            new DimCity(2, "B", "OB", "FB")
+            new DimCity(1, "A", 1),
+            new DimCity(2, "B", 2)
         };
         _dimCityRepositoryMock
             .Setup(r => r.GetAllCitiesAsync())
@@ -116,7 +114,7 @@ public class DimCityServiceUnitTests
     [Fact]
     public async Task UpdateCityAsync_ValidParameters_ReturnsUpdatedCity()
     {
-        var existing = new DimCity(3, "Old", "OldOblast", "OldDistrict");
+        var existing = new DimCity(3, "Old", 1);
         _dimCityRepositoryMock
             .Setup(r => r.GetCityByIdAsync(3))
             .ReturnsAsync(existing);
@@ -124,12 +122,11 @@ public class DimCityServiceUnitTests
             .Setup(r => r.UpdateCityAsync(existing))
             .Returns(Task.CompletedTask);
 
-        var updated = await _dimCityService.UpdateCityAsync(3, "New", "NewOblast", "NewDistrict");
+        var updated = await _dimCityService.UpdateCityAsync(3, "New", 2);
 
         Assert.Equal(3, updated.CityId);
         Assert.Equal("New", updated.CityName);
-        Assert.Equal("NewOblast", updated.OblastName);
-        Assert.Equal("NewDistrict", updated.FederalDistrict);
+        Assert.Equal(2, updated.OblastId);
 
         _dimCityRepositoryMock.Verify(r => r.UpdateCityAsync(existing), Times.Once);
     }
@@ -142,7 +139,7 @@ public class DimCityServiceUnitTests
             .ThrowsAsync(new KeyNotFoundException());
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimCityService.UpdateCityAsync(9, "X", "Y", "Z"));
+            _dimCityService.UpdateCityAsync(9, "X", 1));
 
         Assert.Equal("Cannot update: city 9 was not found.", ex.Message);
     }
@@ -151,7 +148,7 @@ public class DimCityServiceUnitTests
     public async Task UpdateCityAsync_InvalidName_ThrowsArgumentException()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimCityService.UpdateCityAsync(1, null!, "Oblast", "District"));
+            _dimCityService.UpdateCityAsync(1, null!, 1));
     }
     
     [Fact]
