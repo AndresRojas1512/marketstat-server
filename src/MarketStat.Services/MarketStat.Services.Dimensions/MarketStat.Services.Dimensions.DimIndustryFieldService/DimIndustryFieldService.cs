@@ -59,9 +59,9 @@ public class DimIndustryFieldService : IDimIndustryFieldService
     
     public async Task<DimIndustryField> UpdateIndustryFieldAsync(int industryFieldId, string industryFieldName)
     {
+        DimIndustryFieldValidator.ValidateParameters(industryFieldId, industryFieldName);
         try
         {
-            DimIndustryFieldValidator.ValidateParameters(industryFieldId, industryFieldName);
             var existingIndustryField = await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId);
             existingIndustryField.IndustryFieldName = industryFieldName;
             await _dimIndustryFieldRepository.UpdateIndustryFieldAsync(existingIndustryField);

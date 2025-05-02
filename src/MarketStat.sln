@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimCityService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimCityService\MarketStat.Services.Dimensions.DimCityService.csproj", "{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimOblastService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimOblastService\MarketStat.Services.Dimensions.DimOblastService.csproj", "{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -156,6 +158,10 @@ Global
 		{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB} = {000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}
@@ -180,5 +186,6 @@ Global
 		{3E23CF74-8685-48FF-B387-9082BC38978B} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
 		{4079C254-81FF-4F77-AF20-78856107F936} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
 		{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
 	EndGlobalSection
 EndGlobal
