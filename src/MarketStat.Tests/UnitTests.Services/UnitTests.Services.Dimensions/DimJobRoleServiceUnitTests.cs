@@ -36,7 +36,7 @@ public class DimJobRoleServiceUnitTests
         Assert.NotNull(result);
         Assert.Equal(1, result.JobRoleId);
         Assert.Equal("Engineer", result.JobRoleTitle);
-        Assert.Equal(10, result.IndustryFieldId);
+        Assert.Equal(10, result.StandardJobRoleId);
         Assert.Equal(10, result.HierarchyLevelId);
     }
 
@@ -134,7 +134,7 @@ public class DimJobRoleServiceUnitTests
         
         Assert.Equal(3, updated.JobRoleId);
         Assert.Equal("DevOps", updated.JobRoleTitle);
-        Assert.Equal(5, updated.IndustryFieldId);
+        Assert.Equal(5, updated.StandardJobRoleId);
         Assert.Equal(5, updated.HierarchyLevelId);
     }
     

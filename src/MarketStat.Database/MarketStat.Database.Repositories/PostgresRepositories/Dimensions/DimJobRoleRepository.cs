@@ -40,7 +40,7 @@ public class DimJobRoleRepository : IDimJobRoleRepository
         var dbJobRole = await _dbContext.DimJobRoles.FindAsync(jobRole.JobRoleId) 
                         ?? throw new KeyNotFoundException($"Cannot update Job Role {jobRole.JobRoleId}.");
         dbJobRole.JobRoleTitle = jobRole.JobRoleTitle;
-        dbJobRole.IndustryFieldId = jobRole.IndustryFieldId;
+        dbJobRole.StandardJobRoleId = jobRole.StandardJobRoleId;
         dbJobRole.HierarchyLevelId = jobRole.HierarchyLevelId;
         await _dbContext.SaveChangesAsync();
     }

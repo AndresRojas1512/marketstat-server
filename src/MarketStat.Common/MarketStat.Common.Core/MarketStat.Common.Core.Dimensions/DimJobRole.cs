@@ -4,13 +4,14 @@ public class DimJobRole
 {
     public int JobRoleId { get; set; }
     public string JobRoleTitle { get; set; }
-    public int IndustryFieldId { get; set; }
+    public int StandardJobRoleId { get; set; }
     public int HierarchyLevelId { get; set; }
-    public DimJobRole(int jobRoleId, string jobRoleTitle, int industryFieldId, int hierarchyLevelId)
+    
+    public DimJobRole(int jobRoleId, string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
     {
         JobRoleId = jobRoleId;
         JobRoleTitle = jobRoleTitle;
-        IndustryFieldId = industryFieldId;
+        StandardJobRoleId = standardJobRoleId;
         HierarchyLevelId = hierarchyLevelId;
     }
 }

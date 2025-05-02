@@ -16,18 +16,18 @@ public class DimJobRoleDbModel
     public string JobRoleTitle { get; set; }
     
     [Required]
-    [Column("industry_field_id")]
-    public int IndustryFieldId { get; set; }
+    [Column("standard_job_role_id")]
+    public int StandardJobRoleId { get; set; }
     
     [Required]
     [Column("hierarchy_level_id")]
     public int HierarchyLevelId { get; set; }
 
-    public DimJobRoleDbModel(int jobRoleId, string jobRoleTitle, int industryFieldId, int hierarchyLevelId)
+    public DimJobRoleDbModel(int jobRoleId, string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
     {
         JobRoleId = jobRoleId;
         JobRoleTitle = jobRoleTitle;
-        IndustryFieldId = industryFieldId;
+        StandardJobRoleId = standardJobRoleId;
         HierarchyLevelId = hierarchyLevelId;
     }
 }

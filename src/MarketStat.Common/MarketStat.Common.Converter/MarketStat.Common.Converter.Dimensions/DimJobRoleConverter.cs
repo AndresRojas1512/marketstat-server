@@ -10,7 +10,7 @@ public class DimJobRoleConverter
         return new DimJobRoleDbModel(
             dimJobRole.JobRoleId,
             dimJobRole.JobRoleTitle,
-            dimJobRole.IndustryFieldId,
+            dimJobRole.StandardJobRoleId,
             dimJobRole.HierarchyLevelId
         );
     }
@@ -20,7 +20,7 @@ public class DimJobRoleConverter
         return new DimJobRole(
             dbJobRole.JobRoleId,
             dbJobRole.JobRoleTitle,
-            dbJobRole.IndustryFieldId,
+            dbJobRole.StandardJobRoleId,
             dbJobRole.HierarchyLevelId
         );
     }

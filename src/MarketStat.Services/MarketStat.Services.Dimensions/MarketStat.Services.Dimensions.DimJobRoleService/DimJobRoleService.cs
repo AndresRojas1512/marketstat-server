@@ -16,12 +16,12 @@ public class DimJobRoleService : IDimJobRoleService
         _logger = logger;
     }
     
-    public async Task<DimJobRole> CreateJobRoleAsync(string jobRoleTitle, int industryFieldId, int hierarchyLevelId)
+    public async Task<DimJobRole> CreateJobRoleAsync(string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
     {
         var all = (await _dimJobRoleRepository.GetAllJobRolesAsync()).ToList();
         var newId = all.Any() ? all.Max(r => r.JobRoleId) + 1 : 1;
-        DimJobRoleValidator.ValidateParameters(newId, jobRoleTitle, industryFieldId, hierarchyLevelId);
-        var role = new DimJobRole(newId, jobRoleTitle, industryFieldId, hierarchyLevelId);
+        DimJobRoleValidator.ValidateParameters(newId, jobRoleTitle, standardJobRoleId, hierarchyLevelId);
+        var role = new DimJobRole(newId, jobRoleTitle, standardJobRoleId, hierarchyLevelId);
         try
         {
             await _dimJobRoleRepository.AddJobRoleAsync(role);
@@ -55,14 +55,15 @@ public class DimJobRoleService : IDimJobRoleService
         return list;
     }
     
-    public async Task<DimJobRole> UpdateJobRoleAsync(int jobRoleId, string jobRoleTitle, int industryFieldId, int hierarchyLevelId)
+    public async Task<DimJobRole> UpdateJobRoleAsync(int jobRoleId, string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
+    
     {
         try
         {
-            DimJobRoleValidator.ValidateParameters(jobRoleId, jobRoleTitle, industryFieldId, hierarchyLevelId);
+            DimJobRoleValidator.ValidateParameters(jobRoleId, jobRoleTitle, standardJobRoleId, hierarchyLevelId);
             var existing = await _dimJobRoleRepository.GetJobRoleByIdAsync(jobRoleId);
             existing.JobRoleTitle   = jobRoleTitle;
-            existing.IndustryFieldId = industryFieldId;
+            existing.StandardJobRoleId = standardJobRoleId;
             existing.HierarchyLevelId = hierarchyLevelId;
 
             await _dimJobRoleRepository.UpdateJobRoleAsync(existing);
