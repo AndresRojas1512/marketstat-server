@@ -4,9 +4,9 @@ namespace MarketStat.Services.Dimensions.DimEducationService;
 
 public interface IDimEducationService
 {
-    Task<DimEducation> CreateEducationAsync(string specialization, int educationLevelId, int industryFieldId);
+    Task<DimEducation> CreateEducationAsync(string specialty, string specialtyCode,int educationLevelId, int industryFieldId);
     Task<DimEducation> GetEducationByIdAsync(int educationId);
     Task<IEnumerable<DimEducation>> GetAllEducationsAsync();
-    Task<DimEducation> UpdateEducationAsync(int educationId, string specialization, int educationLevelId, int industryFieldId);
+    Task<DimEducation> UpdateEducationAsync(int educationId, string specialty, string specialtyCode, int educationLevelId, int industryFieldId);
     Task DeleteEducationAsync(int educationId);
 }

@@ -11,22 +11,28 @@ public class DimEducationDbModel
     public int EducationId { get; set; }
     
     [Required]
-    [Column("specialization")]
+    [Column("specialty")]
     [StringLength(255)]
-    public string Specialization { get; set; }
+    public string Specialty { get; set; }
     
     [Required]
-    [Column("education_level")]
+    [Column("specialty_code")]
+    [StringLength(255)]
+    public string SpecialtyCode { get; set; }
+    
+    [Required]
+    [Column("education_level_id")]
     public int EducationLevelId { get; set; }
     
     [Required]
     [Column("industry_field_id")]
     public int IndustryFieldId { get; set; }
 
-    public DimEducationDbModel(int educationId, string specialization, int educationLevelId, int industryFieldId)
+    public DimEducationDbModel(int educationId, string specialty, string specialtyCode, int educationLevelId, int industryFieldId)
     {
         EducationId = educationId;
-        Specialization = specialization;
+        Specialty = specialty;
+        SpecialtyCode = specialtyCode;
         EducationLevelId = educationLevelId;
         IndustryFieldId = industryFieldId;
     }

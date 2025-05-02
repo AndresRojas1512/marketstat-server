@@ -16,12 +16,12 @@ public class DimEducationService : IDimEducationService
         _logger = logger;
     }
     
-    public async Task<DimEducation> CreateEducationAsync(string specialization, int educationLevelId, int industryFieldId)
+    public async Task<DimEducation> CreateEducationAsync(string specialty, string specialtyCode, int educationLevelId, int industryFieldId)
     {
         var allEducations = (await _dimEducationRepository.GetAllEducationsAsync()).ToList();
         int newId = allEducations.Any() ? allEducations.Max(e => e.EducationId) + 1 : 1;
-        DimEducationValidator.ValidateParameters(newId, specialization, educationLevelId, industryFieldId);
-        var edu = new DimEducation(newId, specialization, educationLevelId, industryFieldId);
+        DimEducationValidator.ValidateParameters(newId, specialty, specialtyCode, educationLevelId, industryFieldId);
+        var edu = new DimEducation(newId, specialty, specialtyCode, educationLevelId, industryFieldId);
         try
         {
             await _dimEducationRepository.AddEducationAsync(edu);
@@ -54,14 +54,15 @@ public class DimEducationService : IDimEducationService
         return list;
     }
     
-    public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialization, int educationLevelId, int industryFieldId)
+    public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialty, string specialtyCode, int educationLevelId, int industryFieldId)
     {
         try
         {
-            DimEducationValidator.ValidateParameters(educationId, specialization, educationLevelId, industryFieldId);
+            DimEducationValidator.ValidateParameters(educationId, specialty, specialtyCode, educationLevelId, industryFieldId);
 
             var existing = await _dimEducationRepository.GetEducationByIdAsync(educationId);
-            existing.Specialization = specialization;
+            existing.Specialty = specialty;
+            existing.SpecialtyCode = specialtyCode;
             existing.EducationLevelId = educationLevelId;
             existing.IndustryFieldId = industryFieldId;
 

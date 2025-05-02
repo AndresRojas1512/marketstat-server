@@ -41,7 +41,8 @@ public class DimEducationRepository : IDimEducationRepository
         var dbEducation = await _dbContext.DimEducations.FindAsync(education.EducationId) 
                           ?? throw new KeyNotFoundException($"Cannot update Education {education.EducationId}.");
         dbEducation.EducationId = education.EducationId;
-        dbEducation.Specialization = education.Specialization;
+        dbEducation.Specialty = education.Specialty;
+        dbEducation.SpecialtyCode = education.SpecialtyCode;
         dbEducation.EducationLevelId = education.EducationLevelId;
         dbEducation.IndustryFieldId = education.IndustryFieldId;
         await _dbContext.SaveChangesAsync();

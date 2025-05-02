@@ -31,15 +31,15 @@ public class DimEducationServiceIntegrationTests
     {
         var seed = new List<DimEducation>
         {
-            new DimEducation(1, "Software Engineer",  1,   1),
-            new DimEducation(2, "Surgeon", 2, 2)
+            new DimEducation(1, "Software Engineer", "01.01.01", 1,   1),
+            new DimEducation(2, "Surgeon", "02.02.02", 2, 2)
         };
 
         foreach (var d in seed)
             await _accessObject.DimEducationRepository.AddEducationAsync(d);
 
         var all = (await _dimEducationService.GetAllEducationsAsync()).ToList();
-        Assert.Contains(all, d => d.Specialization == "Software Engineer");
-        Assert.Contains(all, d => d.Specialization == "Surgeon");
+        Assert.Contains(all, d => d.Specialty == "Software Engineer");
+        Assert.Contains(all, d => d.Specialty == "Surgeon");
     }
 }
