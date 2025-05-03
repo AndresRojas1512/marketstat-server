@@ -1,4 +1,5 @@
 using MarketStat.Database.Models;
+using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Context;
@@ -25,6 +26,8 @@ public class MarketStatDbContext : DbContext
     public DbSet<DimEducationLevelDbModel> DimEducationLevels { get; set; }
     public DbSet<DimStandardJobRoleHierarchyDbModel> DimStandardJobRoleHierarchies { get; set; }
     public DbSet<DimStandardJobRoleDbModel> DimStandardJobRoles { get; set; }
+    
+    public DbSet<FactSalaryDbModel> FactSalaries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +90,10 @@ public class MarketStatDbContext : DbContext
         modelBuilder.Entity<DimStandardJobRoleHierarchyDbModel>()
             .ToTable("dim_standard_job_role_hierarchy")
             .HasKey(j => new { j.StandardJobRoleId, j.HierarchyLevelId });
+
+        modelBuilder.Entity<FactSalaryDbModel>()
+            .ToTable("fact_salaries")
+            .HasKey(s => s.SalaryFactId);
         
         base.OnModelCreating(modelBuilder);
     }

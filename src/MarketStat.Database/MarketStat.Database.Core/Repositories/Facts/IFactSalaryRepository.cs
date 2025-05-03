@@ -5,8 +5,8 @@ namespace MarketStat.Database.Core.Repositories.Facts;
 
 public interface IFactSalaryRepository
 {
-    Task AddFactSalaryAsync(FactSalary salaryFact);
-    Task<FactSalary> GetFactSalaryByIdAsync(int salaryFactId);
+    Task AddFactSalaryAsync(FactSalary salary);
+    Task<FactSalary> GetFactSalaryByIdAsync(int salaryId);
     public Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(FactSalaryFilter salaryFilter);
     Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync();
     Task UpdateFactSalaryAsync(FactSalary salaryFact);

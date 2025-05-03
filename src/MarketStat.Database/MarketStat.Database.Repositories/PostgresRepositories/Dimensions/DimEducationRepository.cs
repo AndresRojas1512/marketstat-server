@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
-public class DimEducationRepository : IDimEducationRepository
+public class DimEducationRepository : BaseRepository, IDimEducationRepository
 {
     private readonly MarketStatDbContext _dbContext;
 

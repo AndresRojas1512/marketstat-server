@@ -18,12 +18,12 @@ public class FactSalaryService : IFactSalaryService
     }
     
     public async Task<FactSalary> CreateFactSalaryAsync(int dateId, int cityId, int employerId, int jobRoleId, 
-        int employeeId, int salaryAmount, int bonusAmount)
+        int employeeId, decimal salaryAmount, decimal bonusAmount)
     {
         var all = (await _factSalaryRepository.GetAllFactSalariesAsync()).ToList();
         var newId = all.Any() ? all.Max(f => f.SalaryFactId) + 1 : 1;
         FactSalaryValidator.ValidateParameters(
-            newId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount, checkId: false);
+            newId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
 
         var fact = new FactSalary(newId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
 
@@ -68,7 +68,7 @@ public class FactSalaryService : IFactSalaryService
     }
     
     public async Task<FactSalary> UpdateFactSalaryAsync(int salaryFactId, int dateId, int cityId, int employerId,
-        int jobRoleId, int employeeId, int salaryAmount, int bonusAmount)
+        int jobRoleId, int employeeId, decimal salaryAmount, decimal bonusAmount)
     {
         FactSalaryValidator.ValidateParameters(
             salaryFactId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);

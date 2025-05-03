@@ -20,10 +20,7 @@
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEducationLevelService\MarketStat.Services.Dimensions.DimEducationLevelService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService\MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimStandardJobRoleService\MarketStat.Services.Dimensions.DimStandardJobRoleService.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="InMemory\Facts\" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Facts\MarketStat.Services.Facts.FactSalaryService\MarketStat.Services.Facts.FactSalaryService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
-public class DimDateRepository : IDimDateRepository
+public class DimDateRepository : BaseRepository, IDimDateRepository
 {
     private readonly MarketStatDbContext _dbContext;
 

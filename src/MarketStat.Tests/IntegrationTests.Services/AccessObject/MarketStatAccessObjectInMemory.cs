@@ -1,9 +1,13 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
+using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Database.Models;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
+using MarketStat.Database.Repositories.PostgresRepositories.Facts;
 using MarketStat.Services.Dimensions.DimCityService;
 using MarketStat.Services.Dimensions.DimDateService;
 using MarketStat.Services.Dimensions.DimEducationLevelService;
@@ -19,6 +23,7 @@ using MarketStat.Services.Dimensions.DimJobRoleService;
 using MarketStat.Services.Dimensions.DimOblastService;
 using MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService;
 using MarketStat.Services.Dimensions.DimStandardJobRoleService;
+using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace IntegrationTests.Services.AccessObject;
@@ -42,6 +47,8 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimStandardJobRoleHierarchyRepository DimStandardJobRoleHierarchyRepository { get; }
     public IDimStandardJobRoleRepository DimStandardJobRoleRepository { get; }
     
+    public IFactSalaryRepository FactSalaryRepository { get; }
+    
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
     public IDimJobRoleService JobRoleService { get; }
@@ -57,6 +64,8 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimEducationLevelService DimEducationLevelService { get; }
     public IDimStandardJobRoleHierarchyService DimStandardJobRoleHierarchyService { get; }
     public IDimStandardJobRoleService DimStandardJobRoleService { get; }
+    
+    public IFactSalaryService FactSalaryService { get; }
 
     public MarketStatAccessObjectInMemory()
     {
@@ -113,6 +122,9 @@ public class MarketStatAccessObjectInMemory : IDisposable
         DimStandardJobRoleRepository = new DimStandardJobRoleRepository(Context);
         DimStandardJobRoleService = new DimStandardJobRoleService(DimStandardJobRoleRepository,
             NullLogger<DimStandardJobRoleService>.Instance);
+
+        FactSalaryRepository = new FactSalaryRepository(Context);
+        FactSalaryService = new FactSalaryService(FactSalaryRepository, NullLogger<FactSalaryService>.Instance);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)
@@ -246,6 +258,15 @@ public class MarketStatAccessObjectInMemory : IDisposable
         foreach (var j in items)
         {
             Context.DimStandardJobRoles.Add(DimStandardJobRoleConverter.ToDbModel(j));
+        }
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedSalaryAsync(IEnumerable<FactSalary> items)
+    {
+        foreach (var s in items)
+        {
+            Context.FactSalaries.Add(FactSalaryConverter.ToDbModel(s));
         }
         await Context.SaveChangesAsync();
     }

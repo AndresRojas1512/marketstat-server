@@ -3,9 +3,9 @@ namespace MarketStat.Services.Facts.FactSalaryService.Validators;
 public class FactSalaryValidator
 {
     public static void ValidateParameters(int salaryFactId, int dateId, int cityId, int employerId, int jobRoleId,
-        int employeeId, int salaryAmount, int bonusAmount, bool checkId = true)
+        int employeeId, decimal salaryAmount, decimal bonusAmount)
     {
-        if (checkId && salaryFactId <= 0)
+        if (salaryFactId <= 0)
             throw new ArgumentException("SalaryFactId must be a positive integer.");
 
         if (dateId <= 0)

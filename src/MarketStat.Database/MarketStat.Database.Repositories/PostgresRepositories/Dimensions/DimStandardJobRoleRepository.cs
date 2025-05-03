@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
-public class DimStandardJobRoleRepository : IDimStandardJobRoleRepository
+public class DimStandardJobRoleRepository : BaseRepository, IDimStandardJobRoleRepository
 {
     private readonly MarketStatDbContext _context;
 

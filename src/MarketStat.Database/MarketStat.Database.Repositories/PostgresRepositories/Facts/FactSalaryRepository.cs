@@ -1,77 +1,78 @@
+using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Facts;
+using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
+using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 
 public class FactSalaryRepository : IFactSalaryRepository
 {
-    private readonly Dictionary<int, FactSalary> _salaryFacts = new Dictionary<int, FactSalary>();
+    private readonly MarketStatDbContext _dbContext;
 
-    public Task AddFactSalaryAsync(FactSalary salaryFact)
+    public FactSalaryRepository(MarketStatDbContext dbContext)
     {
-        if (!_salaryFacts.TryAdd(salaryFact.SalaryFactId, salaryFact))
-        {
-            throw new ArgumentException($"Salary fact {salaryFact.SalaryFactId} already exists.");
-        }
-
-        return Task.CompletedTask;
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public Task<FactSalary> GetFactSalaryByIdAsync(int salaryFactId)
+    public async Task AddFactSalaryAsync(FactSalary salary)
     {
-        if (_salaryFacts.TryGetValue(salaryFactId, out var salaryFact))
-        {
-            return Task.FromResult(salaryFact);
-        }
+        var dbSalaryFact = FactSalaryConverter.ToDbModel(salary);
+        await _dbContext.FactSalaries.AddAsync(dbSalaryFact);
+        await _dbContext.SaveChangesAsync();
+    }
 
-        throw new KeyNotFoundException($"Salary fact {salaryFactId} not found.");
+    public async Task<FactSalary> GetFactSalaryByIdAsync(int salaryId)
+    {
+        var dbSalary = await _dbContext.FactSalaries.FindAsync((long)salaryId)
+                      ?? throw new KeyNotFoundException($"FactSalary {salaryId} not found.");
+        return FactSalaryConverter.ToDomain(dbSalary);
     }
     
-    public Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(FactSalaryFilter salaryFilter)
+    public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(FactSalaryFilter filter)
     {
-        var query = _salaryFacts.Values.AsEnumerable();
+        IQueryable<FactSalaryDbModel> q = _dbContext.FactSalaries;
 
-        if (salaryFilter.DateId.HasValue)
-            query = query.Where(f => f.DateId == salaryFilter.DateId.Value);
+        if (filter.DateId.HasValue) q = q.Where(x => x.DateId == filter.DateId);
+        if (filter.CityId.HasValue) q = q.Where(x => x.CityId == filter.CityId);
+        if (filter.EmployerId.HasValue) q = q.Where(x => x.EmployerId == filter.EmployerId);
+        if (filter.JobRoleId.HasValue) q = q.Where(x => x.JobRoleId == filter.JobRoleId);
+        if (filter.EmployeeId.HasValue) q = q.Where(x => x.EmployeeId == filter.EmployeeId);
 
-        if (salaryFilter.CityId.HasValue)
-            query = query.Where(f => f.CityId == salaryFilter.CityId.Value);
-
-        if (salaryFilter.EmployerId.HasValue)
-            query = query.Where(f => f.EmployerId == salaryFilter.EmployerId.Value);
-
-        if (salaryFilter.JobRoleId.HasValue)
-            query = query.Where(f => f.JobRoleId == salaryFilter.JobRoleId.Value);
-
-        if (salaryFilter.EmployeeId.HasValue)
-            query = query.Where(f => f.EmployeeId == salaryFilter.EmployeeId.Value);
-        
-        return Task.FromResult(query);
+        var list = await q.ToListAsync();
+        return list.Select(FactSalaryConverter.ToDomain);
     }
 
-    public Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync()
+    public async Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync()
     {
-        return Task.FromResult<IEnumerable<FactSalary>>(_salaryFacts.Values);
+        var all = await _dbContext.FactSalaries.ToListAsync();
+        return all.Select(FactSalaryConverter.ToDomain);
     }
 
-    public Task UpdateFactSalaryAsync(FactSalary salaryFact)
+    public async Task UpdateFactSalaryAsync(FactSalary salaryFact)
     {
-        if (!_salaryFacts.ContainsKey(salaryFact.SalaryFactId))
-        {
-            throw new KeyNotFoundException($"Cannot update: salary fact {salaryFact.SalaryFactId} not found.");
-        }
-        _salaryFacts[salaryFact.SalaryFactId] = salaryFact;
-        return Task.CompletedTask;
+        var dbModel = await _dbContext.FactSalaries.FindAsync((long)salaryFact.SalaryFactId)
+                      ?? throw new KeyNotFoundException($"Cannot update: salary fact {salaryFact.SalaryFactId} not found.");
+
+        dbModel.DateId       = salaryFact.DateId;
+        dbModel.CityId       = salaryFact.CityId;
+        dbModel.EmployerId   = salaryFact.EmployerId;
+        dbModel.JobRoleId    = salaryFact.JobRoleId;
+        dbModel.EmployeeId   = salaryFact.EmployeeId;
+        dbModel.SalaryAmount = salaryFact.SalaryAmount;
+        dbModel.BonusAmount  = salaryFact.BonusAmount;
+
+        await _dbContext.SaveChangesAsync();
     }
 
-    public Task DeleteFactSalaryByIdAsync(int salaryFactId)
+    public async Task DeleteFactSalaryByIdAsync(int salaryFactId)
     {
-        if (!_salaryFacts.Remove(salaryFactId))
-        {
-            throw new KeyNotFoundException($"Cannot delete: salary fact {salaryFactId} not found.");
-        }
+        var dbModel = await _dbContext.FactSalaries.FindAsync((long)salaryFactId)
+                      ?? throw new KeyNotFoundException($"Cannot delete: salary fact {salaryFactId} not found.");
 
-        return Task.CompletedTask;
+        _dbContext.FactSalaries.Remove(dbModel);
+        await _dbContext.SaveChangesAsync();
     }
 }

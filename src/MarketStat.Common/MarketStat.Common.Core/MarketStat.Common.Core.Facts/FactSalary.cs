@@ -8,11 +8,11 @@ public class FactSalary
     public int EmployerId { get; set; }
     public int JobRoleId { get; set; }
     public int EmployeeId { get; set; }
-    public int SalaryAmount { get; set; }
-    public int BonusAmount { get; set; }
+    public decimal SalaryAmount { get; set; }
+    public decimal BonusAmount { get; set; }
 
     public FactSalary(int salaryFactId, int dateId, int cityId, int employerId, int jobRoleId, int employeeId,
-        int salaryAmount, int bonusAmount)
+        decimal salaryAmount, decimal bonusAmount)
     {
         SalaryFactId = salaryFactId;
         DateId = dateId;
