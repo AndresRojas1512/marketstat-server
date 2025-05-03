@@ -23,6 +23,7 @@ public class MarketStatDbContext : DbContext
     public DbSet<DimOblastDbModel> DimOblasts { get; set; }
     public DbSet<DimCityDbModel> DimCities { get; set; }
     public DbSet<DimEducationLevelDbModel> DimEducationLevels { get; set; }
+    public DbSet<DimStandardJobRoleHierarchyDbModel> DimStandardJobRoleHierarchies { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

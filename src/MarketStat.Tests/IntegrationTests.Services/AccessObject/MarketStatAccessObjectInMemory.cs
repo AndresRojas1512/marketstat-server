@@ -17,6 +17,7 @@ using MarketStat.Services.Dimensions.DimHierarchyLevelService;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using MarketStat.Services.Dimensions.DimJobRoleService;
 using MarketStat.Services.Dimensions.DimOblastService;
+using MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace IntegrationTests.Services.AccessObject;
@@ -37,6 +38,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimOblastRepository DimOblastRepository { get; }
     public IDimCityRepository DimCityRepository { get; }
     public IDimEducationLevelRepository DimEducationLevelRepository { get; }
+    public IDimStandardJobRoleHierarchyRepository DimStandardJobRoleHierarchyRepository { get; }
     
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
@@ -51,6 +53,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimOblastService DimOblastService { get; }
     public IDimCityService DimCityService { get; }
     public IDimEducationLevelService DimEducationLevelService { get; }
+    public IDimStandardJobRoleHierarchyService DimStandardJobRoleHierarchyService { get; }
 
     public MarketStatAccessObjectInMemory()
     {
@@ -99,7 +102,10 @@ public class MarketStatAccessObjectInMemory : IDisposable
         DimEducationLevelRepository = new DimEducationLevelRepository(Context);
         DimEducationLevelService =
             new DimEducationLevelService(DimEducationLevelRepository, NullLogger<DimEducationLevelService>.Instance);
-
+        
+        DimStandardJobRoleHierarchyRepository = new DimStandardJobRoleHierarchyRepository(Context);
+        DimStandardJobRoleHierarchyService = new DimStandardJobRoleHierarchyService(
+            DimStandardJobRoleHierarchyRepository, NullLogger<DimStandardJobRoleHierarchyService>.Instance);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)
@@ -215,6 +221,15 @@ public class MarketStatAccessObjectInMemory : IDisposable
         foreach (var e in items)
         {
             Context.DimEducationLevels.Add(DimEducationLevelConverter.ToDbModel(e));
+        }
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedStandardJobRoleHierarchyAsync(IEnumerable<DimStandardJobRoleHierarchy> items)
+    {
+        foreach (var j in items)
+        {
+            Context.DimStandardJobRoleHierarchies.Add(DimStandardJobRoleHierarchyConverter.ToDbModel(j));
         }
         await Context.SaveChangesAsync();
     }

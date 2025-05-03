@@ -10,5 +10,4 @@ public interface IDimEmployeeEducationService
     Task<IEnumerable<DimEmployeeEducation>> GetAllEmployeeEducationsAsync();
     Task<DimEmployeeEducation> UpdateEmployeeEducationAsync(int employeeId, int educationId, short graduationYear);
     Task DeleteEmployeeEducationAsync(int employeeId, int educationId);
-    
 }
