@@ -1,6 +1,6 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Core.Repositories.Dimensions;
-using MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService;
+using MarketStat.Services.Dimensions.DimStandardJobRoleService;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -9,187 +9,161 @@ namespace UnitTests.Services.UnitTests.Services.Dimensions;
 
 public class DimStandardJobRoleServiceUnitTests
 {
-    private Mock<IDimStandardJobRoleHierarchyRepository> _dimStandardJobRoleHierarchyRepository;
-    private Mock<ILogger<DimStandardJobRoleHierarchyService>> _logger;
-    private DimStandardJobRoleHierarchyService _dimStandardJobRoleHierarchyService;
+    private Mock<IDimStandardJobRoleRepository> _dimStandardJobRoleRepository;
+    private Mock<ILogger<DimStandardJobRoleService>> _logger;
+    private DimStandardJobRoleService _dimStandardJobRoleService;
 
     public DimStandardJobRoleServiceUnitTests()
     {
-        _dimStandardJobRoleHierarchyRepository = new Mock<IDimStandardJobRoleHierarchyRepository>();
-        _logger = new Mock<ILogger<DimStandardJobRoleHierarchyService>>();
-        _dimStandardJobRoleHierarchyService =
-            new DimStandardJobRoleHierarchyService(_dimStandardJobRoleHierarchyRepository.Object, _logger.Object);
+        _dimStandardJobRoleRepository = new Mock<IDimStandardJobRoleRepository>();
+        _logger = new Mock<ILogger<DimStandardJobRoleService>>();
+        _dimStandardJobRoleService = new DimStandardJobRoleService(_dimStandardJobRoleRepository.Object, _logger.Object);
     }
     
     [Fact]
-    public async Task CreateStandardJobRoleHierarchy_Valid_CallsRepositoryAndReturnsLink()
+    public async Task CreateStandardJobRoleAsync_ValidParameters_ReturnsNewRole()
     {
-        const int jobId = 1, lvlId = 2;
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.AddStandardJobRoleHierarchyAsync(It.IsAny<DimStandardJobRoleHierarchy>()))
+        _dimStandardJobRoleRepository
+            .Setup(r => r.GetAllStandardJobRolesAsync())
+            .ReturnsAsync(new List<DimStandardJobRole>());
+        _dimStandardJobRoleRepository
+            .Setup(r => r.AddStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
             .Returns(Task.CompletedTask);
-
-        var result = await _dimStandardJobRoleHierarchyService.CreateStandardJobRoleHierarchy(jobId, lvlId);
-
-        Assert.Equal(jobId, result.StandardJobRoleId);
-        Assert.Equal(lvlId, result.HierarchyLevelId);
-        _dimStandardJobRoleHierarchyRepository.Verify(r =>
-            r.AddStandardJobRoleHierarchyAsync(
-                It.Is<DimStandardJobRoleHierarchy>(x =>
-                    x.StandardJobRoleId == jobId &&
-                    x.HierarchyLevelId   == lvlId
+        
+        var result = await _dimStandardJobRoleService.CreateStandardJobRoleAsync("Architect", 2);
+        
+        Assert.Equal(1, result.StandardJobRoleId);
+        Assert.Equal("Architect", result.StandardJobRoleTitle);
+        Assert.Equal(2, result.IndustryFieldId);
+        _dimStandardJobRoleRepository.Verify(r =>
+            r.AddStandardJobRoleAsync(
+                It.Is<DimStandardJobRole>(d =>
+                    d.StandardJobRoleId    == 1 &&
+                    d.StandardJobRoleTitle == "Architect" &&
+                    d.IndustryFieldId      == 2
                 )), Times.Once);
     }
-    
-    [Fact]
-    public async Task CreateStandardJobRoleHierarchy_RepoThrows_ThrowsException()
-    {
-        const int jobId = 3, lvlId = 4;
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.AddStandardJobRoleHierarchyAsync(It.IsAny<DimStandardJobRoleHierarchy>()))
-            .ThrowsAsync(new InvalidOperationException("db fail"));
 
+    [Fact]
+    public async Task CreateStandardJobRoleAsync_Duplicate_ThrowsException()
+    {
+        _dimStandardJobRoleRepository
+            .Setup(r => r.GetAllStandardJobRolesAsync())
+            .ReturnsAsync(new List<DimStandardJobRole>());
+        _dimStandardJobRoleRepository
+            .Setup(r => r.AddStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
+            .ThrowsAsync(new Exception("db error"));
+        
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimStandardJobRoleHierarchyService.CreateStandardJobRoleHierarchy(jobId, lvlId)
+            _dimStandardJobRoleService.CreateStandardJobRoleAsync("Developer", 1)
         );
-        Assert.Equal($"Could not create link ({jobId},{lvlId}).", ex.Message);
+        Assert.Equal("Could not create job role 'Developer'", ex.Message);
     }
     
     [Fact]
-    public async Task GetStandardJobRoleHierarchyAsync_Existing_ReturnsLink()
+    public async Task GetStandardJobRoleByIdAsync_Existing_ReturnsRole()
     {
-        var expected = new DimStandardJobRoleHierarchy(5, 6);
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.GetStandardJobRoleHierarchyAsync(5, 6))
+        var expected = new DimStandardJobRole(5, "Analyst", 3);
+        _dimStandardJobRoleRepository
+            .Setup(r => r.GetStandardJobRoleByIdAsync(5))
             .ReturnsAsync(expected);
-
-        var actual = await _dimStandardJobRoleHierarchyService.GetStandardJobRoleHierarchyAsync(5, 6);
-
+        
+        var actual = await _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(5);
+        
         Assert.Same(expected, actual);
     }
     
     [Fact]
-    public async Task GetStandardJobRoleHierarchyAsync_NotFound_ThrowsException()
+    public async Task GetStandardJobRoleByIdAsync_NotFound_ThrowsException()
     {
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.GetStandardJobRoleHierarchyAsync(7, 8))
+        _dimStandardJobRoleRepository
+            .Setup(r => r.GetStandardJobRoleByIdAsync(7))
             .ThrowsAsync(new KeyNotFoundException());
-
+        
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimStandardJobRoleHierarchyService.GetStandardJobRoleHierarchyAsync(7, 8)
+            _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(7)
         );
-        Assert.Equal("Link (7, 8) not found.", ex.Message);
+        Assert.Equal("Standard job role 7 was not found.", ex.Message);
     }
     
     [Fact]
-    public async Task GetLevelsByJobRoleIdAsync_Valid_ReturnsList()
+    public async Task GetAllStandardJobRolesAsync_ReturnsList()
     {
-        const int jobId = 10;
-        var list = new[]
+        var list = new List<DimStandardJobRole>
         {
-            new DimStandardJobRoleHierarchy(jobId, 1),
-            new DimStandardJobRoleHierarchy(jobId, 2)
+            new DimStandardJobRole(1, "QA", 2),
+            new DimStandardJobRole(2, "DevOps", 1)
         };
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.GetLevelsByJobRoleIdAsync(jobId))
+        _dimStandardJobRoleRepository
+            .Setup(r => r.GetAllStandardJobRolesAsync())
             .ReturnsAsync(list);
-
-        var result = (await _dimStandardJobRoleHierarchyService.GetLevelsByJobRoleIdAsync(jobId)).ToList();
-
+        
+        var result = (await _dimStandardJobRoleService.GetAllStandardJobRolesAsync()).ToList();
+        
         Assert.Equal(2, result.Count);
         Assert.Equal(list, result);
     }
     
     [Fact]
-    public async Task GetLevelsByJobRoleIdAsync_RepoThrows_ThrowsException()
+    public async Task UpdateStandardJobRoleAsync_ValidParameters_UpdatesAndReturns()
     {
-        const int jobId = 11;
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.GetLevelsByJobRoleIdAsync(jobId))
-            .ThrowsAsync(new Exception("db error"));
-
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimStandardJobRoleHierarchyService.GetLevelsByJobRoleIdAsync(jobId)
-        );
-        Assert.Equal($"Could not retrieve levels for job {jobId}.", ex.Message);
-    }
-    
-    [Fact]
-    public async Task GetJobRolesByLevelIdAsync_Valid_ReturnsList()
-    {
-        const int lvlId = 20;
-        var list = new[]
-        {
-            new DimStandardJobRoleHierarchy(1, lvlId),
-            new DimStandardJobRoleHierarchy(2, lvlId)
-        };
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.GetJobRolesByLevelIdAsync(lvlId))
-            .ReturnsAsync(list);
-
-        var result = (await _dimStandardJobRoleHierarchyService.GetJobRolesByLevelIdAsync(lvlId)).ToList();
-
-        Assert.Equal(2, result.Count);
-        Assert.Equal(list, result);
-    }
-    
-    [Fact]
-    public async Task GetJobRolesByLevelIdAsync_RepoThrows_ThrowsException()
-    {
-        const int lvlId = 21;
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.GetJobRolesByLevelIdAsync(lvlId))
-            .ThrowsAsync(new Exception("db error"));
-
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimStandardJobRoleHierarchyService.GetJobRolesByLevelIdAsync(lvlId)
-        );
-        Assert.Equal($"Could not retrieve job roles for level {lvlId}", ex.Message);
-    }
-    
-    [Fact]
-    public async Task GetAllStandardJobRoleHierarchiesAsync_ReturnsList()
-    {
-        var list = new[]
-        {
-            new DimStandardJobRoleHierarchy(1,1),
-            new DimStandardJobRoleHierarchy(2,2)
-        };
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.GetAllStandardJobRoleHierarchiesAsync())
-            .ReturnsAsync(list);
-
-        var result = (await _dimStandardJobRoleHierarchyService.GetAllStandardJobRoleHierarchiesAsync()).ToList();
-
-        Assert.Equal(list, result);
-    }
-    
-    [Fact]
-    public async Task DeleteStandardJobRoleHierarchyAsync_Valid_CallsRepository()
-    {
-        const int jobId = 30, lvlId = 31;
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.DeleteStandardJobRoleHierarchyAsync(jobId, lvlId))
+        var existing = new DimStandardJobRole(3, "Tester", 2);
+        _dimStandardJobRoleRepository
+            .Setup(r => r.GetStandardJobRoleByIdAsync(3))
+            .ReturnsAsync(existing);
+        _dimStandardJobRoleRepository
+            .Setup(r => r.UpdateStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
             .Returns(Task.CompletedTask);
-
-        await _dimStandardJobRoleHierarchyService.DeleteStandardJobRoleHierarchyAsync(jobId, lvlId);
-
-        _dimStandardJobRoleHierarchyRepository.Verify(r =>
-                r.DeleteStandardJobRoleHierarchyAsync(jobId, lvlId),
-            Times.Once);
+        
+        var updated = await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(3, "Lead Tester", 2);
+        
+        Assert.Equal(3, updated.StandardJobRoleId);
+        Assert.Equal("Lead Tester", updated.StandardJobRoleTitle);
+        _dimStandardJobRoleRepository.Verify(r =>
+            r.UpdateStandardJobRoleAsync(
+                It.Is<DimStandardJobRole>(d =>
+                    d.StandardJobRoleId    == 3 &&
+                    d.StandardJobRoleTitle == "Lead Tester" &&
+                    d.IndustryFieldId      == 2
+                )), Times.Once);
     }
     
     [Fact]
-    public async Task DeleteStandardJobRoleHierarchyAsync_NotFound_ThrowsException()
+    public async Task UpdateStandardJobRoleAsync_NotFound_ThrowsException()
     {
-        const int jobId = 40, lvlId = 41;
-        _dimStandardJobRoleHierarchyRepository
-            .Setup(r => r.DeleteStandardJobRoleHierarchyAsync(jobId, lvlId))
+        _dimStandardJobRoleRepository
+            .Setup(r => r.GetStandardJobRoleByIdAsync(9))
             .ThrowsAsync(new KeyNotFoundException());
-
+        
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimStandardJobRoleHierarchyService.DeleteStandardJobRoleHierarchyAsync(jobId, lvlId)
+            _dimStandardJobRoleService.UpdateStandardJobRoleAsync(9, "X", 1)
         );
-        Assert.Equal($"Cannot delete link ({jobId}, {lvlId}).", ex.Message);
+        Assert.Equal("Cannot update: job role 9 not found.", ex.Message);
+    }
+    
+    [Fact]
+    public async Task DeleteStandardJobRoleAsync_Valid_CallsRepository()
+    {
+        _dimStandardJobRoleRepository
+            .Setup(r => r.DeleteStandardJobRoleAsync(4))
+            .Returns(Task.CompletedTask);
+        
+        await _dimStandardJobRoleService.DeleteStandardJobRoleAsync(4);
+        
+        _dimStandardJobRoleRepository.Verify(r =>
+            r.DeleteStandardJobRoleAsync(4), Times.Once);
+    }
+    
+    [Fact]
+    public async Task DeleteStandardJobRoleAsync_NotFound_ThrowsException()
+    {
+        _dimStandardJobRoleRepository
+            .Setup(r => r.DeleteStandardJobRoleAsync(6))
+            .ThrowsAsync(new KeyNotFoundException());
+        
+        var ex = await Assert.ThrowsAsync<Exception>(() =>
+            _dimStandardJobRoleService.DeleteStandardJobRoleAsync(6)
+        );
+        Assert.Equal("Cannot delete: standard job role 6 not found.", ex.Message);
     }
 }

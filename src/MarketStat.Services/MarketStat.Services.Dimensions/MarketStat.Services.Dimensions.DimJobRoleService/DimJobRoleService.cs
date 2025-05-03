@@ -56,11 +56,10 @@ public class DimJobRoleService : IDimJobRoleService
     }
     
     public async Task<DimJobRole> UpdateJobRoleAsync(int jobRoleId, string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
-    
     {
+        DimJobRoleValidator.ValidateParameters(jobRoleId, jobRoleTitle, standardJobRoleId, hierarchyLevelId);
         try
         {
-            DimJobRoleValidator.ValidateParameters(jobRoleId, jobRoleTitle, standardJobRoleId, hierarchyLevelId);
             var existing = await _dimJobRoleRepository.GetJobRoleByIdAsync(jobRoleId);
             existing.JobRoleTitle   = jobRoleTitle;
             existing.StandardJobRoleId = standardJobRoleId;
