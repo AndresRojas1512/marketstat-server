@@ -28,7 +28,7 @@ public class DimHierarchyLevelIntegrationTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAllEmployers_Seeded_ReturnsSeeded()
+    public async Task GetAllHierarchyLevels_Seeded_ReturnsSeeded()
     {
         var seed = new List<DimHierarchyLevel>
         {

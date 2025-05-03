@@ -7,7 +7,7 @@ using Xunit;
 
 namespace IntegrationTests.Services.InMemory.Dimensions;
 
-public class DimEducationServiceIntegrationTests
+public class DimEducationServiceIntegrationTests : IDisposable
 {
     private readonly MarketStatAccessObjectInMemory _accessObject;
     private readonly IDimEducationService _dimEducationService;
@@ -19,6 +19,8 @@ public class DimEducationServiceIntegrationTests
             NullLogger<DimEducationService>.Instance);
     }
     
+    public void Dispose() => _accessObject.Dispose();
+    
     [Fact]
     public async Task GetAllEducations_Empty_ReturnsEmpty()
     {
@@ -27,7 +29,7 @@ public class DimEducationServiceIntegrationTests
     }
     
     [Fact]
-    public async Task GetAllEducation_Seeded_ReturnsSeeded()
+    public async Task GetAllEducations_Seeded_ReturnsSeeded()
     {
         var seed = new List<DimEducation>
         {
@@ -35,8 +37,7 @@ public class DimEducationServiceIntegrationTests
             new DimEducation(2, "Surgeon", "02.02.02", 2, 2)
         };
 
-        foreach (var d in seed)
-            await _accessObject.DimEducationRepository.AddEducationAsync(d);
+        await _accessObject.SeedEducationAsync(seed);
 
         var all = (await _dimEducationService.GetAllEducationsAsync()).ToList();
         Assert.Contains(all, d => d.Specialty == "Software Engineer");

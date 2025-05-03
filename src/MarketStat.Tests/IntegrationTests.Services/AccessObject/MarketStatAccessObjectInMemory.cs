@@ -6,6 +6,7 @@ using MarketStat.Database.Models;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Services.Dimensions.DimCityService;
 using MarketStat.Services.Dimensions.DimDateService;
+using MarketStat.Services.Dimensions.DimEducationLevelService;
 using MarketStat.Services.Dimensions.DimEducationService;
 using MarketStat.Services.Dimensions.DimEmployeeEducationService;
 using MarketStat.Services.Dimensions.DimEmployeeService;
@@ -35,6 +36,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimFederalDistrictRepository DimFederalDistrictRepository { get; }
     public IDimOblastRepository DimOblastRepository { get; }
     public IDimCityRepository DimCityRepository { get; }
+    public IDimEducationLevelRepository DimEducationLevelRepository { get; }
     
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
@@ -48,6 +50,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimFederalDistrictService DimFederalDistrictService { get; }
     public IDimOblastService DimOblastService { get; }
     public IDimCityService DimCityService { get; }
+    public IDimEducationLevelService DimEducationLevelService { get; }
 
     public MarketStatAccessObjectInMemory()
     {
@@ -92,6 +95,11 @@ public class MarketStatAccessObjectInMemory : IDisposable
         
         DimCityRepository = new DimCityRepository(Context);
         DimCityService = new DimCityService(DimCityRepository, NullLogger<DimCityService>.Instance);
+
+        DimEducationLevelRepository = new DimEducationLevelRepository(Context);
+        DimEducationLevelService =
+            new DimEducationLevelService(DimEducationLevelRepository, NullLogger<DimEducationLevelService>.Instance);
+
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)
@@ -198,6 +206,15 @@ public class MarketStatAccessObjectInMemory : IDisposable
         foreach (var c in items)
         {
             Context.DimCities.Add(DimCityConverter.ToDbModel(c));
+        }
+        await Context.SaveChangesAsync();
+    }
+    
+    public async Task SeedEducationLevelAsync(IEnumerable<DimEducationLevel> items)
+    {
+        foreach (var e in items)
+        {
+            Context.DimEducationLevels.Add(DimEducationLevelConverter.ToDbModel(e));
         }
         await Context.SaveChangesAsync();
     }

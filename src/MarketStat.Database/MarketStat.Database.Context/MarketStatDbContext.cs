@@ -22,6 +22,7 @@ public class MarketStatDbContext : DbContext
     public DbSet<DimFederalDistrictDbModel> DimFederalDistricts { get; set; }
     public DbSet<DimOblastDbModel> DimOblasts { get; set; }
     public DbSet<DimCityDbModel> DimCities { get; set; }
+    public DbSet<DimEducationLevelDbModel> DimEducationLevels { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +73,18 @@ public class MarketStatDbContext : DbContext
         modelBuilder.Entity<DimCityDbModel>()
             .ToTable("dim_cities")
             .HasKey(c => c.CityId);
+
+        modelBuilder.Entity<DimEducationLevelDbModel>()
+            .ToTable("dim_education_levels")
+            .HasKey(e => e.EducationLevelId);
+        
+        modelBuilder.Entity<DimStandardJobRoleDbModel>()
+            .ToTable("dim_standard_job_roles")
+            .HasKey(j => j.StandardJobRoleId);
+
+        modelBuilder.Entity<DimStandardJobRoleHierarchyDbModel>()
+            .ToTable("dim_standard_job_role_hierarchy")
+            .HasKey(j => new { j.StandardJobRoleId, j.HierarchyLevelId });
         
         base.OnModelCreating(modelBuilder);
     }

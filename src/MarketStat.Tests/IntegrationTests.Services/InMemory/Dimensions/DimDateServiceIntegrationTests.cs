@@ -34,8 +34,7 @@ public class DimDateServiceIntegrationTests : IDisposable
             new DimDate(2, new DateOnly(2025, 4, 15), 2025, 2,  4)
         };
 
-        foreach (var d in seed)
-            await _accessObject.DimDateRepository.AddDateAsync(d);
+        await _accessObject.SeedDateAsync(seed);
 
         var all = (await _dimDateService.GetAllDatesAsync()).ToList();
         Assert.Contains(all, d => d.FullDate == new DateOnly(2025, 1,  1));

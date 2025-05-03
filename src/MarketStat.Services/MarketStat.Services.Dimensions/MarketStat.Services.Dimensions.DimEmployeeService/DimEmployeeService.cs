@@ -58,9 +58,9 @@ public class DimEmployeeService : IDimEmployeeService
     
     public async Task<DimEmployee> UpdateEmployeeAsync(int employeeId, DateOnly birthDate, DateOnly careerStartDate)
     {
+        DimEmployeeValidator.ValidateParameters(employeeId, birthDate, careerStartDate);
         try
         {
-            DimEmployeeValidator.ValidateParameters(employeeId, birthDate, careerStartDate);
             var existing = await _dimEmployeeRepository.GetEmployeeByIdAsync(employeeId);
             existing.BirthDate = birthDate;
             existing.CareerStartDate = careerStartDate;

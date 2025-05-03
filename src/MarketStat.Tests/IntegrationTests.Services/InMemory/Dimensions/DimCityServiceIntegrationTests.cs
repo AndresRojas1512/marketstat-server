@@ -19,14 +19,14 @@ public class DimCityServiceIntegrationTests : IDisposable
     public void Dispose() => _accessObject.Dispose();
     
     [Fact]
-    public async Task GetAllDates_Empty_ReturnsEmpty()
+    public async Task GetAllCities_Empty_ReturnsEmpty()
     {
         var all = await _dimCityService.GetAllCitiesAsync();
         Assert.Empty(all);
     }
     
     [Fact]
-    public async Task GetAllDates_Seeded_ReturnsSeeded()
+    public async Task GetAllCities_Seeded_ReturnsSeeded()
     {
         var seed = new List<DimCity>
         {
@@ -34,8 +34,7 @@ public class DimCityServiceIntegrationTests : IDisposable
             new DimCity(2, "Omsk", 2)
         };
 
-        foreach (var d in seed)
-            await _accessObject.DimCityRepository.AddCityAsync(d);
+        await _accessObject.SeedCityAsync(seed);
 
         var all = (await _dimCityService.GetAllCitiesAsync()).ToList();
         Assert.Contains(all, d => d.CityName == "Moscow");

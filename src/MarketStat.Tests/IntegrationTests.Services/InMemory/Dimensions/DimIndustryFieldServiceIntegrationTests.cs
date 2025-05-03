@@ -20,7 +20,7 @@ public class DimIndustryFieldServiceIntegrationTests : IDisposable
     public void Dispose() => _accessObject.Dispose();
 
     [Fact]
-    public async Task GetAllEmployers_Empty_ReturnsEmpty()
+    public async Task GetAllIndustryFields_Empty_ReturnsEmpty()
     {
         var all = await _dimIndustryFieldService.GetAllIndustryFieldsAsync();
         Assert.Empty(all);

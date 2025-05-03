@@ -36,8 +36,7 @@ public class DimEmployeeServiceIntegrationTests : IDisposable
             new DimEmployee(2, new DateOnly(1981, 4, 15), new DateOnly(2000, 1, 1))
         };
 
-        foreach (var e in seed)
-            await _accessObject.DimEmployeeRepository.AddEmployeeAsync(e);
+        await _accessObject.SeedEmployeeAsync(seed);
 
         var all = (await _dimEmployeeService.GetAllEmployeesAsync()).ToList();
         

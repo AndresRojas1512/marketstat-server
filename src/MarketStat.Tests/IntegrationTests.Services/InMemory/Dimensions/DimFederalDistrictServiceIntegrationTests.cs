@@ -28,7 +28,7 @@ public class DimFederalDistrictServiceIntegrationTests : IDisposable
     }
     
     [Fact]
-    public async Task GetAllIndustryFields_Seeded_ReturnsSeeded()
+    public async Task GetAllDistricts_Seeded_ReturnsSeeded()
     {
         var seed = new List<DimFederalDistrict>
         {

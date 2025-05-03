@@ -26,7 +26,7 @@ public class DimOblastServiceIntegrationTests : IDisposable
     }
     
     [Fact]
-    public async Task GetAllIndustryFields_Seeded_ReturnsSeeded()
+    public async Task GetAllOblasts_Seeded_ReturnsSeeded()
     {
         var seed = new List<DimOblast>
         {
