@@ -2,6 +2,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -17,9 +18,13 @@ public class DimHierarchyLevelRepository : BaseRepository, IDimHierarchyLevelRep
 
     public async Task AddHierarchyLevelAsync(DimHierarchyLevel dimHierarchyLevel)
     {
-        var dbHierarchyLevel = DimHierarchyLevelConverter.ToDbModel(dimHierarchyLevel);
-        await _dbContext.DimHierarchyLevels.AddAsync(dbHierarchyLevel);
+        var dbModel = new DimHierarchyLevelDbModel(
+            hierarchyLevelId: 0,
+            hierarchyLevelName: dimHierarchyLevel.HierarchyLevelName
+        );
+        await _dbContext.DimHierarchyLevels.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        dimHierarchyLevel.HierarchyLevelId = dbModel.HierarchyLevelId;
     }
 
     public async Task<IEnumerable<DimHierarchyLevel>> GetAllHierarchyLevelsAsync()

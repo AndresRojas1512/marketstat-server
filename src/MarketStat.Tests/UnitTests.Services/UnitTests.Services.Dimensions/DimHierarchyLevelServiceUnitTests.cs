@@ -23,11 +23,10 @@ public class DimHierarchyLevelServiceUnitTests
     [Fact]
     public async Task CreateHierarchyLevelAsync_EmptyRepo_CreatesWithId1()
     {
-        _dimHierarchyLevelRepositoryMock
-            .Setup(r => r.GetAllHierarchyLevelsAsync())
-            .ReturnsAsync(new List<DimHierarchyLevel>());
+        // Simulate repository assigning ID = 1
         _dimHierarchyLevelRepositoryMock
             .Setup(r => r.AddHierarchyLevelAsync(It.IsAny<DimHierarchyLevel>()))
+            .Callback<DimHierarchyLevel>(h => h.HierarchyLevelId = 1)
             .Returns(Task.CompletedTask);
 
         var result = await _dimHierarchyLevelService.CreateHierarchyLevelAsync("Junior");
@@ -45,15 +44,10 @@ public class DimHierarchyLevelServiceUnitTests
     [Fact]
     public async Task CreateHierarchyLevelAsync_NonEmptyRepo_CreatesWithNextId()
     {
-        var existing = new List<DimHierarchyLevel>
-        {
-            new DimHierarchyLevel(5, "Mid")
-        };
-        _dimHierarchyLevelRepositoryMock
-            .Setup(r => r.GetAllHierarchyLevelsAsync())
-            .ReturnsAsync(existing);
+        // Now repository assigns ID = 6 (regardless of existing data)
         _dimHierarchyLevelRepositoryMock
             .Setup(r => r.AddHierarchyLevelAsync(It.IsAny<DimHierarchyLevel>()))
+            .Callback<DimHierarchyLevel>(h => h.HierarchyLevelId = 6)
             .Returns(Task.CompletedTask);
         
         var result = await _dimHierarchyLevelService.CreateHierarchyLevelAsync("Senior");
@@ -72,15 +66,12 @@ public class DimHierarchyLevelServiceUnitTests
     public async Task CreateHierarchyLevelAsync_RepositoryThrows_WrapsException()
     {
         _dimHierarchyLevelRepositoryMock
-            .Setup(r => r.GetAllHierarchyLevelsAsync())
-            .ReturnsAsync(new List<DimHierarchyLevel>());
-        _dimHierarchyLevelRepositoryMock
             .Setup(r => r.AddHierarchyLevelAsync(It.IsAny<DimHierarchyLevel>()))
             .ThrowsAsync(new InvalidOperationException("db"));
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimHierarchyLevelService.CreateHierarchyLevelAsync("Lead"));
-        Assert.Equal("Could not create HierarchyLevel Lead with id 1,", ex.Message);
+        Assert.Equal("Could not create HierarchyLevel Lead with id 0,", ex.Message);
     }
     
     [Fact]

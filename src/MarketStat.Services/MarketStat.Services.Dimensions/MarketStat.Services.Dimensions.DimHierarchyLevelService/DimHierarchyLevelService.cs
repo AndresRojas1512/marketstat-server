@@ -19,20 +19,19 @@ public class DimHierarchyLevelService : IDimHierarchyLevelService
 
     public async Task<DimHierarchyLevel> CreateHierarchyLevelAsync(string hierarchyLevelName)
     {
-        var allHierarchyLevels = (await _dimHierarchyLevelRepository.GetAllHierarchyLevelsAsync()).ToList();
-        var newId = allHierarchyLevels.Any() ? allHierarchyLevels.Max(h => h.HierarchyLevelId) + 1 : 1;
-        DimHierarchyLevelValidator.ValidateParameters(newId, hierarchyLevelName);
-        var hierarchyLevel = new DimHierarchyLevel(newId, hierarchyLevelName);
+        DimHierarchyLevelValidator.ValidateForCreate(hierarchyLevelName);
+        var hierarchyLevel = new DimHierarchyLevel(0, hierarchyLevelName);
         try
         {
             await _dimHierarchyLevelRepository.AddHierarchyLevelAsync(hierarchyLevel);
-            _logger.LogInformation("Created DimHierarchyLevel {HierarchyLevelId}", newId);
+            _logger.LogInformation("Created DimHierarchyLevel {HierarchyLevelId}", hierarchyLevel.HierarchyLevelId);
             return hierarchyLevel;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create HierarchyLevel {HierarchyLevelId}", newId);
-            throw new Exception($"Could not create HierarchyLevel {hierarchyLevelName} with id {newId},");
+            _logger.LogError(ex, "Failed to create HierarchyLevel {HierarchyLevelId}", hierarchyLevel.HierarchyLevelId);
+            throw new Exception(
+                $"Could not create HierarchyLevel {hierarchyLevelName} with id {hierarchyLevel.HierarchyLevelId},");
         }
         
     }
@@ -59,7 +58,7 @@ public class DimHierarchyLevelService : IDimHierarchyLevelService
 
     public async Task<DimHierarchyLevel> UpdateHierarchyLevelAsync(int hierarchyLevelId, string hierarchyLevelName)
     {
-        DimHierarchyLevelValidator.ValidateParameters(hierarchyLevelId, hierarchyLevelName);
+        DimHierarchyLevelValidator.ValidateForUpdate(hierarchyLevelId, hierarchyLevelName);
         try
         {
             var existingHierarchyLevel = await _dimHierarchyLevelRepository.GetHierarchyLevelByIdAsync(hierarchyLevelId);
