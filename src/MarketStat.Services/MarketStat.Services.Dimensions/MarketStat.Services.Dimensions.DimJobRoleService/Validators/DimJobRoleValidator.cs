@@ -1,12 +1,9 @@
 namespace MarketStat.Services.Dimensions.DimJobRoleService.Validators;
 
-public class DimJobRoleValidator
+public static class DimJobRoleValidator
 {
-    public static void ValidateParameters(int jobRoleId, string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
+    public static void ValidateForCreate(string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
     {
-        if (jobRoleId <= 0)
-            throw new ArgumentException("JobRoleId must be a positive integer.");
-
         if (string.IsNullOrWhiteSpace(jobRoleTitle))
             throw new ArgumentException("Job role title is required.");
         if (jobRoleTitle.Length > 255)
@@ -17,5 +14,12 @@ public class DimJobRoleValidator
         
         if (hierarchyLevelId <= 0)
             throw new ArgumentException("hierarchyLevelId must be a positive integer.");
+    }
+    
+    public static void ValidateForUpdate(int jobRoleId, string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
+    {
+        if (jobRoleId <= 0)
+            throw new ArgumentException("JobRoleId must be a positive integer.");
+        ValidateForCreate(jobRoleTitle, standardJobRoleId, hierarchyLevelId);
     }
 }

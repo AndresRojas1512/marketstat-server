@@ -2,6 +2,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -17,9 +18,15 @@ public class DimJobRoleRepository : BaseRepository, IDimJobRoleRepository
     
     public async Task AddJobRoleAsync(DimJobRole jobRole)
     {
-        var dbJobRole = DimJobRoleConverter.ToDbModel(jobRole);
-        await _dbContext.DimJobRoles.AddAsync(dbJobRole);
+        var dbModel = new DimJobRoleDbModel(
+            jobRoleId: 0,
+            jobRoleTitle: jobRole.JobRoleTitle,
+            standardJobRoleId: jobRole.StandardJobRoleId,
+            hierarchyLevelId: jobRole.HierarchyLevelId
+        );
+        await _dbContext.DimJobRoles.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        jobRole.JobRoleId = dbModel.JobRoleId;
     }
 
     public async Task<DimJobRole> GetJobRoleByIdAsync(int jobRoleId)

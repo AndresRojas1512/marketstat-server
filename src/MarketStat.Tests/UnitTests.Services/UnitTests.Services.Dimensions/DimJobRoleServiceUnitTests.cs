@@ -24,29 +24,30 @@ public class DimJobRoleServiceUnitTests
     public async Task CreateJobRoleAsync_ValidParameters_ReturnsNewRole()
     {
         _dimJobRoleRepositoryMock
-            .Setup(r => r.GetAllJobRolesAsync())
-            .ReturnsAsync(new List<DimJobRole>());
-
-        _dimJobRoleRepositoryMock
             .Setup(r => r.AddJobRoleAsync(It.IsAny<DimJobRole>()))
+            .Callback<DimJobRole>(r => r.JobRoleId = 1)
             .Returns(Task.CompletedTask);
-        
-        var result = await _dimJobRoleService.CreateJobRoleAsync("Engineer",10, 10);
-        
+            
+        var result = await _dimJobRoleService.CreateJobRoleAsync("Engineer", 10, 10);
+            
         Assert.NotNull(result);
         Assert.Equal(1, result.JobRoleId);
         Assert.Equal("Engineer", result.JobRoleTitle);
         Assert.Equal(10, result.StandardJobRoleId);
         Assert.Equal(10, result.HierarchyLevelId);
+        _dimJobRoleRepositoryMock.Verify(r =>
+            r.AddJobRoleAsync(
+                It.Is<DimJobRole>(d =>
+                    d.JobRoleId          == 1 &&
+                    d.JobRoleTitle       == "Engineer" &&
+                    d.StandardJobRoleId  == 10 &&
+                    d.HierarchyLevelId   == 10
+                )), Times.Once);
     }
 
     [Fact]
     public async Task CreateJobRoleAsync_EmptyTitle_ThrowsArgumentException()
     {
-        _dimJobRoleRepositoryMock
-            .Setup(r => r.GetAllJobRolesAsync())
-            .ReturnsAsync(new List<DimJobRole>());
-        
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimJobRoleService.CreateJobRoleAsync("", 5, 5));
     }
@@ -54,10 +55,6 @@ public class DimJobRoleServiceUnitTests
     [Fact]
     public async Task CreateJobRoleAsync_NonPositiveFieldId_ThrowsArgumentException()
     {
-        _dimJobRoleRepositoryMock
-            .Setup(r => r.GetAllJobRolesAsync())
-            .ReturnsAsync(new List<DimJobRole>());
-        
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimJobRoleService.CreateJobRoleAsync("Engineer", 0, 1));
     }
@@ -65,14 +62,10 @@ public class DimJobRoleServiceUnitTests
     [Fact]
     public async Task CreateJobRoleAsync_NonPositiveHierarchyLevelId_ThrowsArgumentException()
     {
-        _dimJobRoleRepositoryMock
-            .Setup(r => r.GetAllJobRolesAsync())
-            .ReturnsAsync(new List<DimJobRole>());
-        
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimJobRoleService.CreateJobRoleAsync("Engineer", 1, 0));
     }
-    
+        
     [Fact]
     public async Task GetJobRoleByIdAsync_ExistingId_ReturnsRole()
     {
@@ -97,7 +90,7 @@ public class DimJobRoleServiceUnitTests
             _dimJobRoleService.GetJobRoleByIdAsync(99));
         Assert.Contains("99", ex.Message);
     }
-    
+        
     [Fact]
     public async Task GetAllJobRolesAsync_ReturnsList()
     {
@@ -137,7 +130,7 @@ public class DimJobRoleServiceUnitTests
         Assert.Equal(5, updated.StandardJobRoleId);
         Assert.Equal(5, updated.HierarchyLevelId);
     }
-    
+        
     [Fact]
     public async Task DeleteJobRoleAsync_ExistingId_Completes()
     {

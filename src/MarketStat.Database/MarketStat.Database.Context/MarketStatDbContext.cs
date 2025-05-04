@@ -85,7 +85,6 @@ public class MarketStatDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(j => j.HierarchyLevelId)
                 .OnDelete(DeleteBehavior.Restrict);
-
         });
 
         modelBuilder.Entity<DimDateDbModel>(b =>
