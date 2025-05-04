@@ -19,20 +19,18 @@ public class DimIndustryFieldService : IDimIndustryFieldService
     
     public async Task<DimIndustryField> CreateIndustryFieldAsync(string industryFieldName)
     {
-        var allIndustryFields = (await _dimIndustryFieldRepository.GetAllIndustryFieldsAsync()).ToList();
-        var newId = allIndustryFields.Any() ? allIndustryFields.Max(f => f.IndustryFieldId) + 1 : 1;
-        DimIndustryFieldValidator.ValidateParameters(newId, industryFieldName, checkId: false);
-        var industryField = new DimIndustryField(newId, industryFieldName);
+        DimIndustryFieldValidator.ValidateForCreate(industryFieldName);
+        var industryField = new DimIndustryField(0, industryFieldName);
 
         try
         {
             await _dimIndustryFieldRepository.AddIndustryFieldAsync(industryField);
-            _logger.LogInformation("Created DimIndustryField {IndustryFieldId}", newId);
+            _logger.LogInformation("Created DimIndustryField {IndustryFieldId}", industryField.IndustryFieldId);
             return industryField;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimIndustryField {IndustryFieldId}.", newId);
+            _logger.LogError(ex, "Failed to create DimIndustryField {IndustryFieldId}.", industryField.IndustryFieldId);
             throw new Exception($"Could not create industry field {industryFieldName}");
         }
     }
@@ -59,7 +57,7 @@ public class DimIndustryFieldService : IDimIndustryFieldService
     
     public async Task<DimIndustryField> UpdateIndustryFieldAsync(int industryFieldId, string industryFieldName)
     {
-        DimIndustryFieldValidator.ValidateParameters(industryFieldId, industryFieldName);
+        DimIndustryFieldValidator.ValidateForUpdate(industryFieldId, industryFieldName);
         try
         {
             var existingIndustryField = await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId);

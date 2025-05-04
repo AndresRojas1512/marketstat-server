@@ -2,6 +2,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -17,9 +18,13 @@ public class DimIndustryFieldRepository : BaseRepository, IDimIndustryFieldRepos
     
     public async Task AddIndustryFieldAsync(DimIndustryField industryField)
     {
-        var dbIndustryField = DimIndustryFieldConverter.ToDbModel(industryField);
-        await _dbContext.DimIndustryFields.AddAsync(dbIndustryField);
+        var dbModel = new DimIndustryFieldDbModel(
+            industryFieldId: 0,
+            industryFieldName: industryField.IndustryFieldName
+        );
+        await _dbContext.DimIndustryFields.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        industryField.IndustryFieldId = dbModel.IndustryFieldId;
     }
 
     public async Task<DimIndustryField> GetIndustryFieldByIdAsync(int industryFieldId)

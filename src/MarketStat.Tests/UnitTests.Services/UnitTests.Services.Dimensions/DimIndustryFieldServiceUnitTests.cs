@@ -24,33 +24,30 @@ public class DimIndustryFieldServiceUnitTests
     public async Task CreateIndustryFieldAsync_WithValidName_ReturnsNewField()
     {
         _dimIndustryFieldRepositoryMock
-            .Setup(r => r.GetAllIndustryFieldsAsync())
-            .ReturnsAsync(new List<DimIndustryField>());
-        _dimIndustryFieldRepositoryMock
             .Setup(r => r.AddIndustryFieldAsync(It.IsAny<DimIndustryField>()))
+            .Callback<DimIndustryField>(f => f.IndustryFieldId = 1)
             .Returns(Task.CompletedTask);
-        
+
         var result = await _dimIndustryFieldService.CreateIndustryFieldAsync("Tech");
-        
+    
         Assert.NotNull(result);
         Assert.Equal(1, result.IndustryFieldId);
         Assert.Equal("Tech", result.IndustryFieldName);
+        _dimIndustryFieldRepositoryMock.Verify(r =>
+            r.AddIndustryFieldAsync(
+                It.Is<DimIndustryField>(f =>
+                    f.IndustryFieldId == 1 &&
+                    f.IndustryFieldName == "Tech"
+                )), Times.Once);
     }
     
     [Fact]
     public async Task CreateIndustryFieldAsync_WithEmptyName_ThrowsArgumentException()
     {
-        _dimIndustryFieldRepositoryMock
-            .Setup(r => r.GetAllIndustryFieldsAsync())
-            .ReturnsAsync(new List<DimIndustryField>());
-        _dimIndustryFieldRepositoryMock
-            .Setup(r => r.AddIndustryFieldAsync(It.IsAny<DimIndustryField>()))
-            .Returns(Task.CompletedTask);
-        
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimIndustryFieldService.CreateIndustryFieldAsync(""));
     }
-    
+        
     [Fact]
     public async Task GetIndustryFieldByIdAsync_ExistingId_ReturnsField()
     {
@@ -63,7 +60,7 @@ public class DimIndustryFieldServiceUnitTests
         
         Assert.Same(existing, result);
     }
-    
+        
     [Fact]
     public async Task GetIndustryFieldByIdAsync_NonExistingId_ThrowsException()
     {
@@ -73,9 +70,9 @@ public class DimIndustryFieldServiceUnitTests
         
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimIndustryFieldService.GetIndustryFieldByIdAsync(99));
-        Assert.Contains("99", ex.Message);
+        Assert.Equal("Industry field 99 was not found.", ex.Message);
     }
-    
+        
     [Fact]
     public async Task GetAllIndustryFieldsAsync_ReturnsList()
     {
@@ -88,9 +85,9 @@ public class DimIndustryFieldServiceUnitTests
             .Setup(r => r.GetAllIndustryFieldsAsync())
             .ReturnsAsync(list);
         
-        var result = await _dimIndustryFieldService.GetAllIndustryFieldsAsync();
+        var result = (await _dimIndustryFieldService.GetAllIndustryFieldsAsync()).ToList();
         
-        Assert.Equal(2, result.Count());
+        Assert.Equal(2, result.Count);
         Assert.Collection(result,
             item => Assert.Equal("A", item.IndustryFieldName),
             item => Assert.Equal("B", item.IndustryFieldName)
@@ -112,8 +109,14 @@ public class DimIndustryFieldServiceUnitTests
         
         Assert.Equal(7, updated.IndustryFieldId);
         Assert.Equal("NewName", updated.IndustryFieldName);
+        _dimIndustryFieldRepositoryMock.Verify(r =>
+            r.UpdateIndustryFieldAsync(
+                It.Is<DimIndustryField>(f =>
+                    f.IndustryFieldId == 7 &&
+                    f.IndustryFieldName == "NewName"
+                )), Times.Once);
     }
-    
+        
     [Fact]
     public async Task UpdateIndustryFieldAsync_NonExistingId_ThrowsException()
     {
@@ -123,9 +126,9 @@ public class DimIndustryFieldServiceUnitTests
         
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimIndustryFieldService.UpdateIndustryFieldAsync(123, "Name"));
-        Assert.Contains("123", ex.Message);
+        Assert.Equal("Cannot update: industry field 123 not found.", ex.Message);
     }
-    
+        
     [Fact]
     public async Task UpdateIndustryFieldAsync_WithEmptyName_ThrowsArgumentException()
     {
@@ -154,6 +157,6 @@ public class DimIndustryFieldServiceUnitTests
         
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimIndustryFieldService.DeleteIndustryFieldAsync(88));
-        Assert.Contains("88", ex.Message);
+        Assert.Equal("Cannot delete: industry field 88 not found.", ex.Message);
     }
 }
