@@ -24,10 +24,8 @@ public class DimOblastServiceUnitTests
     public async Task CreateOblastAsync_EmptyRepo_CreatesWithId1()
     {
         _dimOblastRepositoryMock
-            .Setup(r => r.GetAllOblastsAsync())
-            .ReturnsAsync(new List<DimOblast>());
-        _dimOblastRepositoryMock
             .Setup(r => r.AddOblastAsync(It.IsAny<DimOblast>()))
+            .Callback<DimOblast>(o => o.OblastId = 1)
             .Returns(Task.CompletedTask);
 
         var result = await _dimOblastService.CreateOblastAsync("TestRegion", 2);
@@ -47,12 +45,9 @@ public class DimOblastServiceUnitTests
     [Fact]
     public async Task CreateOblastAsync_NonEmptyRepo_CreatesWithNextId()
     {
-        var existing = new List<DimOblast> { new DimOblast(5, "Old", 1) };
-        _dimOblastRepositoryMock
-            .Setup(r => r.GetAllOblastsAsync())
-            .ReturnsAsync(existing);
         _dimOblastRepositoryMock
             .Setup(r => r.AddOblastAsync(It.IsAny<DimOblast>()))
+            .Callback<DimOblast>(o => o.OblastId = 6)
             .Returns(Task.CompletedTask);
         
         var result = await _dimOblastService.CreateOblastAsync("NewRegion", 3);
@@ -72,9 +67,6 @@ public class DimOblastServiceUnitTests
     [Fact]
     public async Task CreateOblastAsync_RepositoryThrows_WrapsException()
     {
-        _dimOblastRepositoryMock
-            .Setup(r => r.GetAllOblastsAsync())
-            .ReturnsAsync(new List<DimOblast>());
         _dimOblastRepositoryMock
             .Setup(r => r.AddOblastAsync(It.IsAny<DimOblast>()))
             .ThrowsAsync(new Exception("db fail"));

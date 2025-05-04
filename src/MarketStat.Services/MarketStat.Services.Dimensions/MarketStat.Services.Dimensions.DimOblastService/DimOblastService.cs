@@ -18,20 +18,18 @@ public class DimOblastService : IDimOblastService
     
     public async Task<DimOblast> CreateOblastAsync(string oblastName, int districtId)
     {
-        var allOblasts = (await _dimOblastRepository.GetAllOblastsAsync()).ToList();
-        var newId = allOblasts.Any() ? allOblasts.Max(o => o.OblastId) + 1 : 1;
-        DimOblastValidator.ValidateParameters(newId, oblastName, districtId);
-        var oblast = new DimOblast(newId, oblastName, districtId);
+        DimOblastValidator.ValidateForCreate(oblastName, districtId);
+        var oblast = new DimOblast(0, oblastName, districtId);
 
         try
         {
             await _dimOblastRepository.AddOblastAsync(oblast);
-            _logger.LogInformation("Created DimOblast {OblastId}", newId);
+            _logger.LogInformation("Created DimOblast {OblastId}", oblast.OblastId);
             return oblast;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimIndustryField {IndustryFieldId}.", newId);
+            _logger.LogError(ex, "Failed to create DimIndustryField {IndustryFieldId}.", oblast.OblastId);
             throw new Exception($"Could not create oblast {oblastName}");
         }
     }
@@ -74,7 +72,7 @@ public class DimOblastService : IDimOblastService
 
     public async Task<DimOblast> UpdateOblastAsync(int oblastId, string oblastName, int districtId)
     {
-        DimOblastValidator.ValidateParameters(oblastId, oblastName, districtId);
+        DimOblastValidator.ValidateForUpdate(oblastId, oblastName, districtId);
         try
         {
             var existing = await _dimOblastRepository.GetOblastByIdAsync(oblastId);

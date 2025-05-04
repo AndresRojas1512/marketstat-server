@@ -2,6 +2,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -16,9 +17,14 @@ public class DimOblastRepository : BaseRepository, IDimOblastRepository
     }
     public async Task AddOblastAsync(DimOblast dimOblast)
     {
-        var dbOblast = DimOblastConverter.ToDbModel(dimOblast);
-        await _dbContext.DimOblasts.AddAsync(dbOblast);
+        var dbModel = new DimOblastDbModel(
+            oblastId: 0,
+            oblastName: dimOblast.OblastName,
+            districtId: dimOblast.DistrictId
+        );
+        await _dbContext.DimOblasts.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        dimOblast.OblastId = dbModel.OblastId;
     }
 
     public async Task<DimOblast> GetOblastByIdAsync(int id)
