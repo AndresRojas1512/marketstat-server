@@ -24,7 +24,7 @@ public class DimEmployerIndustryFieldRepository : BaseRepository, IDimEmployerIn
 
     public async Task<DimEmployerIndustryField> GetEmployerIndustryFieldAsync(int employerId, int industryFieldId)
     {
-        var dbLink = await _dbContext.DimEmployerIndustryFields.FindAsync(industryFieldId)
+        var dbLink = await _dbContext.DimEmployerIndustryFields.FindAsync(employerId, industryFieldId)
                      ?? throw new KeyNotFoundException(
                          $"EmployerIndustryField ({employerId}, {industryFieldId}) not found.");
         return DimEmployerIndustryFieldConverter.ToDomain(dbLink);
