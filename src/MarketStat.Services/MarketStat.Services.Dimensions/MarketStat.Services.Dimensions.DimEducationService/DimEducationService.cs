@@ -18,19 +18,18 @@ public class DimEducationService : IDimEducationService
     
     public async Task<DimEducation> CreateEducationAsync(string specialty, string specialtyCode, int educationLevelId, int industryFieldId)
     {
-        var allEducations = (await _dimEducationRepository.GetAllEducationsAsync()).ToList();
-        int newId = allEducations.Any() ? allEducations.Max(e => e.EducationId) + 1 : 1;
-        DimEducationValidator.ValidateParameters(newId, specialty, specialtyCode, educationLevelId, industryFieldId);
-        var edu = new DimEducation(newId, specialty, specialtyCode, educationLevelId, industryFieldId);
+        DimEducationValidator.ValidateForCreate(specialty, specialtyCode, educationLevelId, industryFieldId);
+        var education = new DimEducation(0, specialty, specialtyCode, educationLevelId, industryFieldId);
         try
         {
-            await _dimEducationRepository.AddEducationAsync(edu);
-            return edu;
+            await _dimEducationRepository.AddEducationAsync(education);
+            _logger.LogInformation("Created DimEducation {EducationID}", education.EducationId);
+            return education;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create education (duplicate {Id})", newId);
-            throw new Exception($"An education record with ID {newId} already exists.");
+            _logger.LogError(ex, "Failed to create education (duplicate {Id})", education.EducationId);
+            throw new Exception($"An education record with ID {education.EducationId} already exists.");
         }
     }
     
@@ -56,10 +55,9 @@ public class DimEducationService : IDimEducationService
     
     public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialty, string specialtyCode, int educationLevelId, int industryFieldId)
     {
+        DimEducationValidator.ValidateForUpdate(educationId, specialty, specialtyCode, educationLevelId, industryFieldId);
         try
         {
-            DimEducationValidator.ValidateParameters(educationId, specialty, specialtyCode, educationLevelId, industryFieldId);
-
             var existing = await _dimEducationRepository.GetEducationByIdAsync(educationId);
             existing.Specialty = specialty;
             existing.SpecialtyCode = specialtyCode;

@@ -18,9 +18,16 @@ public class DimEducationRepository : BaseRepository, IDimEducationRepository
     
     public async Task AddEducationAsync(DimEducation education)
     {
-        var dbEducation = DimEducationConverter.ToDbModel(education);
-        await _dbContext.DimEducations.AddAsync(dbEducation);
+        var dbModel = new DimEducationDbModel(
+            educationId: 0,
+            specialty: education.Specialty,
+            specialtyCode: education.SpecialtyCode,
+            educationLevelId: education.EducationLevelId,
+            industryFieldId: education.IndustryFieldId
+        );
+        await _dbContext.DimEducations.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        education.EducationId = dbModel.EducationId;
     }
 
     public async Task<DimEducation> GetEducationByIdAsync(int educationId)
