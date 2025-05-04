@@ -19,21 +19,19 @@ public class DimEducationLevelService : IDimEducationLevelService
     
     public async Task<DimEducationLevel> CreateEducationLevelAsync(string educationLevelName)
     {
-        var all = (await _dimEducationLevelRepository.GetAllEducationLevelsAsync()).ToList();
-        var newId = all.Any() ? all.Max(x => x.EducationLevelId) + 1 : 1;
-        DimEducationLevelValidator.ValidateParameters(newId, educationLevelName);
-        var level = new DimEducationLevel(newId, educationLevelName);
+        DimEducationLevelValidator.ValidateForCreate(educationLevelName);
+        var level = new DimEducationLevel(0, educationLevelName);
 
         try
         {
             await _dimEducationLevelRepository.AddEducationLevelAsync(level);
-            _logger.LogInformation("Created DimEducationLevel {EducationLevelId}", newId);
+            _logger.LogInformation("Created DimEducationLevel {EducationLevelId}", level.EducationLevelId);
             return level;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimEducationLevel {EducationLevelId}", newId);
-            throw new Exception($"Could not create DimEducationLevel {newId}.");
+            _logger.LogError(ex, "Failed to create DimEducationLevel {EducationLevelId}", level.EducationLevelId);
+            throw new Exception($"Could not create DimEducationLevel {level.EducationLevelId}.");
         }
     }
 
@@ -59,7 +57,7 @@ public class DimEducationLevelService : IDimEducationLevelService
 
     public async Task<DimEducationLevel> UpdateEducationLevelAsync(int id, string educationLevelName)
     {
-        DimEducationLevelValidator.ValidateParameters(id, educationLevelName);
+        DimEducationLevelValidator.ValidateForUpdate(id, educationLevelName);
         try
         {
             var existing = await _dimEducationLevelRepository.GetEducationLevelByIdAsync(id);

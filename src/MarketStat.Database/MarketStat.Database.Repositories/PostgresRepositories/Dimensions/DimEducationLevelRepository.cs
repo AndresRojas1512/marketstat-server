@@ -2,6 +2,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -17,9 +18,13 @@ public class DimEducationLevelRepository : BaseRepository, IDimEducationLevelRep
     
     public async Task AddEducationLevelAsync(DimEducationLevel educationLevel)
     {
-        var dbEducationLevel = DimEducationLevelConverter.ToDbModel(educationLevel);
-        await _dbContext.DimEducationLevels.AddAsync(dbEducationLevel);
+        var dbModel = new DimEducationLevelDbModel(
+            educationLevelId: 0,
+            educationLevelName: educationLevel.EducationLevelName
+        );
+        await _dbContext.DimEducationLevels.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        educationLevel.EducationLevelId = dbModel.EducationLevelId;
     }
 
     public async Task<DimEducationLevel> GetEducationLevelByIdAsync(int id)

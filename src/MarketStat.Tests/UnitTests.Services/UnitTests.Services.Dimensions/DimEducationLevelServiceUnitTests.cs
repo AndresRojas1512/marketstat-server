@@ -25,14 +25,12 @@ public class DimEducationLevelServiceUnitTests
     public async Task CreateEducationLevelAsync_ValidParameters_ReturnsNewLevel()
     {
         _dimEducationLevelRepositoryMock
-            .Setup(r => r.GetAllEducationLevelsAsync())
-            .ReturnsAsync(new List<DimEducationLevel>());
-        _dimEducationLevelRepositoryMock
             .Setup(r => r.AddEducationLevelAsync(It.IsAny<DimEducationLevel>()))
+            .Callback<DimEducationLevel>(lvl => lvl.EducationLevelId = 1)
             .Returns(Task.CompletedTask);
-        
+
         var result = await _dimEducationLevelService.CreateEducationLevelAsync("Diploma");
-        
+
         Assert.Equal(1, result.EducationLevelId);
         Assert.Equal("Diploma", result.EducationLevelName);
         _dimEducationLevelRepositoryMock.Verify(r =>
@@ -47,15 +45,13 @@ public class DimEducationLevelServiceUnitTests
     public async Task CreateEducationLevelAsync_Duplicate_ThrowsException()
     {
         _dimEducationLevelRepositoryMock
-            .Setup(r => r.GetAllEducationLevelsAsync())
-            .ReturnsAsync(new List<DimEducationLevel>());
-        _dimEducationLevelRepositoryMock
             .Setup(r => r.AddEducationLevelAsync(It.IsAny<DimEducationLevel>()))
+            .Callback<DimEducationLevel>(lvl => lvl.EducationLevelId = 1)
             .ThrowsAsync(new Exception("db error"));
-        
+
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationLevelService.CreateEducationLevelAsync("Certificate")
-        );
+            _dimEducationLevelService.CreateEducationLevelAsync("Certificate"));
+
         Assert.Equal("Could not create DimEducationLevel 1.", ex.Message);
     }
     
@@ -66,9 +62,9 @@ public class DimEducationLevelServiceUnitTests
         _dimEducationLevelRepositoryMock
             .Setup(r => r.GetEducationLevelByIdAsync(5))
             .ReturnsAsync(expected);
-        
+
         var actual = await _dimEducationLevelService.GetEducationLevelByIdAsync(5);
-        
+
         Assert.Same(expected, actual);
     }
     
@@ -78,10 +74,10 @@ public class DimEducationLevelServiceUnitTests
         _dimEducationLevelRepositoryMock
             .Setup(r => r.GetEducationLevelByIdAsync(7))
             .ThrowsAsync(new KeyNotFoundException());
-        
+
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationLevelService.GetEducationLevelByIdAsync(7)
-        );
+            _dimEducationLevelService.GetEducationLevelByIdAsync(7));
+
         Assert.Equal("EducationLevel 7 was not found.", ex.Message);
     }
     
@@ -96,9 +92,9 @@ public class DimEducationLevelServiceUnitTests
         _dimEducationLevelRepositoryMock
             .Setup(r => r.GetAllEducationLevelsAsync())
             .ReturnsAsync(list);
-        
+
         var result = (await _dimEducationLevelService.GetAllEducationLevelsAsync()).ToList();
-        
+
         Assert.Equal(2, result.Count);
         Assert.Equal(list, result);
     }
@@ -113,9 +109,9 @@ public class DimEducationLevelServiceUnitTests
         _dimEducationLevelRepositoryMock
             .Setup(r => r.UpdateEducationLevelsAsync(It.IsAny<DimEducationLevel>()))
             .Returns(Task.CompletedTask);
-        
+
         var updated = await _dimEducationLevelService.UpdateEducationLevelAsync(3, "NewName");
-        
+
         Assert.Equal(3, updated.EducationLevelId);
         Assert.Equal("NewName", updated.EducationLevelName);
         _dimEducationLevelRepositoryMock.Verify(r =>
@@ -132,10 +128,10 @@ public class DimEducationLevelServiceUnitTests
         _dimEducationLevelRepositoryMock
             .Setup(r => r.GetEducationLevelByIdAsync(9))
             .ThrowsAsync(new KeyNotFoundException());
-        
+
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationLevelService.UpdateEducationLevelAsync(9, "X")
-        );
+            _dimEducationLevelService.UpdateEducationLevelAsync(9, "X"));
+
         Assert.Equal("Cannot update: education level 9 not found.", ex.Message);
     }
     
@@ -145,9 +141,9 @@ public class DimEducationLevelServiceUnitTests
         _dimEducationLevelRepositoryMock
             .Setup(r => r.DeleteEducationLevelAsync(4))
             .Returns(Task.CompletedTask);
-        
+
         await _dimEducationLevelService.DeleteEducationLevelAsync(4);
-        
+
         _dimEducationLevelRepositoryMock.Verify(r =>
             r.DeleteEducationLevelAsync(4), Times.Once);
     }
@@ -158,10 +154,10 @@ public class DimEducationLevelServiceUnitTests
         _dimEducationLevelRepositoryMock
             .Setup(r => r.DeleteEducationLevelAsync(6))
             .ThrowsAsync(new KeyNotFoundException());
-        
+
         var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationLevelService.DeleteEducationLevelAsync(6)
-        );
+            _dimEducationLevelService.DeleteEducationLevelAsync(6));
+
         Assert.Equal("Cannot delete: education level 6 not found.", ex.Message);
     }
 }
