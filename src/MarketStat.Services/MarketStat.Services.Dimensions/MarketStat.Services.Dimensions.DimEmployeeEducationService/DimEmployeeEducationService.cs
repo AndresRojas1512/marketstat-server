@@ -2,6 +2,7 @@ using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEmployeeEducationService.Validators;
 using Microsoft.Extensions.Logging;
+using Exception = System.Exception;
 
 namespace MarketStat.Services.Dimensions.DimEmployeeEducationService;
 
@@ -72,9 +73,9 @@ public class DimEmployeeEducationService : IDimEmployeeEducationService
     public async Task<DimEmployeeEducation> UpdateEmployeeEducationAsync(int employeeId, int educationId,
         short graduationYear)
     {
+        DimEmployeeEducationValidator.ValidateParameters(employeeId, educationId, graduationYear);
         try
         {
-            DimEmployeeEducationValidator.ValidateParameters(employeeId, educationId, graduationYear);
             var existing = await _dimEmployeeEducationRepository.GetEmployeeEducationAsync(employeeId, educationId);
             existing.GraduationYear = graduationYear;
             await _dimEmployeeEducationRepository.UpdateEmployeeEducationAsync(existing);
