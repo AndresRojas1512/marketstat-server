@@ -21,23 +21,90 @@ public class DimFederalDistrictServiceIntegrationTests : IDisposable
     public void Dispose() => _accessObject.Dispose();
     
     [Fact]
-    public async Task GetAllDistricts_Empty_ReturnsEmpty()
+    public async Task CreateDistrictAsync_ValidName_CreatesAndReturnsDistrict()
     {
-        var all = await _dimFederalDistrictService.GetAllDistrictsAsync();
-        Assert.Empty(all);
+        var district = await _dimFederalDistrictService.CreateDistrictAsync("Central");
+        Assert.True(district.DistrictId > 0);
+        Assert.Equal("Central", district.DistrictName);
+
+        var all = (await _dimFederalDistrictService.GetAllDistrictsAsync()).ToList();
+        Assert.Single(all);
+        Assert.Equal(district.DistrictId, all[0].DistrictId);
     }
     
     [Fact]
-    public async Task GetAllDistricts_Seeded_ReturnsSeeded()
+    public async Task GetDistrictByIdAsync_Existing_ReturnsDistrict()
     {
-        var seed = new List<DimFederalDistrict>
+        var seed = new DimFederalDistrict(42, "Far East");
+        await _accessObject.SeedFederalDistrictAsync(new[] { seed });
+
+        var fetched = await _dimFederalDistrictService.GetDistrictByIdAsync(42);
+        Assert.Equal(42, fetched.DistrictId);
+        Assert.Equal("Far East", fetched.DistrictName);
+    }
+    
+    [Fact]
+    public async Task GetDistrictByIdAsync_NotFound_ThrowsException()
+    {
+        var ex = await Assert.ThrowsAsync<Exception>(() =>
+            _dimFederalDistrictService.GetDistrictByIdAsync(999));
+        Assert.Contains("was not found", ex.Message);
+    }
+    
+    [Fact]
+    public async Task GetAllDistrictsAsync_Seeded_ReturnsAll()
+    {
+        var seeds = new[]
         {
-            new DimFederalDistrict(1, "Central"),
-            new DimFederalDistrict(2, "Volga")
+            new DimFederalDistrict(1, "North"),
+            new DimFederalDistrict(2, "South")
         };
-        await _accessObject.SeedFederalDistrictAsync(seed);
+        await _accessObject.SeedFederalDistrictAsync(seeds);
+
+        var list = (await _dimFederalDistrictService.GetAllDistrictsAsync()).ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Contains(list, d => d.DistrictId == 1 && d.DistrictName == "North");
+        Assert.Contains(list, d => d.DistrictId == 2 && d.DistrictName == "South");
+    }
+    
+    [Fact]
+    public async Task UpdateDistrictAsync_Existing_UpdatesAndReturnsDistrict()
+    {
+        var original = new DimFederalDistrict(5, "OldName");
+        await _accessObject.SeedFederalDistrictAsync(new[] { original });
+
+        var updated = await _dimFederalDistrictService.UpdateDistrictAsync(5, "NewName");
+        Assert.Equal(5, updated.DistrictId);
+        Assert.Equal("NewName", updated.DistrictName);
+
+        var fetched = await _dimFederalDistrictService.GetDistrictByIdAsync(5);
+        Assert.Equal("NewName", fetched.DistrictName);
+    }
+    
+    [Fact]
+    public async Task UpdateDistrictAsync_NotFound_ThrowsException()
+    {
+        var ex = await Assert.ThrowsAsync<Exception>(() =>
+            _dimFederalDistrictService.UpdateDistrictAsync(123, "X"));
+        Assert.Contains("not found", ex.Message);
+    }
+    
+    [Fact]
+    public async Task DeleteDistrictAsync_Existing_RemovesDistrict()
+    {
+        var seed = new DimFederalDistrict(7, "ToRemove");
+        await _accessObject.SeedFederalDistrictAsync(new[] { seed });
+
+        await _dimFederalDistrictService.DeleteDistrictAsync(7);
         var all = (await _dimFederalDistrictService.GetAllDistrictsAsync()).ToList();
-        Assert.Contains(all, d => d.DistrictName == "Central");
-        Assert.Contains(all, d => d.DistrictName == "Volga");
+        Assert.DoesNotContain(all, d => d.DistrictId == 7);
+    }
+    
+    [Fact]
+    public async Task DeleteDistrictAsync_NotFound_ThrowsException()
+    {
+        var ex = await Assert.ThrowsAsync<Exception>(() =>
+            _dimFederalDistrictService.DeleteDistrictAsync(888));
+        Assert.Contains("not found", ex.Message);
     }
 }

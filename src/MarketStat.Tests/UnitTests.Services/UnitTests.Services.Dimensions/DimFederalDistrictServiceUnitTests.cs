@@ -25,10 +25,8 @@ public class DimFederalDistrictServiceUnitTests
     public async Task CreateDistrictAsync_EmptyRepo_CreatesWithId1()
     {
         _dimFederalDistrictRepositoryMock
-            .Setup(r => r.GetAllFederalDistrictsAsync())
-            .ReturnsAsync(new List<DimFederalDistrict>());
-        _dimFederalDistrictRepositoryMock
             .Setup(r => r.AddFederalDistrictAsync(It.IsAny<DimFederalDistrict>()))
+            .Callback<DimFederalDistrict>(d => d.DistrictId = 1)
             .Returns(Task.CompletedTask);
         
         var result = await _dimFederalDistrictService.CreateDistrictAsync("Central");
@@ -46,22 +44,19 @@ public class DimFederalDistrictServiceUnitTests
     [Fact]
     public async Task CreateDistrictAsync_NonEmptyRepo_CreatesWithNextId()
     {
-        var existing = new List<DimFederalDistrict> { new DimFederalDistrict(3, "West") };
-        _dimFederalDistrictRepositoryMock
-            .Setup(r => r.GetAllFederalDistrictsAsync())
-            .ReturnsAsync(existing);
         _dimFederalDistrictRepositoryMock
             .Setup(r => r.AddFederalDistrictAsync(It.IsAny<DimFederalDistrict>()))
+            .Callback<DimFederalDistrict>(d => d.DistrictId = 42)
             .Returns(Task.CompletedTask);
         
         var result = await _dimFederalDistrictService.CreateDistrictAsync("East");
         
-        Assert.Equal(4, result.DistrictId);
+        Assert.Equal(42, result.DistrictId);
         Assert.Equal("East", result.DistrictName);
         _dimFederalDistrictRepositoryMock.Verify(r =>
             r.AddFederalDistrictAsync(
                 It.Is<DimFederalDistrict>(d =>
-                    d.DistrictId   == 4 &&
+                    d.DistrictId   == 42 &&
                     d.DistrictName == "East"
                 )), Times.Once);
     }
@@ -70,10 +65,8 @@ public class DimFederalDistrictServiceUnitTests
     public async Task CreateDistrictAsync_RepositoryThrows_WrapsException()
     {
         _dimFederalDistrictRepositoryMock
-            .Setup(r => r.GetAllFederalDistrictsAsync())
-            .ReturnsAsync(new List<DimFederalDistrict>());
-        _dimFederalDistrictRepositoryMock
             .Setup(r => r.AddFederalDistrictAsync(It.IsAny<DimFederalDistrict>()))
+            .Callback<DimFederalDistrict>(d => d.DistrictId = 1)
             .ThrowsAsync(new Exception("db error"));
         
         var ex = await Assert.ThrowsAsync<Exception>(() =>
@@ -98,12 +91,10 @@ public class DimFederalDistrictServiceUnitTests
     [Fact]
     public async Task GetDistrictByIdAsync_NotFound_ThrowsException()
     {
-        // Arrange
         _dimFederalDistrictRepositoryMock
             .Setup(r => r.GetFederalDistrictByIdAsync(7))
             .ThrowsAsync(new KeyNotFoundException());
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimFederalDistrictService.GetDistrictByIdAsync(7)
         );

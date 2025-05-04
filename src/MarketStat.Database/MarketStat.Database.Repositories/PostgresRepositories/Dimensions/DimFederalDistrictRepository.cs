@@ -2,6 +2,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -17,9 +18,13 @@ public class DimFederalDistrictRepository : BaseRepository, IDimFederalDistrictR
     
     public async Task AddFederalDistrictAsync(DimFederalDistrict district)
     {
-        var dbDistrict = DimFederalDistrictConverter.ToDbModel(district);
-        await _dbContext.DimFederalDistricts.AddAsync(dbDistrict);
+        var dbModel = new DimFederalDistrictDbModel(
+            districtId: 0,
+            districtName: district.DistrictName
+        );
+        await _dbContext.DimFederalDistricts.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        district.DistrictId = dbModel.DistrictId;
     }
 
     public async Task<DimFederalDistrict> GetFederalDistrictByIdAsync(int id)

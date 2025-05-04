@@ -20,15 +20,13 @@ public class DimFederalDistrictService : IDimFederalDistrictService
     
     public async Task<DimFederalDistrict> CreateDistrictAsync(string districtName)
     {
-        var allDistricts = (await _dimFederalDistrictRepository.GetAllFederalDistrictsAsync()).ToList();
-        int newId = allDistricts.Any() ? allDistricts.Max(d => d.DistrictId) + 1 : 1;
-        DimFederalDistrictValidator.ValidateParameters(newId, districtName);
-        var district = new DimFederalDistrict(newId, districtName);
+        DimFederalDistrictValidator.ValidateForCreate(districtName);
+        var district = new DimFederalDistrict(0, districtName);
 
         try
         {
             await _dimFederalDistrictRepository.AddFederalDistrictAsync(district);
-            _logger.LogInformation("Created District {DistrictId}", newId);
+            _logger.LogInformation("Created District {DistrictId}", district.DistrictId);
             return district;
         }
         catch (Exception ex)
@@ -60,7 +58,7 @@ public class DimFederalDistrictService : IDimFederalDistrictService
 
     public async Task<DimFederalDistrict> UpdateDistrictAsync(int districtId, string districtName)
     {
-        DimFederalDistrictValidator.ValidateParameters(districtId, districtName);
+        DimFederalDistrictValidator.ValidateForUpdate(districtId, districtName);
         try
         {
             var existing = await _dimFederalDistrictRepository.GetFederalDistrictByIdAsync(districtId);
