@@ -26,18 +26,129 @@ public class DimCityServiceIntegrationTests : IDisposable
     }
     
     [Fact]
+    public async Task CreateCity_PersistsAndGeneratesId()
+    {
+        await _accessObject.SeedFederalDistrictAsync(new[]
+        {
+            new DimFederalDistrict(1, "North District")
+        });
+        await _accessObject.SeedOblastAsync(new[]
+        {
+            new DimOblast(1, "Test Oblast", districtId: 1)
+        });
+
+        var created = await _dimCityService.CreateCityAsync("Springfield", oblastId: 1);
+        Assert.True(created.CityId > 0);
+        Assert.Equal("Springfield", created.CityName);
+        Assert.Equal(1, created.OblastId);
+
+        var fetched = await _dimCityService.GetCityByIdAsync(created.CityId);
+        Assert.Equal(created.CityId, fetched.CityId);
+        Assert.Equal("Springfield", fetched.CityName);
+        Assert.Equal(1, fetched.OblastId);
+    }
+    
+    [Fact]
+    public async Task GetCityById_Nonexistent_Throws()
+    {
+        await Assert.ThrowsAsync<Exception>(() =>
+            _dimCityService.GetCityByIdAsync(9999)
+        );
+    }
+    
+    [Fact]
     public async Task GetAllCities_Seeded_ReturnsSeeded()
     {
-        var seed = new List<DimCity>
+        await _accessObject.SeedFederalDistrictAsync(new[]
         {
-            new DimCity(1, "Moscow", 1),
-            new DimCity(2, "Omsk", 2)
-        };
-
-        await _accessObject.SeedCityAsync(seed);
+            new DimFederalDistrict(1, "District A")
+        });
+        await _accessObject.SeedOblastAsync(new[]
+        {
+            new DimOblast(1, "Oblast A", districtId: 1)
+        });
+        await _accessObject.SeedCityAsync(new[]
+        {
+            new DimCity(1, "Alpha City", 1),
+            new DimCity(2, "Beta Town",  1)
+        });
 
         var all = (await _dimCityService.GetAllCitiesAsync()).ToList();
-        Assert.Contains(all, d => d.CityName == "Moscow");
-        Assert.Contains(all, d => d.CityName == "Omsk");
+        Assert.Equal(2, all.Count);
+        Assert.Contains(all, c => c.CityName == "Alpha City" && c.CityId == 1);
+        Assert.Contains(all, c => c.CityName == "Beta Town"  && c.CityId == 2);
+    }
+    
+    [Fact]
+    public async Task UpdateCity_PersistsChanges()
+    {
+        // seed lookup and create one city
+        await _accessObject.SeedFederalDistrictAsync(new[]
+        {
+            new DimFederalDistrict(1, "District X")
+        });
+        await _accessObject.SeedOblastAsync(new[]
+        {
+            new DimOblast(1, "Oblast X", districtId: 1)
+        });
+
+        var city = await _dimCityService.CreateCityAsync("OldName", oblastId: 1);
+        var updated = await _dimCityService.UpdateCityAsync(
+            city.CityId,
+            "NewName",
+            oblastId: 1
+        );
+
+        Assert.Equal(city.CityId, updated.CityId);
+        Assert.Equal("NewName",   updated.CityName);
+        Assert.Equal(1,           updated.OblastId);
+
+        var fetched = await _dimCityService.GetCityByIdAsync(city.CityId);
+        Assert.Equal("NewName", fetched.CityName);
+    }
+    
+    [Fact]
+    public async Task UpdateCity_InvalidId_ThrowsArgumentException()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _dimCityService.UpdateCityAsync(0, "Name", 1)
+        );
+    }
+    
+    [Fact]
+    public async Task UpdateCity_NotFound_Throws()
+    {
+        await Assert.ThrowsAsync<Exception>(() =>
+            _dimCityService.UpdateCityAsync(9999, "Name", 1)
+        );
+    }
+    
+    [Fact]
+    public async Task DeleteCity_RemovesIt()
+    {
+        // seed lookup and create city
+        await _accessObject.SeedFederalDistrictAsync(new[]
+        {
+            new DimFederalDistrict(1, "District Y")
+        });
+        await _accessObject.SeedOblastAsync(new[]
+        {
+            new DimOblast(1, "Oblast Y", districtId: 1)
+        });
+
+        var city = await _dimCityService.CreateCityAsync("ToDelete", oblastId: 1);
+        await _dimCityService.DeleteCityAsync(city.CityId);
+
+        await Assert.ThrowsAsync<Exception>(() =>
+            _dimCityService.GetCityByIdAsync(city.CityId)
+        );
+    }
+
+    [Fact]
+    public async Task DeleteCity_NotFound_Throws()
+    {
+        await Assert.ThrowsAsync<Exception>(() =>
+            _dimCityService.DeleteCityAsync(9999)
+        );
     }
 }

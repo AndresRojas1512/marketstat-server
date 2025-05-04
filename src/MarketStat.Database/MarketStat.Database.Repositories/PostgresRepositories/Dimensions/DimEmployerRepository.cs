@@ -21,7 +21,7 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
         var dbModel = new DimEmployerDbModel(
             employerId: 0,
             employerName: employer.EmployerName,
-            isPublic:     employer.IsPublic
+            isPublic: employer.IsPublic
         );
         await _dbContext.DimEmployers.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();

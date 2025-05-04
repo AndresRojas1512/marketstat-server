@@ -2,6 +2,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -17,9 +18,14 @@ public class DimCityRepository : BaseRepository, IDimCityRepository
     
     public async Task AddCityAsync(DimCity city)
     {
-        var dbCity = DimCityConverter.ToDbModel(city);
-        await _dbContext.AddAsync(dbCity);
+        var dbModel = new DimCityDbModel(
+            cityId: 0,
+            cityName: city.CityName,
+            oblastId: city.OblastId
+        );
+        await _dbContext.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        city.CityId = dbModel.CityId;
     }
 
     public async Task<DimCity> GetCityByIdAsync(int cityId)
