@@ -5,7 +5,7 @@ namespace MarketStat.Database.Core.Repositories.Dimensions;
 public interface IDimStandardJobRoleRepository
 {
     Task AddStandardJobRoleAsync(DimStandardJobRole jobRole);
-    Task<DimStandardJobRole> GetStandardJobRoleByIdAsync(long id);
+    Task<DimStandardJobRole> GetStandardJobRoleByIdAsync(int id);
     Task<IEnumerable<DimStandardJobRole>> GetAllStandardJobRolesAsync();
     Task UpdateStandardJobRoleAsync(DimStandardJobRole jobRole);
     Task DeleteStandardJobRoleAsync(int id);

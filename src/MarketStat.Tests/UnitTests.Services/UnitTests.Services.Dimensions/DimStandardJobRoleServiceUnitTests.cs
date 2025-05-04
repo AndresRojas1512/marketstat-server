@@ -24,17 +24,16 @@ public class DimStandardJobRoleServiceUnitTests
     public async Task CreateStandardJobRoleAsync_ValidParameters_ReturnsNewRole()
     {
         _dimStandardJobRoleRepository
-            .Setup(r => r.GetAllStandardJobRolesAsync())
-            .ReturnsAsync(new List<DimStandardJobRole>());
-        _dimStandardJobRoleRepository
             .Setup(r => r.AddStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
+            .Callback<DimStandardJobRole>(d => d.StandardJobRoleId = 1)
             .Returns(Task.CompletedTask);
-        
+
         var result = await _dimStandardJobRoleService.CreateStandardJobRoleAsync("Architect", 2);
-        
+
         Assert.Equal(1, result.StandardJobRoleId);
         Assert.Equal("Architect", result.StandardJobRoleTitle);
         Assert.Equal(2, result.IndustryFieldId);
+
         _dimStandardJobRoleRepository.Verify(r =>
             r.AddStandardJobRoleAsync(
                 It.Is<DimStandardJobRole>(d =>
@@ -48,12 +47,9 @@ public class DimStandardJobRoleServiceUnitTests
     public async Task CreateStandardJobRoleAsync_Duplicate_ThrowsException()
     {
         _dimStandardJobRoleRepository
-            .Setup(r => r.GetAllStandardJobRolesAsync())
-            .ReturnsAsync(new List<DimStandardJobRole>());
-        _dimStandardJobRoleRepository
             .Setup(r => r.AddStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
             .ThrowsAsync(new Exception("db error"));
-        
+
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimStandardJobRoleService.CreateStandardJobRoleAsync("Developer", 1)
         );

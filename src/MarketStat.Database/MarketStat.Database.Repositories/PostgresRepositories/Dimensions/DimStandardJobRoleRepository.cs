@@ -2,6 +2,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -17,12 +18,17 @@ public class DimStandardJobRoleRepository : BaseRepository, IDimStandardJobRoleR
     
     public async Task AddStandardJobRoleAsync(DimStandardJobRole jobRole)
     {
-        var dbJobRole = DimStandardJobRoleConverter.ToDbModel(jobRole);
-        await _context.DimStandardJobRoles.AddAsync(dbJobRole);
+        var dbModel = new DimStandardJobRoleDbModel(
+            standardJobRoleId: 0,
+            standardJobRoleTitle: jobRole.StandardJobRoleTitle,
+            industryFieldId: jobRole.IndustryFieldId
+        );
+        await _context.DimStandardJobRoles.AddAsync(dbModel);
         await _context.SaveChangesAsync();
+        jobRole.StandardJobRoleId = dbModel.StandardJobRoleId;
     }
 
-    public async Task<DimStandardJobRole> GetStandardJobRoleByIdAsync(long id)
+    public async Task<DimStandardJobRole> GetStandardJobRoleByIdAsync(int id)
     {
         var dbJobRole = await _context.DimStandardJobRoles.FindAsync(id) 
                         ?? throw new KeyNotFoundException($"Standard job role {id} not found");

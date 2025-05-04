@@ -19,19 +19,24 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
     
     public async Task<DimStandardJobRole> CreateStandardJobRoleAsync(string jobRoleTitle, int industryFieldId)
     {
-        var all = (await _dimStandardJobRoleRepository.GetAllStandardJobRolesAsync()).ToList();
-        var newId = all.Any() ? all.Max(r => r.StandardJobRoleId) + 1 : 1;
-        DimStandardJobRoleValidator.ValidateParameters(newId, jobRoleTitle, industryFieldId);
-        var role = new DimStandardJobRole(newId, jobRoleTitle, industryFieldId);
+        DimStandardJobRoleValidator.ValidateForCreate(jobRoleTitle, industryFieldId);
+        var all = await _dimStandardJobRoleRepository.GetAllStandardJobRolesAsync();
+        if (all.Any(r => 
+                r.StandardJobRoleTitle.Equals(jobRoleTitle, StringComparison.OrdinalIgnoreCase) &&
+                r.IndustryFieldId == industryFieldId
+            ))
+            throw new Exception($"Could not create job role '{jobRoleTitle}'");
+
+        var role = new DimStandardJobRole(0, jobRoleTitle, industryFieldId);
         try
         {
             await _dimStandardJobRoleRepository.AddStandardJobRoleAsync(role);
-            _logger.LogInformation("Created DimStandardJobRole {JobRoleId}", newId);
+            _logger.LogInformation("Created DimStandardJobRole {JobRoleId}", role.StandardJobRoleId);
             return role;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimStandardJobRole (duplicate {JobRoleId})", newId);
+            _logger.LogError(ex, "Failed to create DimStandardJobRole (duplicate {JobRoleId})", role.StandardJobRoleId);
             throw new Exception($"Could not create job role '{jobRoleTitle}'");
         }
     }
@@ -58,7 +63,7 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
 
     public async Task<DimStandardJobRole> UpdateStandardJobRoleAsync(int id, string jobRoleTitle, int industryFieldId)
     {
-        DimStandardJobRoleValidator.ValidateParameters(id, jobRoleTitle, industryFieldId);
+        DimStandardJobRoleValidator.ValidateForUpdate(id, jobRoleTitle, industryFieldId);
         try
         {
             var existing = await _dimStandardJobRoleRepository.GetStandardJobRoleByIdAsync(id);
