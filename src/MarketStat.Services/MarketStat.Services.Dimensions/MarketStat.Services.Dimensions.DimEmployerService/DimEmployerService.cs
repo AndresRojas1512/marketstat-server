@@ -18,15 +18,13 @@ public class DimEmployerService : IDimEmployerService
 
     public async Task<DimEmployer> CreateEmployerAsync(string employerName, bool isPublic)
     {
-        var allEmployers = (await _dimEmployerRepository.GetAllEmployersAsync()).ToList();
-        int newEmployerId = allEmployers.Any() ? allEmployers.Max(e => e.EmployerId) + 1 : 1;
-        DimEmployerValidator.ValidateParameters(newEmployerId, employerName, isPublic);
-        var employer = new DimEmployer(newEmployerId, employerName, isPublic);
+        DimEmployerValidator.ValidateForCreate(employerName, isPublic);
+        var employer = new DimEmployer(0, employerName, isPublic);
         
         try
         {
             await _dimEmployerRepository.AddEmployerAsync(employer);
-            _logger.LogInformation("Created DimEmployer {EmployerId}", newEmployerId);
+            _logger.LogInformation("Created DimEmployer {EmployerId}", employer.EmployerId);
             return employer;
         }
         catch (Exception ex)
@@ -58,7 +56,7 @@ public class DimEmployerService : IDimEmployerService
 
     public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, bool isPublic)
     {
-        DimEmployerValidator.ValidateParameters(employerId, employerName, isPublic);
+        DimEmployerValidator.ValidateForUpdate(employerId, employerName, isPublic);
         try
         {
             var existingEmployer = await _dimEmployerRepository.GetEmployerByIdAsync(employerId);

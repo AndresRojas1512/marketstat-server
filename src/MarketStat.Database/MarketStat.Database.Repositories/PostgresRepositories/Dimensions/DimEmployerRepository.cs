@@ -18,9 +18,14 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
     
     public async Task AddEmployerAsync(DimEmployer employer)
     {
-        var dbEmployer = DimEmployerConverter.ToDbModel(employer);
-        await _dbContext.DimEmployers.AddAsync(dbEmployer);
+        var dbModel = new DimEmployerDbModel(
+            employerId: 0,
+            employerName: employer.EmployerName,
+            isPublic:     employer.IsPublic
+        );
+        await _dbContext.DimEmployers.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        employer.EmployerId = dbModel.EmployerId;
     }
 
     public async Task<DimEmployer> GetEmployerByIdAsync(int employerId)

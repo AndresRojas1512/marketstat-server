@@ -24,39 +24,42 @@ public class DimEmployerServiceUnitTests
     public async Task CreateEmployerAsync_EmptyRepo_CreatesWithId1()
     {
         _dimEmployerRepositoryMock
-            .Setup(r => r.GetAllEmployersAsync())
-            .ReturnsAsync(Array.Empty<DimEmployer>());
-
+            .Setup(r => r.AddEmployerAsync(It.IsAny<DimEmployer>()))
+            .Callback<DimEmployer>(e => e.EmployerId = 1)
+            .Returns(Task.CompletedTask);
+        
         var employer = await _dimEmployerService.CreateEmployerAsync("Acme", true);
 
         Assert.Equal(1, employer.EmployerId);
         Assert.Equal("Acme", employer.EmployerName);
         Assert.True(employer.IsPublic);
+
         _dimEmployerRepositoryMock.Verify(r => r.AddEmployerAsync(
             It.Is<DimEmployer>(e =>
-                e.EmployerId == 1
-                && e.EmployerName == "Acme"
-                && e.IsPublic
+                e.EmployerName == "Acme" &&
+                e.IsPublic
             )), Times.Once);
     }
     
     [Fact]
     public async Task CreateEmployerAsync_NonEmptyRepo_IncrementsId()
     {
-        var existing = new List<DimEmployer>
-        {
-            new DimEmployer(5, "Foo", false)
-        };
         _dimEmployerRepositoryMock
-            .Setup(r => r.GetAllEmployersAsync())
-            .ReturnsAsync(existing);
+            .Setup(r => r.AddEmployerAsync(It.IsAny<DimEmployer>()))
+            .Callback<DimEmployer>(e => e.EmployerId = 6)
+            .Returns(Task.CompletedTask);
 
         var employer = await _dimEmployerService.CreateEmployerAsync("NewCo", false);
 
         Assert.Equal(6, employer.EmployerId);
+        Assert.Equal("NewCo", employer.EmployerName);
+        Assert.False(employer.IsPublic);
+
         _dimEmployerRepositoryMock.Verify(r => r.AddEmployerAsync(
-            It.Is<DimEmployer>(e => e.EmployerId == 6)
-        ), Times.Once);
+            It.Is<DimEmployer>(e =>
+                e.EmployerName == "NewCo" &&
+                !e.IsPublic
+            )), Times.Once);
     }
     
     [Fact]
@@ -71,16 +74,13 @@ public class DimEmployerServiceUnitTests
     public async Task CreateEmployerAsync_RepositoryThrows_WrapsException()
     {
         _dimEmployerRepositoryMock
-            .Setup(r => r.GetAllEmployersAsync())
-            .ReturnsAsync(Array.Empty<DimEmployer>());
-        _dimEmployerRepositoryMock
             .Setup(r => r.AddEmployerAsync(It.IsAny<DimEmployer>()))
             .ThrowsAsync(new InvalidOperationException("db error"));
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _dimEmployerService.CreateEmployerAsync("Name", false)
         );
-        Assert.Contains("An employer with ID 1 already exists", ex.Message);
+        Assert.Contains("already exists", ex.Message);
     }
     
     [Fact]
@@ -114,7 +114,7 @@ public class DimEmployerServiceUnitTests
     {
         var list = new List<DimEmployer>
         {
-            new DimEmployer(1, "A" , false),
+            new DimEmployer(1, "A", false),
             new DimEmployer(2, "B", true)
         };
         _dimEmployerRepositoryMock
@@ -141,9 +141,9 @@ public class DimEmployerServiceUnitTests
         Assert.True(updated.IsPublic);
         _dimEmployerRepositoryMock.Verify(r => r.UpdateEmployerAsync(
             It.Is<DimEmployer>(e =>
-                e.EmployerId == 3
-                && e.EmployerName == "New"
-                && e.IsPublic
+                e.EmployerId == 3 &&
+                e.EmployerName == "New" &&
+                e.IsPublic
             )), Times.Once);
     }
     
