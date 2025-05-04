@@ -19,14 +19,24 @@ public class FactSalaryRepository : IFactSalaryRepository
 
     public async Task AddFactSalaryAsync(FactSalary salary)
     {
-        var dbSalaryFact = FactSalaryConverter.ToDbModel(salary);
-        await _dbContext.FactSalaries.AddAsync(dbSalaryFact);
+        var dbModel = new FactSalaryDbModel(
+            salaryFactId: 0,
+            dateId: salary.DateId,
+            cityId: salary.CityId,
+            employerId: salary.EmployerId,
+            jobRoleId: salary.JobRoleId,
+            employeeId: salary.EmployeeId,
+            salaryAmount: salary.SalaryAmount,
+            bonusAmount: salary.BonusAmount
+        );
+        await _dbContext.FactSalaries.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        salary.SalaryFactId = dbModel.SalaryFactId;
     }
 
     public async Task<FactSalary> GetFactSalaryByIdAsync(int salaryId)
     {
-        var dbSalary = await _dbContext.FactSalaries.FindAsync((long)salaryId)
+        var dbSalary = await _dbContext.FactSalaries.FindAsync(salaryId)
                       ?? throw new KeyNotFoundException($"FactSalary {salaryId} not found.");
         return FactSalaryConverter.ToDomain(dbSalary);
     }
@@ -53,7 +63,7 @@ public class FactSalaryRepository : IFactSalaryRepository
 
     public async Task UpdateFactSalaryAsync(FactSalary salaryFact)
     {
-        var dbModel = await _dbContext.FactSalaries.FindAsync((long)salaryFact.SalaryFactId)
+        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFact.SalaryFactId)
                       ?? throw new KeyNotFoundException($"Cannot update: salary fact {salaryFact.SalaryFactId} not found.");
 
         dbModel.DateId       = salaryFact.DateId;
@@ -69,7 +79,7 @@ public class FactSalaryRepository : IFactSalaryRepository
 
     public async Task DeleteFactSalaryByIdAsync(int salaryFactId)
     {
-        var dbModel = await _dbContext.FactSalaries.FindAsync((long)salaryFactId)
+        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFactId)
                       ?? throw new KeyNotFoundException($"Cannot delete: salary fact {salaryFactId} not found.");
 
         _dbContext.FactSalaries.Remove(dbModel);

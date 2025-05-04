@@ -20,23 +20,19 @@ public class FactSalaryService : IFactSalaryService
     public async Task<FactSalary> CreateFactSalaryAsync(int dateId, int cityId, int employerId, int jobRoleId, 
         int employeeId, decimal salaryAmount, decimal bonusAmount)
     {
-        var all = (await _factSalaryRepository.GetAllFactSalariesAsync()).ToList();
-        var newId = all.Any() ? all.Max(f => f.SalaryFactId) + 1 : 1;
-        FactSalaryValidator.ValidateParameters(
-            newId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
-
-        var fact = new FactSalary(newId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
+        FactSalaryValidator.ValidateForCreate(dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
+        var fact = new FactSalary(0, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
 
         try
         {
             await _factSalaryRepository.AddFactSalaryAsync(fact);
-            _logger.LogInformation("Created FactSalary {FactId}", newId);
+            _logger.LogInformation("Created FactSalary {FactId}", fact.SalaryFactId);
             return fact;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create FactSalary (duplicate {FactId})", newId);
-            throw new Exception($"Could not create salary fact {newId}");
+            _logger.LogError(ex, "Failed to create FactSalary (duplicate {FactId})", fact.SalaryFactId);
+            throw new Exception($"Could not create salary fact {fact.SalaryFactId}");
         }
     }
     
@@ -70,7 +66,7 @@ public class FactSalaryService : IFactSalaryService
     public async Task<FactSalary> UpdateFactSalaryAsync(int salaryFactId, int dateId, int cityId, int employerId,
         int jobRoleId, int employeeId, decimal salaryAmount, decimal bonusAmount)
     {
-        FactSalaryValidator.ValidateParameters(
+        FactSalaryValidator.ValidateForUpdate(
             salaryFactId, dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
 
         try

@@ -1,13 +1,10 @@
 namespace MarketStat.Services.Facts.FactSalaryService.Validators;
 
-public class FactSalaryValidator
+public static class FactSalaryValidator
 {
-    public static void ValidateParameters(int salaryFactId, int dateId, int cityId, int employerId, int jobRoleId,
-        int employeeId, decimal salaryAmount, decimal bonusAmount)
+    public static void ValidateForCreate(int dateId, int cityId, int employerId, int jobRoleId, int employeeId,
+        decimal salaryAmount, decimal bonusAmount)
     {
-        if (salaryFactId <= 0)
-            throw new ArgumentException("SalaryFactId must be a positive integer.");
-
         if (dateId <= 0)
             throw new ArgumentException("DateId must be a positive integer.");
         if (cityId <= 0)
@@ -23,5 +20,13 @@ public class FactSalaryValidator
             throw new ArgumentException("SalaryAmount cannot be negative.");
         if (bonusAmount < 0)
             throw new ArgumentException("BonusAmount cannot be negative.");
+    }
+    
+    public static void ValidateForUpdate(int salaryFactId, int dateId, int cityId, int employerId, int jobRoleId,
+        int employeeId, decimal salaryAmount, decimal bonusAmount)
+    {
+        if (salaryFactId <= 0)
+            throw new ArgumentException("SalaryFactId must be a positive integer.");
+        ValidateForCreate(dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount, bonusAmount);
     }
 }
