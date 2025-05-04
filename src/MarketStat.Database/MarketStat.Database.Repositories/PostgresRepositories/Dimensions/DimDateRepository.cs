@@ -2,6 +2,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -17,9 +18,16 @@ public class DimDateRepository : BaseRepository, IDimDateRepository
     
     public async Task AddDateAsync(DimDate date)
     {
-        var dbDate = DimDateConverter.ToDbModel(date);
-        await _dbContext.DimDates.AddAsync(dbDate);
+        var dbModel = new DimDateDbModel(
+            dateId: 0,
+            fullDate: date.FullDate,
+            year: date.Year,
+            quarter: date.Quarter,
+            month: date.Month
+        );
+        await _dbContext.DimDates.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        date.DateId = dbModel.DateId;
     }
 
     public async Task<DimDate> GetDateByIdAsync(int dateId)

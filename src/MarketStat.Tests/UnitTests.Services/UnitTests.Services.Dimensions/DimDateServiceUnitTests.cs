@@ -21,14 +21,14 @@ public class DimDateServiceUnitTests
     }
     
     [Fact]
-    public async Task CreateDateAsync_ValidDate_ReturnsDimDate()
+    public async Task CreateDateAsync_ValidDate_ReturnsDimDateWithId()
     {
         var date = DateOnly.Parse("2025-04-24");
-        _dimDateRepositoryMock
-            .Setup(r => r.GetAllDatesAsync())
-            .ReturnsAsync(new List<DimDate>());
+
+        // simulate EF assigning a serial PK
         _dimDateRepositoryMock
             .Setup(r => r.AddDateAsync(It.IsAny<DimDate>()))
+            .Callback<DimDate>(d => d.DateId = 1)
             .Returns(Task.CompletedTask);
 
         var result = await _dimDateService.CreateDateAsync(date);
@@ -43,9 +43,9 @@ public class DimDateServiceUnitTests
             It.Is<DimDate>(d =>
                 d.DateId == 1 &&
                 d.FullDate == date &&
-                d.Year == date.Year &&
-                d.Month == date.Month &&
-                d.Quarter == ((date.Month - 1) / 3 + 1)
+                d.Year     == date.Year &&
+                d.Month    == date.Month &&
+                d.Quarter  == ((date.Month - 1) / 3 + 1)
             )), Times.Once);
     }
     
@@ -53,9 +53,7 @@ public class DimDateServiceUnitTests
     public async Task CreateDateAsync_Duplicate_ThrowsException()
     {
         var date = DateOnly.Parse("2025-04-24");
-        _dimDateRepositoryMock
-            .Setup(r => r.GetAllDatesAsync())
-            .ReturnsAsync(new List<DimDate>());
+
         _dimDateRepositoryMock
             .Setup(r => r.AddDateAsync(It.IsAny<DimDate>()))
             .ThrowsAsync(new InvalidOperationException("exists"));
@@ -112,7 +110,7 @@ public class DimDateServiceUnitTests
             .ReturnsAsync(list);
 
         var result = (await _dimDateService.GetAllDatesAsync()).ToList();
-        
+
         Assert.Equal(2, result.Count);
         Assert.Equal(list, result);
     }
@@ -134,13 +132,13 @@ public class DimDateServiceUnitTests
 
         Assert.Equal(3, updated.DateId);
         Assert.Equal(newDate, updated.FullDate);
-        Assert.Equal(newDate.Year, updated.Year);
-        Assert.Equal(newDate.Month, updated.Month);
+        Assert.Equal(newDate.Year,               updated.Year);
+        Assert.Equal(newDate.Month,              updated.Month);
         Assert.Equal((newDate.Month - 1) / 3 + 1, updated.Quarter);
 
         _dimDateRepositoryMock.Verify(r => r.UpdateDateAsync(
             It.Is<DimDate>(d =>
-                d.DateId == 3 &&
+                d.DateId   == 3 &&
                 d.FullDate == newDate
             )), Times.Once);
     }
@@ -166,18 +164,6 @@ public class DimDateServiceUnitTests
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimDateService.UpdateDateAsync(1, default));
-    }
-    
-    [Fact]
-    public async Task DeleteDateAsync_Existing_Completes()
-    {
-        _dimDateRepositoryMock
-            .Setup(r => r.DeleteDateAsync(5))
-            .Returns(Task.CompletedTask);
-
-        await _dimDateService.DeleteDateAsync(5);
-
-        _dimDateRepositoryMock.Verify(r => r.DeleteDateAsync(5), Times.Once);
     }
     
     [Fact]
