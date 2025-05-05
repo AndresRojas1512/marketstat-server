@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Services.Dimensions.DimEmployeeService;
 
-public class DimEmployeeService
+public class DimEmployeeService : IDimEmployeeService
 {
     private readonly IDimEmployeeRepository _dimEmployeeRepository;
     private readonly ILogger<DimEmployeeService> _logger;
@@ -16,24 +16,21 @@ public class DimEmployeeService
         _logger = logger;
     }
     
-    public async Task<DimEmployee> CreateEmployeeAsync(DateOnly birthDate)
+    public async Task<DimEmployee> CreateEmployeeAsync(DateOnly birthDate, DateOnly careerStartDate)
     {
-        var all = (await _dimEmployeeRepository.GetAllEmployeesAsync()).ToList();
-        var newId = all.Any() ? all.Max(e => e.EmployeeId) + 1 : 1;
-
-        DimEmployeeValidator.ValidateParameters(newId, birthDate);
-        var emp = new DimEmployee(newId, birthDate);
+        DimEmployeeValidator.ValidateForCreate(birthDate, careerStartDate);
+        var employee = new DimEmployee(0, birthDate, careerStartDate);
 
         try
         {
-            await _dimEmployeeRepository.AddEmployeeAsync(emp);
-            _logger.LogInformation("Created DimEmployee {EmployeeId}", newId);
-            return emp;
+            await _dimEmployeeRepository.AddEmployeeAsync(employee);
+            _logger.LogInformation("Created DimEmployee {EmployeeId}", employee.EmployeeId);
+            return employee;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimEmployee {EmployeeId}", newId);
-            throw new Exception($"Could not create employee {newId}");
+            _logger.LogError(ex, "Failed to create DimEmployee {EmployeeId}", employee.EmployeeId);
+            throw new Exception($"Could not create employee {employee.EmployeeId}");
         }
     }
     
@@ -57,13 +54,14 @@ public class DimEmployeeService
         return list;
     }
     
-    public async Task<DimEmployee> UpdateEmployeeAsync(int employeeId, DateOnly birthDate)
+    public async Task<DimEmployee> UpdateEmployeeAsync(int employeeId, DateOnly birthDate, DateOnly careerStartDate)
     {
-        DimEmployeeValidator.ValidateParameters(employeeId, birthDate);
+        DimEmployeeValidator.ValidateForUpdate(employeeId, birthDate, careerStartDate);
         try
         {
             var existing = await _dimEmployeeRepository.GetEmployeeByIdAsync(employeeId);
             existing.BirthDate = birthDate;
+            existing.CareerStartDate = careerStartDate;
             await _dimEmployeeRepository.UpdateEmployeeAsync(existing);
             _logger.LogInformation("Updated DimEmployee {EmployeeId}", employeeId);
             return existing;

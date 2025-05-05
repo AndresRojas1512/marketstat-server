@@ -16,18 +16,13 @@ public class DimEmployerDbModel
     [StringLength(255)]
     public string EmployerName { get; set; }
     
-    [Column("industry")]
-    [StringLength(255)]
-    public string Industry { get; set; }
-    
     [Column("is_public")]
     public bool IsPublic { get; set; }
 
-    public DimEmployerDbModel(int employerId, string employerName, string industry, bool isPublic)
+    public DimEmployerDbModel(int employerId, string employerName, bool isPublic)
     {
         EmployerId = employerId;
         EmployerName = employerName;
-        Industry = industry;
         IsPublic = isPublic;
     }
 }

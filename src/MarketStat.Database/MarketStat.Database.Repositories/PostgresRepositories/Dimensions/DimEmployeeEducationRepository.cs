@@ -1,38 +1,63 @@
+using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
-public class DimEmployeeEducationRepository : IDimEmployeeEducationRepository
+public class DimEmployeeEducationRepository : BaseRepository, IDimEmployeeEducationRepository
 {
-    private readonly Dictionary<(int EmployeeId, int EducationId), DimEmployeeEducation> _links =
-        new Dictionary<(int, int), DimEmployeeEducation>();
+    private readonly MarketStatDbContext _dbContext;
 
-    public Task AddEmployeeEducationAsync(DimEmployeeEducation link)
+    public DimEmployeeEducationRepository(MarketStatDbContext dbContext)
     {
-        var key = (link.EmployeeId, link.EducationId);
-        if (!_links.TryAdd(key, link))
-        {
-            throw new ArgumentException(
-                $"Link already exists for Employee {link.EmployeeId} and Education {link.EducationId}");
-        }
-        return Task.CompletedTask;
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public Task RemoveEmployeeEducationAsync(int employeeId, int educationId)
+    public async Task AddEmployeeEducationAsync(DimEmployeeEducation link)
     {
-        var key = (employeeId, educationId);
-        if (!_links.Remove(key))
-        {
-            throw new KeyNotFoundException(
-                $"Cannot remove for Employee {employeeId} and Education {educationId}: not found");
-        }
-        return Task.CompletedTask;
+        var dbLink = DimEmployeeEducationConverter.ToDbModel(link);
+        await _dbContext.DimEmployeeEducations.AddAsync(dbLink);
+        await _dbContext.SaveChangesAsync();
     }
 
-    public Task<IEnumerable<DimEmployeeEducation>> GetEducationsByEmployeeIdAsync(int employeeId)
+    public async Task<DimEmployeeEducation> GetEmployeeEducationAsync(int employeeId, int educationId)
     {
-        var results = _links.Values.Where(l => l.EmployeeId == employeeId).ToList();
-        return Task.FromResult<IEnumerable<DimEmployeeEducation>>(results);
+        var dbLink = await _dbContext.DimEmployeeEducations.FindAsync(employeeId, educationId) 
+                     ?? throw new KeyNotFoundException($"EmployeeEducation ({employeeId}, {educationId}) not found.");
+        return DimEmployeeEducationConverter.ToDomain(dbLink);
+    }
+
+    public async Task<IEnumerable<DimEmployeeEducation>> GetEducationsByEmployeeIdAsync(int employeeId)
+    {
+        var dbLinks = await _dbContext.DimEmployeeEducations
+            .Where(e => e.EmployeeId == employeeId)
+            .ToListAsync();
+        return dbLinks.Select(DimEmployeeEducationConverter.ToDomain);
+    }
+
+    public async Task<IEnumerable<DimEmployeeEducation>> GetAllEmployeeEducationsAsync()
+    {
+        var dbLinks = await _dbContext.DimEmployeeEducations.ToListAsync();
+        return dbLinks.Select(DimEmployeeEducationConverter.ToDomain);
+    }
+
+    public async Task UpdateEmployeeEducationAsync(DimEmployeeEducation link)
+    {
+        var dbLink = await _dbContext.DimEmployeeEducations.FindAsync(link.EmployeeId, link.EducationId) 
+                     ?? throw new KeyNotFoundException($"Cannot update EmployeeEducation ({link.EmployeeId}, {link.EducationId}) not found.");
+        dbLink.GraduationYear = link.GraduationYear;
+        await _dbContext.SaveChangesAsync();
+    }
+    
+    public async Task DeleteEmployeeEducationAsync(int employeeId, int educationId)
+    {
+        var dbLink = await _dbContext.DimEmployeeEducations.FindAsync(employeeId, educationId)
+                     ?? throw new KeyNotFoundException(
+                         $"Cannot delete: EmployeeEducation ({employeeId}, {educationId}) not found.");
+        _dbContext.DimEmployeeEducations.Remove(dbLink);
+        await _dbContext.SaveChangesAsync();
     }
 }

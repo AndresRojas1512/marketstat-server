@@ -4,9 +4,9 @@ namespace MarketStat.Services.Dimensions.DimJobRoleService;
 
 public interface IDimJobRoleService
 {
-    Task<DimJobRole> CreateJobRoleAsync(string jobRoleTitle, string seniorityLevel, int industryFieldId);
+    Task<DimJobRole> CreateJobRoleAsync(string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId);
     Task<DimJobRole> GetJobRoleByIdAsync(int jobRoleId);
     Task<IEnumerable<DimJobRole>> GetAllJobRolesAsync();
-    Task<DimJobRole> UpdateJobRoleAsync(int jobRoleId, string jobRoleTitle, string seniorityLevel, int industryFieldId);
+    Task<DimJobRole> UpdateJobRoleAsync(int jobRoleId, string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId);
     Task DeleteJobRoleAsync(int jobRoleId);
 }

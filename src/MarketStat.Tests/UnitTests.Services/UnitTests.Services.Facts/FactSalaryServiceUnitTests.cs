@@ -25,11 +25,8 @@ public class FactSalaryServiceUnitTests
     public async Task CreateFactSalaryAsync_ValidParameters_ReturnsNewFact()
     {
         _factSalaryRepositoryMock
-            .Setup(r => r.GetAllFactSalariesAsync())
-            .ReturnsAsync(new List<FactSalary>());
-
-        _factSalaryRepositoryMock
             .Setup(r => r.AddFactSalaryAsync(It.IsAny<FactSalary>()))
+            .Callback<FactSalary>(f => f.SalaryFactId = 1)
             .Returns(Task.CompletedTask);
 
         var fact = await _factSalaryService.CreateFactSalaryAsync(

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Services.Dimensions.DimJobRoleService;
 
-public class DimJobRoleService
+public class DimJobRoleService : IDimJobRoleService
 {
     private readonly IDimJobRoleRepository _dimJobRoleRepository;
     private readonly ILogger<DimJobRoleService> _logger;
@@ -16,21 +16,30 @@ public class DimJobRoleService
         _logger = logger;
     }
     
-    public async Task<DimJobRole> CreateJobRoleAsync(string jobRoleTitle, string seniorityLevel, int industryFieldId)
+    public async Task<DimJobRole> CreateJobRoleAsync(string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
     {
-        var all = (await _dimJobRoleRepository.GetAllJobRolesAsync()).ToList();
-        var newId = all.Any() ? all.Max(r => r.JobRoleId) + 1 : 1;
-        DimJobRoleValidator.ValidateParameters(newId, jobRoleTitle, seniorityLevel, industryFieldId, checkId: false);
-        var role = new DimJobRole(newId, jobRoleTitle, seniorityLevel, industryFieldId);
+        DimJobRoleValidator.ValidateForCreate(jobRoleTitle, standardJobRoleId, hierarchyLevelId);
+
+        var allRoles = await _dimJobRoleRepository.GetAllJobRolesAsync();
+        if (allRoles.Any(r =>
+                r.JobRoleTitle       == jobRoleTitle
+                && r.StandardJobRoleId == standardJobRoleId
+                && r.HierarchyLevelId  == hierarchyLevelId))
+        {
+            throw new Exception($"Could not create job role '{jobRoleTitle}'");
+        }
+
+        var role = new DimJobRole(0, jobRoleTitle, standardJobRoleId, hierarchyLevelId);
         try
         {
             await _dimJobRoleRepository.AddJobRoleAsync(role);
-            _logger.LogInformation("Created DimJobRole {JobRoleId}", newId);
+            _logger.LogInformation("Created DimJobRole {JobRoleId}", role.JobRoleId);
             return role;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimJobRole (duplicate {JobRoleId})", newId);
+            _logger.LogError(ex,
+                "Failed to create DimJobRole (duplicate {JobRoleId})", role.JobRoleId);
             throw new Exception($"Could not create job role '{jobRoleTitle}'");
         }
     }
@@ -55,15 +64,15 @@ public class DimJobRoleService
         return list;
     }
     
-    public async Task<DimJobRole> UpdateJobRoleAsync(int jobRoleId, string jobRoleTitle, string seniorityLevel, int industryFieldId)
+    public async Task<DimJobRole> UpdateJobRoleAsync(int jobRoleId, string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
     {
-        DimJobRoleValidator.ValidateParameters(jobRoleId, jobRoleTitle, seniorityLevel, industryFieldId);
+        DimJobRoleValidator.ValidateForUpdate(jobRoleId, jobRoleTitle, standardJobRoleId, hierarchyLevelId);
         try
         {
             var existing = await _dimJobRoleRepository.GetJobRoleByIdAsync(jobRoleId);
             existing.JobRoleTitle   = jobRoleTitle;
-            existing.SeniorityLevel = seniorityLevel;
-            existing.IndustryFieldId = industryFieldId;
+            existing.StandardJobRoleId = standardJobRoleId;
+            existing.HierarchyLevelId = hierarchyLevelId;
 
             await _dimJobRoleRepository.UpdateJobRoleAsync(existing);
             _logger.LogInformation("Updated DimJobRole {JobRoleId}", jobRoleId);

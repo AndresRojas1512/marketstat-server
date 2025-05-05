@@ -8,10 +8,9 @@ public static class DimEmployerConverter
     public static DimEmployerDbModel ToDbModel(DimEmployer dimEmployer)
     {
         return new DimEmployerDbModel(
-            employerId: dimEmployer.EmployerId,
-            employerName: dimEmployer.EmployerName,
-            industry: dimEmployer.Industry,
-            isPublic: dimEmployer.IsPublic
+            dimEmployer.EmployerId,
+            dimEmployer.EmployerName,
+            dimEmployer.IsPublic
         );
     }
 
@@ -20,7 +19,6 @@ public static class DimEmployerConverter
         return new DimEmployer(
             dbDimEmployer.EmployerId,
             dbDimEmployer.EmployerName,
-            dbDimEmployer.Industry,
             dbDimEmployer.IsPublic
         );
     }

@@ -16,22 +16,20 @@ public class DimEmployerService : IDimEmployerService
         _logger = logger;
     }
 
-    public async Task<DimEmployer> CreateEmployerAsync(string employerName, string industry, bool isPublic)
+    public async Task<DimEmployer> CreateEmployerAsync(string employerName, bool isPublic)
     {
-        var allEmployers = (await _dimEmployerRepository.GetAllEmployersAsync()).ToList();
-        int newEmployerId = allEmployers.Any() ? allEmployers.Max(e => e.EmployerId) + 1 : 1;
-        DimEmployerValidator.ValidateParameters(newEmployerId, employerName, industry, isPublic);
-        var employer = new DimEmployer(newEmployerId, employerName, industry, isPublic);
+        DimEmployerValidator.ValidateForCreate(employerName, isPublic);
+        var employer = new DimEmployer(0, employerName, isPublic);
         
         try
         {
             await _dimEmployerRepository.AddEmployerAsync(employer);
-            _logger.LogInformation("Created DimEmployer {EmployerId}", newEmployerId);
+            _logger.LogInformation("Created DimEmployer {EmployerId}", employer.EmployerId);
             return employer;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimEmployer (duplicate {EmployerId})", employer.EmployerId);
+            _logger.LogError(ex, "Failed to create DimEmployer {EmployerId}.", employer.EmployerId);
             throw new Exception($"An employer with ID {employer.EmployerId} already exists.");
         }
     }
@@ -56,14 +54,13 @@ public class DimEmployerService : IDimEmployerService
         return employers;
     }
 
-    public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, string industry, bool isPublic)
+    public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, bool isPublic)
     {
+        DimEmployerValidator.ValidateForUpdate(employerId, employerName, isPublic);
         try
         {
-            DimEmployerValidator.ValidateParameters(employerId, employerName, industry, isPublic);
             var existingEmployer = await _dimEmployerRepository.GetEmployerByIdAsync(employerId);
             existingEmployer.EmployerName = employerName;
-            existingEmployer.Industry = industry;
             existingEmployer.IsPublic = isPublic;
             await _dimEmployerRepository.UpdateEmployerAsync(existingEmployer);
             _logger.LogInformation("Updated DimEmployer {EmployerId}", employerId);

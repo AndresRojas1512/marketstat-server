@@ -17,6 +17,6 @@ public class ListEmployersCommand : ICommand
     {
         var all = await _dimEmployerService.GetAllEmployersAsync();
         foreach (var e in all)
-            Console.WriteLine($"{e.EmployerId}: {e.EmployerName} ({e.Industry}) Public={e.IsPublic}");
+            Console.WriteLine($"{e.EmployerId}: {e.EmployerName} Public={e.IsPublic}");
     }
 }

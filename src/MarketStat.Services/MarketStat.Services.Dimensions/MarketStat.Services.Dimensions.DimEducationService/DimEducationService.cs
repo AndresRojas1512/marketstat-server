@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Services.Dimensions.DimEducationService;
 
-public class DimEducationService
+public class DimEducationService : IDimEducationService
 {
     private readonly IDimEducationRepository _dimEducationRepository;
     private readonly ILogger<DimEducationService> _logger;
@@ -16,23 +16,20 @@ public class DimEducationService
         _logger = logger;
     }
     
-    public async Task<DimEducation> CreateEducationAsync(string specialization, string educationLevel)
+    public async Task<DimEducation> CreateEducationAsync(string specialty, string specialtyCode, int educationLevelId, int industryFieldId)
     {
-        var all = (await _dimEducationRepository.GetAllEducationsAsync()).ToList();
-        int newId = all.Any() ? all.Max(e => e.EducationId) + 1 : 1;
-
-        DimEducationValidator.ValidateParameters(newId, specialization, educationLevel);
-
-        var edu = new DimEducation(newId, specialization, educationLevel);
+        DimEducationValidator.ValidateForCreate(specialty, specialtyCode, educationLevelId, industryFieldId);
+        var education = new DimEducation(0, specialty, specialtyCode, educationLevelId, industryFieldId);
         try
         {
-            await _dimEducationRepository.AddEducationAsync(edu);
-            return edu;
+            await _dimEducationRepository.AddEducationAsync(education);
+            _logger.LogInformation("Created DimEducation {EducationID}", education.EducationId);
+            return education;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create education (duplicate {Id})", newId);
-            throw new Exception($"An education record with ID {newId} already exists.");
+            _logger.LogError(ex, "Failed to create education (duplicate {Id})", education.EducationId);
+            throw new Exception($"An education record with ID {education.EducationId} already exists.");
         }
     }
     
@@ -56,15 +53,16 @@ public class DimEducationService
         return list;
     }
     
-    public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialization, string educationLevel)
+    public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialty, string specialtyCode, int educationLevelId, int industryFieldId)
     {
+        DimEducationValidator.ValidateForUpdate(educationId, specialty, specialtyCode, educationLevelId, industryFieldId);
         try
         {
-            DimEducationValidator.ValidateParameters(educationId, specialization, educationLevel);
-
             var existing = await _dimEducationRepository.GetEducationByIdAsync(educationId);
-            existing.Specialization = specialization;
-            existing.EducationLevel = educationLevel;
+            existing.Specialty = specialty;
+            existing.SpecialtyCode = specialtyCode;
+            existing.EducationLevelId = educationLevelId;
+            existing.IndustryFieldId = industryFieldId;
 
             await _dimEducationRepository.UpdateEducationAsync(existing);
             _logger.LogInformation("Updated education {Id}", educationId);

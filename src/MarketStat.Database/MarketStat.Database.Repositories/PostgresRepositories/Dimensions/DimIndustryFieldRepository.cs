@@ -1,51 +1,58 @@
+using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
-public class DimIndustryFieldRepository : IDimIndustryFieldRepository
+public class DimIndustryFieldRepository : BaseRepository, IDimIndustryFieldRepository
 {
-    private readonly Dictionary<int, DimIndustryField> _industryFields = new Dictionary<int, DimIndustryField>();
+    private readonly MarketStatDbContext _dbContext;
+
+    public DimIndustryFieldRepository(MarketStatDbContext dbContext)
+    {
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    }
     
-    public Task AddIndustryFieldAsync(DimIndustryField industryField)
+    public async Task AddIndustryFieldAsync(DimIndustryField industryField)
     {
-        if (!_industryFields.TryAdd(industryField.IndustryFieldId, industryField))
-        {
-            throw new ArgumentException($"IndustryField {industryField.IndustryFieldId} already exists.");
-        }
-        return Task.CompletedTask;
+        var dbModel = new DimIndustryFieldDbModel(
+            industryFieldId: 0,
+            industryFieldName: industryField.IndustryFieldName
+        );
+        await _dbContext.DimIndustryFields.AddAsync(dbModel);
+        await _dbContext.SaveChangesAsync();
+        industryField.IndustryFieldId = dbModel.IndustryFieldId;
     }
 
-    public Task<DimIndustryField> GetIndustryFieldByIdAsync(int industryFieldId)
+    public async Task<DimIndustryField> GetIndustryFieldByIdAsync(int industryFieldId)
     {
-        if (_industryFields.TryGetValue(industryFieldId, out var i))
-        {
-            return Task.FromResult(i);
-        }
-        throw new KeyNotFoundException($"IndustryField {industryFieldId} not found.");
+        var dbIndustryField = await _dbContext.DimIndustryFields.FindAsync(industryFieldId) 
+                              ?? throw new KeyNotFoundException($"Industry field with id {industryFieldId} not found");
+        return DimIndustryFieldConverter.ToDomain(dbIndustryField);
     }
 
-    public Task<IEnumerable<DimIndustryField>> GetAllIndustryFieldsAsync()
+    public async Task<IEnumerable<DimIndustryField>> GetAllIndustryFieldsAsync()
     {
-        return Task.FromResult<IEnumerable<DimIndustryField>>(_industryFields.Values);
+        var allDbIndustryFields = await _dbContext.DimIndustryFields.ToListAsync();
+        return allDbIndustryFields.Select(DimIndustryFieldConverter.ToDomain);
     }
 
-    public Task UpdateIndustryFieldAsync(DimIndustryField industryField)
+    public async Task UpdateIndustryFieldAsync(DimIndustryField industryField)
     {
-        if (!_industryFields.ContainsKey(industryField.IndustryFieldId))
-        {
-            throw new KeyNotFoundException($"Cannot update: IndustryField {industryField.IndustryFieldId} not found.");
-        }
-        _industryFields[industryField.IndustryFieldId] = industryField;
-        return Task.CompletedTask;
+        var dbIndustryField = await _dbContext.DimIndustryFields.FindAsync(industryField.IndustryFieldId) 
+                              ?? throw new KeyNotFoundException($"Cannot update {industryField.IndustryFieldId}.");
+        dbIndustryField.IndustryFieldName = industryField.IndustryFieldName;
+        await _dbContext.SaveChangesAsync();
     }
 
-    public Task DeleteIndustryFieldAsync(int industryFieldId)
+    public async Task DeleteIndustryFieldAsync(int industryFieldId)
     {
-        if (!_industryFields.ContainsKey(industryFieldId))
-        {
-            throw new KeyNotFoundException($"Cannot delete: IndustryField {industryFieldId} not found.");
-        }
-        return Task.CompletedTask;
+        var dbIndustryField = await _dbContext.DimIndustryFields.FindAsync(industryFieldId)
+                              ?? throw new KeyNotFoundException($"Cannot delete {industryFieldId}.");
+        _dbContext.DimIndustryFields.Remove(dbIndustryField);
+        await _dbContext.SaveChangesAsync();
     }
 }

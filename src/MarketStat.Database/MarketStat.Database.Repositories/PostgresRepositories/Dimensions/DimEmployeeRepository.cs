@@ -1,51 +1,61 @@
+using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
-public class DimEmployeeRepository : IDimEmployeeRepository
+public class DimEmployeeRepository : BaseRepository, IDimEmployeeRepository
 {
-    private readonly Dictionary<int, DimEmployee> _employees = new Dictionary<int, DimEmployee>();
+    private readonly MarketStatDbContext _dbContext;
+
+    public DimEmployeeRepository(MarketStatDbContext dbContext)
+    {
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    }
     
-    public Task AddEmployeeAsync(DimEmployee employee)
+    public async Task AddEmployeeAsync(DimEmployee employee)
     {
-        if (!_employees.TryAdd(employee.EmployeeId, employee))
-        {
-            throw new ArgumentException($"Employee {employee.EmployeeId} already exists.");
-        }
-        return Task.CompletedTask;
+        var dbEmployee = new DimEmployeeDbModel(
+            employeeId: 0,
+            birthDate: employee.BirthDate,
+            careerStartDate: employee.CareerStartDate
+        );
+        await _dbContext.DimEmployees.AddAsync(dbEmployee);
+        await _dbContext.SaveChangesAsync();
+        employee.EmployeeId = dbEmployee.EmployeeId;
     }
 
-    public Task<DimEmployee> GetEmployeeByIdAsync(int employeeId)
+    public async Task<DimEmployee> GetEmployeeByIdAsync(int employeeId)
     {
-        if (_employees.TryGetValue(employeeId, out var e))
-        {
-            return Task.FromResult(e);
-        }
-        throw new KeyNotFoundException($"Employee {employeeId} not found.");
+        var dbEmployee = await _dbContext.DimEmployees.FindAsync(employeeId) 
+                         ?? throw new KeyNotFoundException($"Employee {employeeId} not found.");
+        return DimEmployeeConverter.ToDomain(dbEmployee);
     }
 
-    public Task<IEnumerable<DimEmployee>> GetAllEmployeesAsync()
+    public async Task<IEnumerable<DimEmployee>> GetAllEmployeesAsync()
     {
-        return Task.FromResult<IEnumerable<DimEmployee>>(_employees.Values);
+        var dbAllEmployees = await _dbContext.DimEmployees.ToListAsync();
+        return dbAllEmployees.Select(DimEmployeeConverter.ToDomain);
     }
 
-    public Task UpdateEmployeeAsync(DimEmployee employee)
+    public async Task UpdateEmployeeAsync(DimEmployee employee)
     {
-        if (!_employees.ContainsKey(employee.EmployeeId))
-        {
-            throw new KeyNotFoundException($"Cannot update: employee {employee.EmployeeId} not found.");
-        }
-        _employees[employee.EmployeeId] = employee;
-        return Task.CompletedTask;
+        var dbEmployee = await _dbContext.DimEmployees.FindAsync(employee.EmployeeId) 
+                         ?? throw new KeyNotFoundException($"Cannot update Employee {employee.EmployeeId}.");
+        dbEmployee.EmployeeId = employee.EmployeeId;
+        dbEmployee.BirthDate = employee.BirthDate;
+        dbEmployee.CareerStartDate = employee.CareerStartDate;
+        await _dbContext.SaveChangesAsync();
     }
 
-    public Task DeleteEmployeeAsync(int employeeId)
+    public async Task DeleteEmployeeAsync(int employeeId)
     {
-        if (!_employees.ContainsKey(employeeId))
-        {
-            throw new KeyNotFoundException($"Cannot delete: employee {employeeId} not found.");
-        }
-        return Task.CompletedTask;
+        var dbEmployee = await _dbContext.DimEmployees.FindAsync(employeeId) 
+                         ?? throw new KeyNotFoundException($"Cannot delete Employee {employeeId}.");
+        _dbContext.DimEmployees.Remove(dbEmployee);
+        await _dbContext.SaveChangesAsync();
     }
 }

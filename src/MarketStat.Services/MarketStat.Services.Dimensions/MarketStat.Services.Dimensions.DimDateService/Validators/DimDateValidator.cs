@@ -2,7 +2,7 @@ namespace MarketStat.Services.Dimensions.DimDateService.Validators;
 
 public class DimDateValidator
 {
-    public static void ValidateCreateParameters(DateOnly fullDate)
+    public static void ValidateForCreate(DateOnly fullDate)
     {
         if (fullDate == default)
         {
@@ -15,12 +15,12 @@ public class DimDateValidator
         }
     }
 
-    public static void ValidateParameters(int dateId, DateOnly fullDate)
+    public static void ValidateForUpdate(int dateId, DateOnly fullDate)
     {
         if (dateId <= 0)
         {
             throw new ArgumentException("DateId must be a positive integer.");
         }
-        ValidateCreateParameters(fullDate);
+        ValidateForCreate(fullDate);
     }
 }

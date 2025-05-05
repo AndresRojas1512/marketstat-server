@@ -1,51 +1,60 @@
+using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
+using MarketStat.Database.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
-public class DimCityRepository : IDimCityRepository
+public class DimCityRepository : BaseRepository, IDimCityRepository
 {
-    private readonly Dictionary<int, DimCity> _cities = new Dictionary<int, DimCity>();
+    private readonly MarketStatDbContext _dbContext;
+
+    public DimCityRepository(MarketStatDbContext dbContext)
+    {
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    }
     
-    public Task AddCityAsync(DimCity city)
+    public async Task AddCityAsync(DimCity city)
     {
-        if (!_cities.TryAdd(city.CityId, city))
-        {
-            throw new ArgumentException($"City {city.CityId} already exists.");
-        }
-        return Task.CompletedTask;
+        var dbModel = new DimCityDbModel(
+            cityId: 0,
+            cityName: city.CityName,
+            oblastId: city.OblastId
+        );
+        await _dbContext.AddAsync(dbModel);
+        await _dbContext.SaveChangesAsync();
+        city.CityId = dbModel.CityId;
     }
 
-    public Task<DimCity> GetCityByIdAsync(int cityId)
+    public async Task<DimCity> GetCityByIdAsync(int cityId)
     {
-        if (_cities.TryGetValue(cityId, out var c))
-        {
-            return Task.FromResult(c);
-        }
-        throw new KeyNotFoundException($"City {cityId} not found.");
+        var dbCity = await _dbContext.DimCities.FindAsync(cityId) 
+                     ?? throw new KeyNotFoundException($"City with id {cityId} not found");
+        return DimCityConverter.ToDomain(dbCity);
     }
 
-    public Task<IEnumerable<DimCity>> GetAllCitiesAsync()
+    public async Task<IEnumerable<DimCity>> GetAllCitiesAsync()
     {
-        return Task.FromResult<IEnumerable<DimCity>>(_cities.Values);
+        var dbAllCities = await _dbContext.DimCities.ToListAsync();
+        return dbAllCities.Select(DimCityConverter.ToDomain);
     }
 
-    public Task UpdateCityAsync(DimCity city)
+    public async Task UpdateCityAsync(DimCity city)
     {
-        if (!_cities.ContainsKey(city.CityId))
-        {
-            throw new KeyNotFoundException($"Cannot update: city {city.CityId} not found.");
-        }
-        _cities[city.CityId] = city;
-        return Task.CompletedTask;
+        var dbCity = await _dbContext.DimCities.FindAsync(city.CityId) 
+                     ?? throw new KeyNotFoundException($"Cannot update: City with id {city.CityId} not found");
+        dbCity.CityName = city.CityName;
+        dbCity.OblastId = city.OblastId;
+        await _dbContext.SaveChangesAsync();
     }
 
-    public Task DeleteCityAsync(int cityId)
+    public async Task DeleteCityAsync(int cityId)
     {
-        if (!_cities.ContainsKey(cityId))
-        {
-            throw new KeyNotFoundException($"Cannot delete: city {cityId} not found.");
-        }
-        return Task.CompletedTask;
+        var dbCity = await _dbContext.DimCities.FindAsync(cityId) 
+                     ?? throw new KeyNotFoundException($"Cannot delete: City with id {cityId} not found");
+        _dbContext.DimCities.Remove(dbCity);
+        await _dbContext.SaveChangesAsync();
     }
 }

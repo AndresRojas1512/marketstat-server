@@ -24,48 +24,52 @@ public class DimJobRoleServiceUnitTests
     public async Task CreateJobRoleAsync_ValidParameters_ReturnsNewRole()
     {
         _dimJobRoleRepositoryMock
-            .Setup(r => r.GetAllJobRolesAsync())
-            .ReturnsAsync(new List<DimJobRole>());
-
-        _dimJobRoleRepositoryMock
             .Setup(r => r.AddJobRoleAsync(It.IsAny<DimJobRole>()))
+            .Callback<DimJobRole>(r => r.JobRoleId = 1)
             .Returns(Task.CompletedTask);
-        
-        var result = await _dimJobRoleService.CreateJobRoleAsync("Engineer", "Senior", 10);
-        
+            
+        var result = await _dimJobRoleService.CreateJobRoleAsync("Engineer", 10, 10);
+            
         Assert.NotNull(result);
         Assert.Equal(1, result.JobRoleId);
         Assert.Equal("Engineer", result.JobRoleTitle);
-        Assert.Equal("Senior", result.SeniorityLevel);
-        Assert.Equal(10, result.IndustryFieldId);
+        Assert.Equal(10, result.StandardJobRoleId);
+        Assert.Equal(10, result.HierarchyLevelId);
+        _dimJobRoleRepositoryMock.Verify(r =>
+            r.AddJobRoleAsync(
+                It.Is<DimJobRole>(d =>
+                    d.JobRoleId          == 1 &&
+                    d.JobRoleTitle       == "Engineer" &&
+                    d.StandardJobRoleId  == 10 &&
+                    d.HierarchyLevelId   == 10
+                )), Times.Once);
     }
 
     [Fact]
     public async Task CreateJobRoleAsync_EmptyTitle_ThrowsArgumentException()
     {
-        _dimJobRoleRepositoryMock
-            .Setup(r => r.GetAllJobRolesAsync())
-            .ReturnsAsync(new List<DimJobRole>());
-        
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimJobRoleService.CreateJobRoleAsync("", "Senior", 5));
+            _dimJobRoleService.CreateJobRoleAsync("", 5, 5));
     }
 
     [Fact]
     public async Task CreateJobRoleAsync_NonPositiveFieldId_ThrowsArgumentException()
     {
-        _dimJobRoleRepositoryMock
-            .Setup(r => r.GetAllJobRolesAsync())
-            .ReturnsAsync(new List<DimJobRole>());
-        
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimJobRoleService.CreateJobRoleAsync("Engineer", "Senior", 0));
+            _dimJobRoleService.CreateJobRoleAsync("Engineer", 0, 1));
     }
     
     [Fact]
+    public async Task CreateJobRoleAsync_NonPositiveHierarchyLevelId_ThrowsArgumentException()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _dimJobRoleService.CreateJobRoleAsync("Engineer", 1, 0));
+    }
+        
+    [Fact]
     public async Task GetJobRoleByIdAsync_ExistingId_ReturnsRole()
     {
-        var existing = new DimJobRole(7, "QA", "Junior", 2);
+        var existing = new DimJobRole(7, "QA", 2, 2);
         _dimJobRoleRepositoryMock
             .Setup(r => r.GetJobRoleByIdAsync(7))
             .ReturnsAsync(existing);
@@ -86,14 +90,14 @@ public class DimJobRoleServiceUnitTests
             _dimJobRoleService.GetJobRoleByIdAsync(99));
         Assert.Contains("99", ex.Message);
     }
-    
+        
     [Fact]
     public async Task GetAllJobRolesAsync_ReturnsList()
     {
         var list = new List<DimJobRole>
         {
-            new DimJobRole(1, "A", "L1", 1),
-            new DimJobRole(2, "B", "L2", 1)
+            new DimJobRole(1, "A", 1, 1),
+            new DimJobRole(2, "B", 1, 1)
         };
         _dimJobRoleRepositoryMock
             .Setup(r => r.GetAllJobRolesAsync())
@@ -111,7 +115,7 @@ public class DimJobRoleServiceUnitTests
     [Fact]
     public async Task UpdateJobRoleAsync_ValidParameters_ReturnsUpdated()
     {
-        var existing = new DimJobRole(3, "Dev", "Mid", 4);
+        var existing = new DimJobRole(3, "Dev", 4, 4);
         _dimJobRoleRepositoryMock
             .Setup(r => r.GetJobRoleByIdAsync(3))
             .ReturnsAsync(existing);
@@ -119,14 +123,14 @@ public class DimJobRoleServiceUnitTests
             .Setup(r => r.UpdateJobRoleAsync(It.IsAny<DimJobRole>()))
             .Returns(Task.CompletedTask);
         
-        var updated = await _dimJobRoleService.UpdateJobRoleAsync(3, "DevOps", "Lead", 5);
+        var updated = await _dimJobRoleService.UpdateJobRoleAsync(3, "DevOps", 5, 5);
         
         Assert.Equal(3, updated.JobRoleId);
         Assert.Equal("DevOps", updated.JobRoleTitle);
-        Assert.Equal("Lead", updated.SeniorityLevel);
-        Assert.Equal(5, updated.IndustryFieldId);
+        Assert.Equal(5, updated.StandardJobRoleId);
+        Assert.Equal(5, updated.HierarchyLevelId);
     }
-    
+        
     [Fact]
     public async Task DeleteJobRoleAsync_ExistingId_Completes()
     {

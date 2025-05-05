@@ -44,7 +44,7 @@ public class DimEmployerController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<DimEmployerDto>> CreateEmployer([FromBody] CreateDimEmployerDto inputEmployer)
     {
-        var createdEmployer = await _dimEmployerService.CreateEmployerAsync(inputEmployer.EmployerName, inputEmployer.Industry, inputEmployer.IsPublic);
+        var createdEmployer = await _dimEmployerService.CreateEmployerAsync(inputEmployer.EmployerName, inputEmployer.IsPublic);
         var employerDto = _mapper.Map<DimEmployerDto>(createdEmployer);
         return CreatedAtAction(nameof(GetEmployerById), new { id = employerDto.EmployerId }, employerDto);
     }
@@ -55,7 +55,9 @@ public class DimEmployerController : ControllerBase
     {
         try
         {
-            var updatedEmployer = await _dimEmployerService.UpdateEmployerAsync(employerId, inputEmployer.EmployerName, inputEmployer.Industry, inputEmployer.IsPublic);
+            var updatedEmployer =
+                await _dimEmployerService.UpdateEmployerAsync(employerId, inputEmployer.EmployerName,
+                    inputEmployer.IsPublic);
             return Ok(_mapper.Map<DimEmployerDto>(updatedEmployer));
         }
         catch (Exception ex)

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
-public class DimEmployerRepository : IDimEmployerRepository
+public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
 {
     private readonly MarketStatDbContext _dbContext;
 
@@ -16,18 +16,22 @@ public class DimEmployerRepository : IDimEmployerRepository
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
     
-    // TODO: use db context
     public async Task AddEmployerAsync(DimEmployer employer)
     {
-        var dbEmployer = DimEmployerConverter.ToDbModel(employer);
-        await _dbContext.DimEmployers.AddAsync(dbEmployer);
+        var dbModel = new DimEmployerDbModel(
+            employerId: 0,
+            employerName: employer.EmployerName,
+            isPublic: employer.IsPublic
+        );
+        await _dbContext.DimEmployers.AddAsync(dbModel);
         await _dbContext.SaveChangesAsync();
+        employer.EmployerId = dbModel.EmployerId;
     }
 
     public async Task<DimEmployer> GetEmployerByIdAsync(int employerId)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId)
-            ?? throw new KeyNotFoundException($"Employer {employerId} not found.");
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId) 
+                         ?? throw new KeyNotFoundException($"Employer {employerId} not found.");
         return DimEmployerConverter.ToDomain(dbEmployer);
     }
 
@@ -39,19 +43,18 @@ public class DimEmployerRepository : IDimEmployerRepository
 
     public async Task UpdateEmployerAsync(DimEmployer employer)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employer.EmployerId)
-            ?? throw new KeyNotFoundException($"Cannot update {employer.EmployerId}.");
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employer.EmployerId) 
+                         ?? throw new KeyNotFoundException($"Cannot update Employer {employer.EmployerId}.");
         dbEmployer.EmployerName = employer.EmployerName;
-        dbEmployer.Industry = employer.Industry;
         dbEmployer.IsPublic = employer.IsPublic;
         await _dbContext.SaveChangesAsync();
     }
 
     public async Task DeleteEmployerAsync(int employerId)
     {
-        var dbModel = await _dbContext.DimEmployers.FindAsync(employerId)
-            ?? throw new KeyNotFoundException($"Cannot delete {employerId}.");
-        _dbContext.DimEmployers.Remove(dbModel);
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId) 
+                         ?? throw new KeyNotFoundException($"Cannot delete {employerId}.");
+        _dbContext.DimEmployers.Remove(dbEmployer);
         await _dbContext.SaveChangesAsync();
     }
 }

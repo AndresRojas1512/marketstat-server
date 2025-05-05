@@ -41,6 +41,34 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests.Services",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.TechUI", "MarketStat.TechUI\MarketStat.TechUI.csproj", "{159E141B-2351-404E-B481-9E5E68B64523}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimIndustryFieldService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimIndustryFieldService\MarketStat.Services.Dimensions.DimIndustryFieldService.csproj", "{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimJobRoleService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobRoleService\MarketStat.Services.Dimensions.DimJobRoleService.csproj", "{D696F367-B640-48F9-94D2-77617277D56A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimDateService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimDateService\MarketStat.Services.Dimensions.DimDateService.csproj", "{32AD36C2-BE80-4DF4-A500-1864D2D7731D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimEducationService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEducationService\MarketStat.Services.Dimensions.DimEducationService.csproj", "{4BED8A39-E2E3-4545-B546-5BD0F9DA6AEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimEmployeeService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployeeService\MarketStat.Services.Dimensions.DimEmployeeService.csproj", "{39004999-B9D7-4657-8064-D05C5B7B6048}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimEmployeeEducationService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployeeEducationService\MarketStat.Services.Dimensions.DimEmployeeEducationService.csproj", "{D6C128DA-9928-491A-BCC9-1CF5F7E66CCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimHierarchyLevelService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimHierarchyLevelService\MarketStat.Services.Dimensions.DimHierarchyLevelService.csproj", "{3E23CF74-8685-48FF-B387-9082BC38978B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimEmployerIndustryFieldService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployerIndustryFieldService\MarketStat.Services.Dimensions.DimEmployerIndustryFieldService.csproj", "{4079C254-81FF-4F77-AF20-78856107F936}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimCityService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimCityService\MarketStat.Services.Dimensions.DimCityService.csproj", "{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimOblastService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimOblastService\MarketStat.Services.Dimensions.DimOblastService.csproj", "{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimFederalDistrictService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimFederalDistrictService\MarketStat.Services.Dimensions.DimFederalDistrictService.csproj", "{4634E316-33E6-4734-849F-B84021422D1F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimEducationLevelService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEducationLevelService\MarketStat.Services.Dimensions.DimEducationLevelService.csproj", "{95C3ABF4-4E64-41F1-A20A-FA5EE5497D9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimStandardJobRoleService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimStandardJobRoleService\MarketStat.Services.Dimensions.DimStandardJobRoleService.csproj", "{8F80C44B-C1D3-43B4-A170-B3360CB3EF49}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService\MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService.csproj", "{B4DE8F05-1FC0-49CB-B264-A9A186C2BEAD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -102,6 +130,62 @@ Global
 		{159E141B-2351-404E-B481-9E5E68B64523}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{159E141B-2351-404E-B481-9E5E68B64523}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{159E141B-2351-404E-B481-9E5E68B64523}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D696F367-B640-48F9-94D2-77617277D56A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D696F367-B640-48F9-94D2-77617277D56A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D696F367-B640-48F9-94D2-77617277D56A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D696F367-B640-48F9-94D2-77617277D56A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32AD36C2-BE80-4DF4-A500-1864D2D7731D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32AD36C2-BE80-4DF4-A500-1864D2D7731D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32AD36C2-BE80-4DF4-A500-1864D2D7731D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32AD36C2-BE80-4DF4-A500-1864D2D7731D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BED8A39-E2E3-4545-B546-5BD0F9DA6AEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BED8A39-E2E3-4545-B546-5BD0F9DA6AEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BED8A39-E2E3-4545-B546-5BD0F9DA6AEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BED8A39-E2E3-4545-B546-5BD0F9DA6AEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39004999-B9D7-4657-8064-D05C5B7B6048}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39004999-B9D7-4657-8064-D05C5B7B6048}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39004999-B9D7-4657-8064-D05C5B7B6048}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39004999-B9D7-4657-8064-D05C5B7B6048}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6C128DA-9928-491A-BCC9-1CF5F7E66CCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6C128DA-9928-491A-BCC9-1CF5F7E66CCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6C128DA-9928-491A-BCC9-1CF5F7E66CCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6C128DA-9928-491A-BCC9-1CF5F7E66CCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E23CF74-8685-48FF-B387-9082BC38978B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E23CF74-8685-48FF-B387-9082BC38978B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E23CF74-8685-48FF-B387-9082BC38978B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E23CF74-8685-48FF-B387-9082BC38978B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4079C254-81FF-4F77-AF20-78856107F936}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4079C254-81FF-4F77-AF20-78856107F936}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4079C254-81FF-4F77-AF20-78856107F936}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4079C254-81FF-4F77-AF20-78856107F936}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4634E316-33E6-4734-849F-B84021422D1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4634E316-33E6-4734-849F-B84021422D1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4634E316-33E6-4734-849F-B84021422D1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4634E316-33E6-4734-849F-B84021422D1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95C3ABF4-4E64-41F1-A20A-FA5EE5497D9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95C3ABF4-4E64-41F1-A20A-FA5EE5497D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95C3ABF4-4E64-41F1-A20A-FA5EE5497D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95C3ABF4-4E64-41F1-A20A-FA5EE5497D9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F80C44B-C1D3-43B4-A170-B3360CB3EF49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F80C44B-C1D3-43B4-A170-B3360CB3EF49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F80C44B-C1D3-43B4-A170-B3360CB3EF49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F80C44B-C1D3-43B4-A170-B3360CB3EF49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4DE8F05-1FC0-49CB-B264-A9A186C2BEAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4DE8F05-1FC0-49CB-B264-A9A186C2BEAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4DE8F05-1FC0-49CB-B264-A9A186C2BEAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4DE8F05-1FC0-49CB-B264-A9A186C2BEAD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB} = {000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}
@@ -117,5 +201,19 @@ Global
 		{6F8B0796-289E-4AF3-B233-BFCCE1821A1B} = {75FD3B3F-F7B0-4555-B189-30AE64042622}
 		{5A23D7FA-7EEE-4F27-9AC0-708C748D29A9} = {000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}
 		{5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D} = {305CB118-A42D-4660-8748-E1FD4D850C98}
+		{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{D696F367-B640-48F9-94D2-77617277D56A} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{32AD36C2-BE80-4DF4-A500-1864D2D7731D} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{4BED8A39-E2E3-4545-B546-5BD0F9DA6AEF} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{39004999-B9D7-4657-8064-D05C5B7B6048} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{D6C128DA-9928-491A-BCC9-1CF5F7E66CCD} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{3E23CF74-8685-48FF-B387-9082BC38978B} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{4079C254-81FF-4F77-AF20-78856107F936} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{C2D6197E-76BC-43F8-B8F5-A7C21DC6B159} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{E0047F15-0538-4E8A-AC87-0C6EE2BA9430} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{4634E316-33E6-4734-849F-B84021422D1F} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{95C3ABF4-4E64-41F1-A20A-FA5EE5497D9F} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{8F80C44B-C1D3-43B4-A170-B3360CB3EF49} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
+		{B4DE8F05-1FC0-49CB-B264-A9A186C2BEAD} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
 	EndGlobalSection
 EndGlobal

@@ -18,18 +18,17 @@ public class DimDateService : IDimDateService
     
     public async Task<DimDate> CreateDateAsync(DateOnly fullDate)
     {
-        DimDateValidator.ValidateCreateParameters(fullDate);
-        var all = (await _dimDateRepository.GetAllDatesAsync()).ToList();
-        var newId = all.Any() ? all.Max(d => d.DateId) + 1 : 1;
+        DimDateValidator.ValidateForCreate(fullDate);
         var year    = fullDate.Year;
         var month   = fullDate.Month;
         var quarter = (month - 1) / 3 + 1;
-        var dimDate = new DimDate(newId, fullDate, year, quarter, month);
+        var date = new DimDate(0, fullDate, year, quarter, month);
 
         try
         {
-            await _dimDateRepository.AddDateAsync(dimDate);
-            return dimDate;
+            await _dimDateRepository.AddDateAsync(date);
+            _logger.LogInformation("Created DimDate {DateId}", date.DateId);
+            return date;
         }
         catch (Exception ex)
         {
@@ -60,10 +59,9 @@ public class DimDateService : IDimDateService
     
     public async Task<DimDate> UpdateDateAsync(int dateId, DateOnly fullDate)
     {
+        DimDateValidator.ValidateForUpdate(dateId, fullDate);
         try
         {
-            DimDateValidator.ValidateParameters(dateId, fullDate);
-
             var existing = await _dimDateRepository.GetDateByIdAsync(dateId);
             existing.FullDate  = fullDate;
             existing.Year      = fullDate.Year;

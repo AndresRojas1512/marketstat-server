@@ -16,22 +16,21 @@ public class DimCityService : IDimCityService
         _logger = logger;
     }
     
-    public async Task<DimCity> CreateCityAsync(string cityName, string oblastName, string federalDistrict)
+    public async Task<DimCity> CreateCityAsync(string cityName, int oblastId)
     {
-        var all = (await _dimCityRepository.GetAllCitiesAsync()).ToList();
-        var newId = all.Any() ? all.Max(c => c.CityId) + 1 : 1;
-        DimCityValidator.ValidateParameters(newId, cityName, oblastName, federalDistrict);
-        var city = new DimCity(newId, cityName, oblastName, federalDistrict);
+        DimCityValidator.ValidateForCreate(cityName, oblastId);
+        var city = new DimCity(0, cityName, oblastId);
 
         try
         {
             await _dimCityRepository.AddCityAsync(city);
+            _logger.LogInformation("Created DimCity {CityId}", city.CityId);
             return city;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create DimCity (duplicate {CityId})", newId);
-            throw new Exception($"A city with ID {newId} already exists.");
+            _logger.LogError(ex, "Failed to create DimCity (duplicate {CityId})", city.CityId);
+            throw new Exception($"A city with ID {city.CityId} already exists.");
         }
     }
     
@@ -55,17 +54,14 @@ public class DimCityService : IDimCityService
         return cities;
     }
     
-    public async Task<DimCity> UpdateCityAsync(int cityId, string cityName, string oblastName, string federalDistrict)
+    public async Task<DimCity> UpdateCityAsync(int cityId, string cityName, int oblastId)
     {
+        DimCityValidator.ValidateForUpdate(cityId, cityName, oblastId);
         try
         {
-            DimCityValidator.ValidateParameters(cityId, cityName, oblastName, federalDistrict);
-
             var existing = await _dimCityRepository.GetCityByIdAsync(cityId);
             existing.CityName = cityName;
-            existing.OblastName = oblastName;
-            existing.FederalDistrict = federalDistrict;
-
+            existing.OblastId = oblastId;
             await _dimCityRepository.UpdateCityAsync(existing);
             _logger.LogInformation("Updated DimCity {CityId}", cityId);
             return existing;
