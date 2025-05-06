@@ -9,5 +9,10 @@ public class DimEmployerProfile : Profile
     public DimEmployerProfile()
     {
         CreateMap<DimEmployer, DimEmployerDto>();
+        
+        CreateMap<CreateDimEmployerDto, DimEmployer>();
+
+        CreateMap<UpdateDimEmployerDto, DimEmployer>()
+            .ForMember(dest => dest.EmployerId, opt => opt.Ignore());
     }
 }

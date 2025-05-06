@@ -23,6 +23,7 @@ using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,16 +38,11 @@ builder.Services.AddCors(options =>
     );
 });
 
-builder.WebHost.UseUrls("http://localhost:5000");
-
 var conn = builder.Configuration.GetConnectionString("MarketStat")
     ?? throw new InvalidOperationException("Missing connection string.");
 
-builder.Services
-    .AddDbContext<MarketStatDbContext>(opts => opts.UseNpgsql(conn));
-
-builder.Services
-    .AddScoped<IDbContextFactory, NpgsqlDbContextFactory>();
+builder.Services.AddDbContext<MarketStatDbContext>(opts => opts.UseNpgsql(conn));
+builder.Services.AddScoped<IDbContextFactory, NpgsqlDbContextFactory>();
 
 builder.Services
     .AddScoped<IDimCityRepository, DimCityRepository>()
@@ -99,10 +95,7 @@ builder.Services
     .AddScoped<IFactSalaryService, FactSalaryService>();
 
 builder.Services.AddControllers();
-
-builder.Services
-    .AddAutoMapper(typeof(MarketStat.MappingProfiles.Dimensions.DimEmployerProfile).Assembly);
-
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -113,8 +106,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddControllers();
-
 var app = builder.Build();
 
 app.MapControllers();
@@ -122,6 +113,7 @@ app.MapGet("/", () => "Hello World!");
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -129,8 +121,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseHttpsRedirection();
+app.UseRouting();
 app.UseCors("AllowAngularClient");
-
 app.UseAuthorization();
-app.MapControllers();
+
 app.Run();
