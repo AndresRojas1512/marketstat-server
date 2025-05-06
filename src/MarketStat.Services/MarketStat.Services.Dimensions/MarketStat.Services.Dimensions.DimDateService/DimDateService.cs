@@ -63,10 +63,10 @@ public class DimDateService : IDimDateService
         try
         {
             var existing = await _dimDateRepository.GetDateByIdAsync(dateId);
-            existing.FullDate  = fullDate;
-            existing.Year      = fullDate.Year;
-            existing.Month     = fullDate.Month;
-            existing.Quarter   = (fullDate.Month - 1) / 3 + 1;
+            existing.FullDate = fullDate;
+            existing.Year = fullDate.Year;
+            existing.Month = fullDate.Month;
+            existing.Quarter = (fullDate.Month - 1) / 3 + 1;
 
             await _dimDateRepository.UpdateDateAsync(existing);
             _logger.LogInformation("Updated DimDate {DateId}", dateId);
