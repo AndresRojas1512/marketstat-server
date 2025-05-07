@@ -6,7 +6,7 @@ public class UpdateDimOblastDto
 {
     [Required]
     [MaxLength(255)]
-    string OblastName { get; init; } = default!;
+    public string OblastName { get; init; } = default!;
     
     [Required]
     public int DistrictId { get; init; }
