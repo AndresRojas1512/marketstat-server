@@ -42,13 +42,14 @@ public class DimStandardJobRoleController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<DimStandardJobRoleDto>> PostStandardJobRole(DimStandardJobRoleDto dto)
+    public async Task<ActionResult<DimStandardJobRoleDto>> PostStandardJobRole(DimStandardJobRoleDto createDto)
     {
         try
         {
             var created =
-                await _dimStandardJobRoleService.CreateStandardJobRoleAsync(dto.StandardJobRoleTitle,
-                    dto.IndustryFieldId);
+                await _dimStandardJobRoleService.CreateStandardJobRoleAsync(createDto.StandardJobRoleTitle,
+                    createDto.IndustryFieldId);
+            var dto = _mapper.Map<DimStandardJobRoleDto>(created);
             return CreatedAtAction(nameof(GetStandardJobRole), new { id = dto.StandardJobRoleId }, dto);
         }
         catch (Exception ex)
@@ -58,12 +59,12 @@ public class DimStandardJobRoleController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> PutStandardJobRole(int id, DimStandardJobRoleDto dto)
+    public async Task<IActionResult> PutStandardJobRole(int id, UpdateDimStandardJobRoleDto updateDto)
     {
         try
         {
-            await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(id, dto.StandardJobRoleTitle,
-                dto.IndustryFieldId);
+            await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(id, updateDto.StandardJobRoleTitle,
+                updateDto.IndustryFieldId);
             return NoContent();
         }
         catch (Exception ex)
