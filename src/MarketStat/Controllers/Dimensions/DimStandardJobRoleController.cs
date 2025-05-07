@@ -42,7 +42,7 @@ public class DimStandardJobRoleController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<DimStandardJobRoleDto>> PostStandardJobRole(DimStandardJobRoleDto createDto)
+    public async Task<ActionResult<DimStandardJobRoleDto>> PostStandardJobRole(CreateDimStandardJobRoleDto createDto)
     {
         try
         {
