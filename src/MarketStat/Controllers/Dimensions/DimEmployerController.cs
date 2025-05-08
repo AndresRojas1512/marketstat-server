@@ -20,20 +20,21 @@ public class DimEmployerController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimEmployerDto>>> GetAllEmployers()
+    public async Task<ActionResult<IEnumerable<DimEmployerDto>>> GetAll()
     {
-        var employers = await _dimEmployerService.GetAllEmployersAsync();
-        var employerDtos = _mapper.Map<IEnumerable<DimEmployerDto>>(employers);
-        return Ok(employerDtos);
+        var list = await _dimEmployerService.GetAllEmployersAsync();
+        var dtos = _mapper.Map<IEnumerable<DimEmployerDto>>(list);
+        return Ok(dtos);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<DimEmployerDto>> GetEmployerById(int employerId)
+    public async Task<ActionResult<DimEmployerDto>> GetById(int id)
     {
         try
         {
-            var employer = await _dimEmployerService.GetEmployerByIdAsync(employerId);
-            return Ok(_mapper.Map<DimEmployerDto>(employer));
+            var employer = await _dimEmployerService.GetEmployerByIdAsync(id);
+            var dto = _mapper.Map<DimEmployerDto>(employer);
+            return Ok(dto);
         }
         catch (Exception ex)
         {
@@ -42,23 +43,27 @@ public class DimEmployerController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<DimEmployerDto>> CreateEmployer([FromBody] CreateDimEmployerDto inputEmployer)
-    {
-        var createdEmployer = await _dimEmployerService.CreateEmployerAsync(inputEmployer.EmployerName, inputEmployer.IsPublic);
-        var employerDto = _mapper.Map<DimEmployerDto>(createdEmployer);
-        return CreatedAtAction(nameof(GetEmployerById), new { id = employerDto.EmployerId }, employerDto);
-    }
-
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult<DimEmployerDto>> UpdateEmployer(int employerId,
-        [FromBody] CreateDimEmployerDto inputEmployer)
+    public async Task<ActionResult<DimEmployerDto>> PostEmployer([FromBody] CreateDimEmployerDto createDto)
     {
         try
         {
-            var updatedEmployer =
-                await _dimEmployerService.UpdateEmployerAsync(employerId, inputEmployer.EmployerName,
-                    inputEmployer.IsPublic);
-            return Ok(_mapper.Map<DimEmployerDto>(updatedEmployer));
+            var created = await _dimEmployerService.CreateEmployerAsync(createDto.EmployerName, createDto.IsPublic);
+            var dto = _mapper.Map<DimEmployerDto>(created);
+            return CreatedAtAction(nameof(GetById), new { id = dto.EmployerId }, dto);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> PutEmployer(int id, [FromBody] UpdateDimEmployerDto updateDto)
+    {
+        try
+        {
+            await _dimEmployerService.UpdateEmployerAsync(id, updateDto.EmployerName, updateDto.IsPublic);
+            return NoContent();
         }
         catch (Exception ex)
         {
@@ -67,11 +72,11 @@ public class DimEmployerController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteEmployer(int employerId)
+    public async Task<IActionResult> DeleteEmployer(int id)
     {
         try
         {
-            await _dimEmployerService.DeleteEmployerAsync(employerId);
+            await _dimEmployerService.DeleteEmployerAsync(id);
             return NoContent();
         }
         catch (Exception ex)
