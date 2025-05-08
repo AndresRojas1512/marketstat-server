@@ -48,7 +48,7 @@ public class DimEmployeeController : ControllerBase
         {
             var created = await _dimEmployeeService.CreateEmployeeAsync(createDto.BirthDate, createDto.CareerStartDate);
             var dto = _mapper.Map<DimEmployeeDto>(created);
-            return CreatedAtAction(nameof(GetById), new { id = dto.EmployeeId} );
+            return CreatedAtAction(nameof(GetById), new { id = dto.EmployeeId}, dto );
         }
         catch (Exception ex)
         {

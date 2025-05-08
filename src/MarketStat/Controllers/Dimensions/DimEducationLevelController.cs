@@ -49,7 +49,7 @@ public class DimEducationLevelController : ControllerBase
         {
             var created = await _dimEducationLevelService.CreateEducationLevelAsync(createDto.EducationLevelName);
             var dto = _mapper.Map<DimEducationLevelDto>(created);
-            return CreatedAtAction(nameof(GetById), new { id = dto.EducationLevelId });
+            return CreatedAtAction(nameof(GetById), new { id = dto.EducationLevelId }, dto);
         }
         catch (Exception ex)
         {
