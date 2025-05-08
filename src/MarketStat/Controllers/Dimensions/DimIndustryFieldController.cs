@@ -47,9 +47,9 @@ public class DimIndustryFieldController : ControllerBase
     {
         try
         {
-            var created = _dimIndustryFieldService.CreateIndustryFieldAsync(createDto.IndustryFieldName);
+            var created = await _dimIndustryFieldService.CreateIndustryFieldAsync(createDto.IndustryFieldName);
             var dto = _mapper.Map<DimIndustryFieldDto>(created);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.IndustryFieldId }, dto);
         }
         catch (Exception ex)
         {

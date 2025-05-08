@@ -24,6 +24,7 @@ using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using MarketStat.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -108,7 +109,8 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-app.MapControllers();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.MapGet("/", () => "Hello World!");
 
 if (app.Environment.IsDevelopment())
@@ -125,5 +127,6 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAngularClient");
 app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
