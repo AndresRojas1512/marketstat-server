@@ -42,11 +42,11 @@ public class DimEmployeeController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<DimEmployeeDto>> PostEmployee(CreateDimEmployeeDto createDto)
+    public async Task<ActionResult<DimEmployeeDto>> PostEmployee([FromBody] CreateDimEmployeeDto createDto)
     {
         try
         {
-            var created = _dimEmployeeService.CreateEmployeeAsync(createDto.BirthDate, createDto.CareerStartDate);
+            var created = await _dimEmployeeService.CreateEmployeeAsync(createDto.BirthDate, createDto.CareerStartDate);
             var dto = _mapper.Map<DimEmployeeDto>(created);
             return CreatedAtAction(nameof(GetById), new { id = dto.EmployeeId} );
         }
@@ -57,7 +57,7 @@ public class DimEmployeeController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult> PutEmployee(int id, UpdateDimEmployeeDto updateDto)
+    public async Task<IActionResult> PutEmployee(int id, [FromBody] UpdateDimEmployeeDto updateDto)
     {
         try
         {
@@ -71,7 +71,7 @@ public class DimEmployeeController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<ActionResult> DeleteEmployee(int id)
+    public async Task<IActionResult> DeleteEmployee(int id)
     {
         try
         {

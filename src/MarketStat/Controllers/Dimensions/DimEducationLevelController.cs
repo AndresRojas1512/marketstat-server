@@ -58,7 +58,7 @@ public class DimEducationLevelController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult> PutEducationLevel(int id, UpdateDimEducationLevelDto dto)
+    public async Task<IActionResult> PutEducationLevel(int id, UpdateDimEducationLevelDto dto)
     {
         try
         {
@@ -72,7 +72,7 @@ public class DimEducationLevelController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<ActionResult> DeleteEducationLevel(int id)
+    public async Task<IActionResult> DeleteEducationLevel(int id)
     {
         try
         {
