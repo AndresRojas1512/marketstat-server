@@ -9,7 +9,7 @@ namespace MarketStat.Controllers.Dimensions;
 [Route("api/oblasts")]
 public class DimOblastController : ControllerBase
 {
-    private readonly DimOblastService _dimOblastService;
+    private readonly IDimOblastService _dimOblastService;
     private readonly IMapper _mapper;
 
     public DimOblastController(DimOblastService dimOblastService, IMapper mapper)
@@ -19,7 +19,7 @@ public class DimOblastController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimOblastDto>>> GetOblasts()
+    public async Task<ActionResult<IEnumerable<DimOblastDto>>> GetAll()
     {
         var list = await _dimOblastService.GetAllOblastsAsync();
         var dtos = _mapper.Map<IEnumerable<DimOblastDto>>(list);
@@ -27,7 +27,7 @@ public class DimOblastController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<DimOblastDto>> GetOblast(int id)
+    public async Task<ActionResult<DimOblastDto>> GetById(int id)
     {
         try
         {
@@ -41,13 +41,13 @@ public class DimOblastController : ControllerBase
         }
     }
 
-    [HttpGet] // TODO
-    public async Task<ActionResult<DimOblastDto>> GetOblastByFederalDistrict(int districtId)
+    [HttpGet("bydistrict/{districtId:int}")]
+    public async Task<ActionResult<IEnumerable<DimOblastDto>>> GetOblastsByFederalDistrict(int districtId)
     {
         try
         {
-            var oblasts = await _dimOblastService.GetOblastsByFederalDistrictIdAsync(districtId);
-            var dtos = _mapper.Map<IEnumerable<DimOblastDto>>(oblasts);
+            var list = await _dimOblastService.GetOblastsByFederalDistrictIdAsync(districtId);
+            var dtos = _mapper.Map<IEnumerable<DimOblastDto>>(list);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -57,13 +57,13 @@ public class DimOblastController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<DimOblastDto>> PostOblast(DimOblastDto createDto)
+    public async Task<ActionResult<DimOblastDto>> PostOblast([FromBody] CreateDimOblastDto createDto)
     {
         try
         {
             var created = await _dimOblastService.CreateOblastAsync(createDto.OblastName, createDto.DistrictId);
             var dto = _mapper.Map<DimOblastDto>(created);
-            return CreatedAtAction(nameof(GetOblast), new { id = dto.OblastId });
+            return CreatedAtAction(nameof(GetById), new { id = dto.OblastId }, dto);
         }
         catch (Exception ex)
         {
