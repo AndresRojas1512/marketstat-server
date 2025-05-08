@@ -19,7 +19,7 @@ public class DimEmployeeController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimEmployeeDto>>> GetEmployees()
+    public async Task<ActionResult<IEnumerable<DimEmployeeDto>>> GetAll()
     {
         var list = await _dimEmployeeService.GetAllEmployeesAsync();
         var dtos = _mapper.Map<IEnumerable<DimEmployeeDto>>(list);
@@ -27,7 +27,7 @@ public class DimEmployeeController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<DimEmployeeDto>> GetEmployee(int id)
+    public async Task<ActionResult<DimEmployeeDto>> GetById(int id)
     {
         try
         {
@@ -48,7 +48,7 @@ public class DimEmployeeController : ControllerBase
         {
             var created = _dimEmployeeService.CreateEmployeeAsync(createDto.BirthDate, createDto.CareerStartDate);
             var dto = _mapper.Map<DimEmployeeDto>(created);
-            return CreatedAtAction(nameof(GetEmployee), new { id = dto.EmployeeId} );
+            return CreatedAtAction(nameof(GetById), new { id = dto.EmployeeId} );
         }
         catch (Exception ex)
         {
