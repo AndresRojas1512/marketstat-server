@@ -19,7 +19,7 @@ public class DimStandardJobRoleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimStandardJobRoleDto>>> GetStandardJobRoles()
+    public async Task<ActionResult<IEnumerable<DimStandardJobRoleDto>>> GetAll()
     {
         var list = await _dimStandardJobRoleService.GetAllStandardJobRolesAsync();
         var dtos = _mapper.Map<IEnumerable<DimStandardJobRoleDto>>(list);
@@ -27,12 +27,12 @@ public class DimStandardJobRoleController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<DimStandardJobRoleDto>> GetStandardJobRole(int id)
+    public async Task<ActionResult<DimStandardJobRoleDto>> GetById(int id)
     {
         try
         {
-            var jobRole = await _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(id);
-            var dto = _mapper.Map<DimStandardJobRoleDto>(jobRole);
+            var job = await _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(id);
+            var dto = _mapper.Map<DimStandardJobRoleDto>(job);
             return Ok(dto);
         }
         catch (Exception ex)
@@ -42,7 +42,7 @@ public class DimStandardJobRoleController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<DimStandardJobRoleDto>> PostStandardJobRole(CreateDimStandardJobRoleDto createDto)
+    public async Task<ActionResult<DimStandardJobRoleDto>> PostStandardJobRole([FromBody] CreateDimStandardJobRoleDto createDto)
     {
         try
         {
@@ -50,7 +50,7 @@ public class DimStandardJobRoleController : ControllerBase
                 await _dimStandardJobRoleService.CreateStandardJobRoleAsync(createDto.StandardJobRoleTitle,
                     createDto.IndustryFieldId);
             var dto = _mapper.Map<DimStandardJobRoleDto>(created);
-            return CreatedAtAction(nameof(GetStandardJobRole), new { id = dto.StandardJobRoleId }, dto);
+            return CreatedAtAction(nameof(GetById), new { id = dto.StandardJobRoleId }, dto);
         }
         catch (Exception ex)
         {
@@ -59,7 +59,7 @@ public class DimStandardJobRoleController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> PutStandardJobRole(int id, UpdateDimStandardJobRoleDto updateDto)
+    public async Task<IActionResult> PutStandardJobRole(int id, [FromBody] UpdateDimStandardJobRoleDto updateDto)
     {
         try
         {
