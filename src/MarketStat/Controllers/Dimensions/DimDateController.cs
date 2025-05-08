@@ -19,7 +19,7 @@ public class DimDateController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimDateDto>>> GetDates()
+    public async Task<ActionResult<IEnumerable<DimDateDto>>> GetAll()
     {
         var dates = await _dimDateService.GetAllDatesAsync();
         var dtos = _mapper.Map<IEnumerable<DimDateDto>>(dates);
@@ -27,7 +27,7 @@ public class DimDateController : ControllerBase
     }
 
     [HttpGet("id:int")]
-    public async Task<ActionResult<DimDateDto>> GetDate(int id)
+    public async Task<ActionResult<DimDateDto>> GetById(int id)
     {
         try
         {
@@ -47,7 +47,7 @@ public class DimDateController : ControllerBase
         {
             var created = await _dimDateService.CreateDateAsync(createDto.FullDate);
             var dto = _mapper.Map<DimDateDto>(created);
-            return CreatedAtAction(nameof(GetDate), new { id = dto.DateId }, dto);
+            return CreatedAtAction(nameof(GetById), new { id = dto.DateId }, dto);
         }
         catch (Exception ex)
         {
