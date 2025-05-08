@@ -20,7 +20,7 @@ public class DimCityController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimCityDto>>> GetCities()
+    public async Task<ActionResult<IEnumerable<DimCityDto>>> GetAll()
     {
         var cities = await _dimCityService.GetAllCitiesAsync();
         var dtos = _mapper.Map<IEnumerable<DimCityDto>>(cities);
@@ -28,7 +28,7 @@ public class DimCityController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<DimCityDto>> GetCity(int id)
+    public async Task<ActionResult<DimCityDto>> GetById(int id)
     {
         try
         {
@@ -49,7 +49,7 @@ public class DimCityController : ControllerBase
         {
             var created = await _dimCityService.CreateCityAsync(createDto.CityName, createDto.OblastId);
             var dto = _mapper.Map<DimCityDto>(created);
-            return CreatedAtAction(nameof(GetCity), new { id = dto.CityId }, dto);
+            return CreatedAtAction(nameof(GetById), new { id = dto.CityId }, dto);
         }
         catch (Exception ex)
         {
