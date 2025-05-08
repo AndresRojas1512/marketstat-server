@@ -20,7 +20,7 @@ public class DimEducationLevelController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimEducationLevelDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<DimEducationLevelDto>>> GetEducationLevels()
     {
         var list = await _dimEducationLevelService.GetAllEducationLevelsAsync();
         var dtos = _mapper.Map<IEnumerable<DimEducationLevelDto>>(list);
