@@ -21,7 +21,7 @@ public class DimEducationController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimEducationDto>>> GetEducations()
+    public async Task<ActionResult<IEnumerable<DimEducationDto>>> GetAll()
     {
         var list = await _dimEducationService.GetAllEducationsAsync();
         var dtos = _mapper.Map<IEnumerable<DimEducationDto>>(list);
@@ -29,7 +29,7 @@ public class DimEducationController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<DimEducationDto>> GetEducation(int id)
+    public async Task<ActionResult<DimEducationDto>> GetById(int id)
     {
         try
         {
@@ -54,7 +54,7 @@ public class DimEducationController : ControllerBase
                 createDto.IndustryFieldId
             );
             var dto = _mapper.Map<DimEducationDto>(created);
-            return CreatedAtAction(nameof(GetEducation), new { id = dto.EducationId }, dto);
+            return CreatedAtAction(nameof(GetById), new { id = dto.EducationId }, dto);
         }
         catch (Exception ex)
         {
