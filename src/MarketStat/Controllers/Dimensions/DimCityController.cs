@@ -20,7 +20,7 @@ public class DimCityController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimCity>>> GetCities()
+    public async Task<ActionResult<IEnumerable<DimCityDto>>> GetCities()
     {
         var cities = await _dimCityService.GetAllCitiesAsync();
         var dtos = _mapper.Map<IEnumerable<DimCityDto>>(cities);
