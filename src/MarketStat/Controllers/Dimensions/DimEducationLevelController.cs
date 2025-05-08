@@ -20,7 +20,7 @@ public class DimEducationLevelController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DimEducationLevelDto>>> GetEducationLevels()
+    public async Task<ActionResult<IEnumerable<DimEducationLevelDto>>> GetAll()
     {
         var list = await _dimEducationLevelService.GetAllEducationLevelsAsync();
         var dtos = _mapper.Map<IEnumerable<DimEducationLevelDto>>(list);
@@ -28,7 +28,7 @@ public class DimEducationLevelController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<DimEducationLevelDto>> GetEducationLevel(int id)
+    public async Task<ActionResult<DimEducationLevelDto>> GetById(int id)
     {
         try
         {
@@ -49,7 +49,7 @@ public class DimEducationLevelController : ControllerBase
         {
             var created = await _dimEducationLevelService.CreateEducationLevelAsync(createDto.EducationLevelName);
             var dto = _mapper.Map<DimEducationLevelDto>(created);
-            return CreatedAtAction(nameof(GetEducationLevel), new { id = dto.EducationLevelId });
+            return CreatedAtAction(nameof(GetById), new { id = dto.EducationLevelId });
         }
         catch (Exception ex)
         {
