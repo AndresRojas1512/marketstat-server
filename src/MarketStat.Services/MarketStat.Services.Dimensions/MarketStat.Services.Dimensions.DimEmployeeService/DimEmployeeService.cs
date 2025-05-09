@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEmployeeService.Validators;
 using Microsoft.Extensions.Logging;
@@ -40,10 +41,10 @@ public class DimEmployeeService : IDimEmployeeService
         {
             return await _dimEmployeeRepository.GetEmployeeByIdAsync(employeeId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "Employee {EmployeeId} not found", employeeId);
-            throw new Exception($"Employee {employeeId} was not found.");
+            throw;
         }
     }
     
@@ -66,10 +67,10 @@ public class DimEmployeeService : IDimEmployeeService
             _logger.LogInformation("Updated DimEmployee {EmployeeId}", employeeId);
             return existing;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update employee {EmployeeId}", employeeId);
-            throw new Exception($"Cannot update: employee {employeeId} not found.");
+            _logger.LogWarning(ex, "Cannot update: employee {EmployeeId} not found", employeeId);
+            throw;
         }
     }
     
@@ -80,10 +81,10 @@ public class DimEmployeeService : IDimEmployeeService
             await _dimEmployeeRepository.DeleteEmployeeAsync(employeeId);
             _logger.LogInformation("Deleted DimEmployee {EmployeeId}", employeeId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete employee {EmployeeId}", employeeId);
-            throw new Exception($"Cannot delete: employee {employeeId} not found.");
+            _logger.LogWarning(ex, "Cannot delete: employee {EmployeeId}, not found", employeeId);
+            throw;
         }
     }
 }

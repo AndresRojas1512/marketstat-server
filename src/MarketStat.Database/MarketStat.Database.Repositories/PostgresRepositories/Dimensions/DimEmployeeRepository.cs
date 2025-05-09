@@ -1,5 +1,6 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Models;
@@ -30,8 +31,9 @@ public class DimEmployeeRepository : BaseRepository, IDimEmployeeRepository
 
     public async Task<DimEmployee> GetEmployeeByIdAsync(int employeeId)
     {
-        var dbEmployee = await _dbContext.DimEmployees.FindAsync(employeeId) 
-                         ?? throw new KeyNotFoundException($"Employee {employeeId} not found.");
+        var dbEmployee = await _dbContext.DimEmployees.FindAsync(employeeId);
+        if (dbEmployee is null)
+            throw new NotFoundException($"Employee {employeeId} not found.");
         return DimEmployeeConverter.ToDomain(dbEmployee);
     }
 
@@ -43,8 +45,9 @@ public class DimEmployeeRepository : BaseRepository, IDimEmployeeRepository
 
     public async Task UpdateEmployeeAsync(DimEmployee employee)
     {
-        var dbEmployee = await _dbContext.DimEmployees.FindAsync(employee.EmployeeId) 
-                         ?? throw new KeyNotFoundException($"Cannot update Employee {employee.EmployeeId}.");
+        var dbEmployee = await _dbContext.DimEmployees.FindAsync(employee.EmployeeId);
+        if (dbEmployee is null)
+            throw new NotFoundException($"Employee {employee.EmployeeId} not found.");
         dbEmployee.EmployeeId = employee.EmployeeId;
         dbEmployee.BirthDate = employee.BirthDate;
         dbEmployee.CareerStartDate = employee.CareerStartDate;
@@ -53,8 +56,9 @@ public class DimEmployeeRepository : BaseRepository, IDimEmployeeRepository
 
     public async Task DeleteEmployeeAsync(int employeeId)
     {
-        var dbEmployee = await _dbContext.DimEmployees.FindAsync(employeeId) 
-                         ?? throw new KeyNotFoundException($"Cannot delete Employee {employeeId}.");
+        var dbEmployee = await _dbContext.DimEmployees.FindAsync(employeeId);
+        if (dbEmployee is null)
+            throw new NotFoundException($"Employee {employeeId} not found.");
         _dbContext.DimEmployees.Remove(dbEmployee);
         await _dbContext.SaveChangesAsync();
     }

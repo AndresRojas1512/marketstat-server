@@ -66,7 +66,7 @@ public class DimEducationController : ControllerBase
     }
     
     /// <summary>
-    /// Updates and existing education.
+    /// Updates an existing education.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="updateDto"></param>
