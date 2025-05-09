@@ -59,7 +59,7 @@ public class DimDateController : ControllerBase
     }
     
     /// <summary>
-    /// Updated an existing date.
+    /// Updates an existing date.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="updateDto"></param>
@@ -74,7 +74,7 @@ public class DimDateController : ControllerBase
     }
     
     /// <summary>
-    /// Deletes a date
+    /// Deletes a date.
     /// </summary>
     /// <param name="id"></param>
     [HttpDelete("{id:int}")]

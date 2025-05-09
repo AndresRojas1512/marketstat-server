@@ -1,9 +1,11 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
@@ -26,14 +28,31 @@ public class DimEducationRepository : BaseRepository, IDimEducationRepository
             industryFieldId: education.IndustryFieldId
         );
         await _dbContext.DimEducations.AddAsync(dbModel);
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            throw new ConflictException($"An education with code '{education.SpecialtyCode}' already exists.");
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
+        {
+            throw new NotFoundException(
+                $"Referenced education level ({education.EducationLevelId}) or Industry Field ({education.IndustryFieldId}) not found.");
+        }
         education.EducationId = dbModel.EducationId;
     }
 
     public async Task<DimEducation> GetEducationByIdAsync(int educationId)
     {
-        var dbEducation = await _dbContext.DimEducations.FindAsync(educationId) 
-                          ?? throw new KeyNotFoundException($"Education {educationId} not found.");
+        var dbEducation = await _dbContext.DimEducations.FindAsync(educationId);
+        if (dbEducation is null)
+            throw new NotFoundException($"Education with ID {educationId} not found.");
         return DimEducationConverter.ToDomain(dbEducation);
     }
 
@@ -45,20 +64,38 @@ public class DimEducationRepository : BaseRepository, IDimEducationRepository
 
     public async Task UpdateEducationAsync(DimEducation education)
     {
-        var dbEducation = await _dbContext.DimEducations.FindAsync(education.EducationId) 
-                          ?? throw new KeyNotFoundException($"Cannot update Education {education.EducationId}.");
-        dbEducation.EducationId = education.EducationId;
+        var dbEducation = await _dbContext.DimEducations.FindAsync(education.EducationId);
+        if (dbEducation is null)
+            throw new NotFoundException($"Education with ID {education.EducationId} not found.");
+        
         dbEducation.Specialty = education.Specialty;
         dbEducation.SpecialtyCode = education.SpecialtyCode;
         dbEducation.EducationLevelId = education.EducationLevelId;
         dbEducation.IndustryFieldId = education.IndustryFieldId;
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            throw new ConflictException($"An education with code '{education.SpecialtyCode}' already exists.");
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
+        {
+            throw new NotFoundException(
+                $"Referenced education level ({education.EducationLevelId}) or Industry Field ({education.IndustryFieldId}) not found.");
+        }
     }
 
     public async Task DeleteEducationAsync(int educationId)
     {
-        var dbEducation = await _dbContext.DimEducations.FindAsync(educationId) 
-                          ?? throw new KeyNotFoundException($"Cannot delete Education {educationId}.");
+        var dbEducation = await _dbContext.DimEducations.FindAsync(educationId);
+        if (dbEducation is null)
+            throw new NotFoundException($"Education with ID {educationId} not found.");
         _dbContext.DimEducations.Remove(dbEducation);
         await _dbContext.SaveChangesAsync();
     }
