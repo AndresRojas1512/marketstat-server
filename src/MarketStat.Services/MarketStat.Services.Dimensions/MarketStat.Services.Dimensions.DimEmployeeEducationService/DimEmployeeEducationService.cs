@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEmployeeEducationService.Validators;
 using Microsoft.Extensions.Logging;
@@ -25,13 +26,19 @@ public class DimEmployeeEducationService : IDimEmployeeEducationService
         try
         {
             await _dimEmployeeEducationRepository.AddEmployeeEducationAsync(link);
-            _logger.LogInformation("Created DimEmployeeEducation ({EmployeeId}, {EducationId})", employeeId, educationId);
+            _logger.LogInformation("Linked employee {EmployeeId} & education {EducationId}", employeeId, educationId);
             return link;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create DimEmployeeEducation ({EmployeeId},{EducationId}).", employeeId, educationId);
-            throw new Exception($"Failed to create DimEmployeeEducation ({employeeId},{educationId}).");
+            _logger.LogError(ex, "Conflict linking employee {EmployeeId} & education {EducationId}", employeeId,
+                educationId);
+            throw;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "FK not found when linking Employee {EmployeeId} & Education {EducationId}", employeeId, educationId);
+            throw;
         }
     }
 
@@ -41,10 +48,10 @@ public class DimEmployeeEducationService : IDimEmployeeEducationService
         {
             return await _dimEmployeeEducationRepository.GetEmployeeEducationAsync(employeeId, educationId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "EmployeeEducation ({EmployeeId}, {EducationId}) not found.", employeeId, educationId);
-            throw new Exception($"EmployeeEducation ({employeeId}, {educationId}) was not found.");
+            _logger.LogWarning(ex, "EmployeeEducation link ({EmployeeId}, {EducationId}) not found.", employeeId, educationId);
+            throw;
         }
     }
 
@@ -83,10 +90,10 @@ public class DimEmployeeEducationService : IDimEmployeeEducationService
                 educationId);
             return existing;
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update: DimEmployeeEducation ({EmployeeId}, {EducationId}) not found.", employeeId, educationId);
-            throw new Exception($"Cannot update: EmployeeEducation ({employeeId}, {educationId}) was not found.");
+            _logger.LogWarning(ex, "Cannot update: EmployeeEducation link ({EmployeeId}, {EducationId}) not found.", employeeId, educationId);
+            throw;
         }
     }
 
@@ -97,10 +104,10 @@ public class DimEmployeeEducationService : IDimEmployeeEducationService
             await _dimEmployeeEducationRepository.DeleteEmployeeEducationAsync(employeeId, educationId);
             _logger.LogInformation("Removed link Employee {EmployeeId} → Education {EducationId}", employeeId, educationId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Failed to remove EmployeeEducation link");
-            throw new Exception($"Could not remove education {educationId} from employee {employeeId}");
+            _logger.LogWarning(ex, "Cannot delete EmployeeEducation link ({EmployeeId},{EducationId})", employeeId, educationId);
+            throw;
         }
     }
 }
