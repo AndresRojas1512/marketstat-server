@@ -5,6 +5,7 @@
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
     <ProjectReference Include="..\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Converter\MarketStat.Common.Converter.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Exceptions\MarketStat.Common.Exceptions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

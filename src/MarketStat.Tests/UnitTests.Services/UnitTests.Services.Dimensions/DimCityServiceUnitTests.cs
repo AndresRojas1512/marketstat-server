@@ -59,11 +59,11 @@ public class DimCityServiceUnitTests
             .Setup(r => r.AddCityAsync(It.IsAny<DimCity>()))
             .ThrowsAsync(new InvalidOperationException("db error"));
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _dimCityService.CreateCityAsync("Name", 1)
         );
 
-        Assert.Equal("A city with ID 0 already exists.", ex.Message);
+        Assert.Equal("db error", ex.Message);
     }
     
     [Fact]
@@ -83,14 +83,12 @@ public class DimCityServiceUnitTests
     public async Task GetCityByIdAsync_NotFound_ThrowsException()
     {
         _dimCityRepositoryMock
-            .Setup(r => r.GetCityByIdAsync(42))
-            .ThrowsAsync(new KeyNotFoundException());
-
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+                .Setup(r => r.GetCityByIdAsync(42))
+                .ThrowsAsync(new KeyNotFoundException("no key"));
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             _dimCityService.GetCityByIdAsync(42)
         );
-
-        Assert.Equal("City with ID 42 was not found.", ex.Message);
+        Assert.Equal("no key", ex.Message);
     }
     
     [Fact]
@@ -143,13 +141,13 @@ public class DimCityServiceUnitTests
     {
         _dimCityRepositoryMock
             .Setup(r => r.GetCityByIdAsync(9))
-            .ThrowsAsync(new KeyNotFoundException());
+            .ThrowsAsync(new KeyNotFoundException("missing!"));
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             _dimCityService.UpdateCityAsync(9, "X", 1)
         );
 
-        Assert.Equal("Cannot update: city 9 was not found.", ex.Message);
+        Assert.Equal("missing!", ex.Message);
     }
     
     [Fact]
@@ -169,12 +167,12 @@ public class DimCityServiceUnitTests
     {
         _dimCityRepositoryMock
             .Setup(r => r.DeleteCityAsync(8))
-            .ThrowsAsync(new KeyNotFoundException());
+            .ThrowsAsync(new KeyNotFoundException("no such city"));
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             _dimCityService.DeleteCityAsync(8)
         );
 
-        Assert.Equal("Cannot delete: city 8 not found.", ex.Message);
+        Assert.Equal("no such city", ex.Message);
     }
 }

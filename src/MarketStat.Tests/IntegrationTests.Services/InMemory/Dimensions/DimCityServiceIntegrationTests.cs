@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Dimensions.DimCityService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -51,7 +52,7 @@ public class DimCityServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetCityById_Nonexistent_Throws()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimCityService.GetCityByIdAsync(9999)
         );
     }
@@ -82,7 +83,6 @@ public class DimCityServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateCity_PersistsChanges()
     {
-        // seed lookup and create one city
         await _accessObject.SeedFederalDistrictAsync(new[]
         {
             new DimFederalDistrict(1, "District X")
@@ -100,8 +100,8 @@ public class DimCityServiceIntegrationTests : IDisposable
         );
 
         Assert.Equal(city.CityId, updated.CityId);
-        Assert.Equal("NewName",   updated.CityName);
-        Assert.Equal(1,           updated.OblastId);
+        Assert.Equal("NewName", updated.CityName);
+        Assert.Equal(1, updated.OblastId);
 
         var fetched = await _dimCityService.GetCityByIdAsync(city.CityId);
         Assert.Equal("NewName", fetched.CityName);
@@ -118,7 +118,7 @@ public class DimCityServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateCity_NotFound_Throws()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimCityService.UpdateCityAsync(9999, "Name", 1)
         );
     }
@@ -126,7 +126,6 @@ public class DimCityServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteCity_RemovesIt()
     {
-        // seed lookup and create city
         await _accessObject.SeedFederalDistrictAsync(new[]
         {
             new DimFederalDistrict(1, "District Y")
@@ -139,7 +138,7 @@ public class DimCityServiceIntegrationTests : IDisposable
         var city = await _dimCityService.CreateCityAsync("ToDelete", oblastId: 1);
         await _dimCityService.DeleteCityAsync(city.CityId);
 
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimCityService.GetCityByIdAsync(city.CityId)
         );
     }
@@ -147,7 +146,7 @@ public class DimCityServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteCity_NotFound_Throws()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimCityService.DeleteCityAsync(9999)
         );
     }

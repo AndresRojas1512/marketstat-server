@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService\MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimStandardJobRoleService\MarketStat.Services.Dimensions.DimStandardJobRoleService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Facts\MarketStat.Services.Facts.FactSalaryService\MarketStat.Services.Facts.FactSalaryService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Exceptions\MarketStat.Common.Exceptions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimCityService.Validators;
 using Microsoft.Extensions.Logging;
@@ -24,13 +25,18 @@ public class DimCityService : IDimCityService
         try
         {
             await _dimCityRepository.AddCityAsync(city);
-            _logger.LogInformation("Created DimCity {CityId}", city.CityId);
+            _logger.LogInformation("Created city {CityId} ('{CityName}')", city.CityId, cityName);
             return city;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create DimCity (duplicate {CityId})", city.CityId);
-            throw new Exception($"A city with ID {city.CityId} already exists.");
+            _logger.LogError(ex, "Conflict creating city '{CityName}'", cityName);
+            throw;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "Cannot create city '{CityName}': oblast {OblastId} not found", cityName, oblastId);
+            throw;
         }
     }
     
@@ -40,17 +46,17 @@ public class DimCityService : IDimCityService
         {
             return await _dimCityRepository.GetCityByIdAsync(cityId);
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "City {CityId} not found", cityId);
-            throw new Exception($"City with ID {cityId} was not found.");
+            throw;
         }
     }
     
     public async Task<IEnumerable<DimCity>> GetAllCitiesAsync()
     {
         var cities = await _dimCityRepository.GetAllCitiesAsync();
-        _logger.LogInformation("Fetched {Count} city records", cities.Count());
+        _logger.LogInformation("Fetched {Count} cities", cities.Count());
         return cities;
     }
     
@@ -60,16 +66,23 @@ public class DimCityService : IDimCityService
         try
         {
             var existing = await _dimCityRepository.GetCityByIdAsync(cityId);
+
             existing.CityName = cityName;
             existing.OblastId = oblastId;
+
             await _dimCityRepository.UpdateCityAsync(existing);
-            _logger.LogInformation("Updated DimCity {CityId}", cityId);
+            _logger.LogInformation("Updated city {CityId} -> '{CityName}'", cityId, cityName);
             return existing;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update – City {CityId} not found", cityId);
-            throw new Exception($"Cannot update: city {cityId} was not found.");
+            _logger.LogWarning(ex, "Cannot update city {CityId} not found", cityId);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogWarning(ex, "Cannot update city {CityId} to '{CityName}': duplicate", cityId, cityName);
+            throw;
         }
     }
     
@@ -78,12 +91,12 @@ public class DimCityService : IDimCityService
         try
         {
             await _dimCityRepository.DeleteCityAsync(cityId);
-            _logger.LogInformation("Deleted DimCity {CityId}", cityId);
+            _logger.LogInformation("Deleted city {CityId}", cityId);
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete – City {CityId} not found", cityId);
-            throw new Exception($"Cannot delete: city {cityId} not found.");
+            _logger.LogWarning(ex, "Cannot delete city {CityId}: not found", cityId);
+            throw;
         }
     }
 }
