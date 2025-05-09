@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEmployerService.Validators;
 using Microsoft.Extensions.Logging;
@@ -27,10 +28,10 @@ public class DimEmployerService : IDimEmployerService
             _logger.LogInformation("Created DimEmployer {EmployerId}", employer.EmployerId);
             return employer;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
             _logger.LogError(ex, "Failed to create DimEmployer {EmployerId}.", employer.EmployerId);
-            throw new Exception($"An employer with ID {employer.EmployerId} already exists.");
+            throw;
         }
     }
 
@@ -40,10 +41,10 @@ public class DimEmployerService : IDimEmployerService
         {
             return await _dimEmployerRepository.GetEmployerByIdAsync(employerId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "Employer {EmployerId} not found", employerId);
-            throw new Exception($"Employer with ID {employerId} was not found.");
+            throw;
         }
     }
 
@@ -66,10 +67,15 @@ public class DimEmployerService : IDimEmployerService
             _logger.LogInformation("Updated DimEmployer {EmployerId}", employerId);
             return existingEmployer;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update - Employer {EmployerId} not found", employerId);
-            throw new Exception($"Cannot update: employer {employerId} was not found.");
+            _logger.LogWarning(ex, "Cannot update: employer {EmployerId} not found", employerId);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "Conflict when updating employer {EmployerId}", employerId);
+            throw;
         }
     }
 
@@ -80,10 +86,10 @@ public class DimEmployerService : IDimEmployerService
             await _dimEmployerRepository.DeleteEmployerAsync(employerId);
             _logger.LogInformation("Deleted DimEmployer {EmployerId}", employerId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete, DimEmployer {EmployerId} not found", employerId);
-            throw new Exception($"Cannot delete: employer {employerId} not found.");
+            _logger.LogWarning(ex, "Cannot delete, employer {EmployerId} not found", employerId);
+            throw;
         }
     }
 }

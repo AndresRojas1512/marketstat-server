@@ -1,9 +1,11 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
@@ -24,14 +26,24 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
             isPublic: employer.IsPublic
         );
         await _dbContext.DimEmployers.AddAsync(dbModel);
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            throw new ConflictException($"An employer named '{employer.EmployerName}' already exists.");
+        }
         employer.EmployerId = dbModel.EmployerId;
     }
 
     public async Task<DimEmployer> GetEmployerByIdAsync(int employerId)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId) 
-                         ?? throw new KeyNotFoundException($"Employer {employerId} not found.");
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId);
+        if (dbEmployer is null)
+            throw new NotFoundException($"Employer with ID {employerId} not found.");
         return DimEmployerConverter.ToDomain(dbEmployer);
     }
 
@@ -43,17 +55,30 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
 
     public async Task UpdateEmployerAsync(DimEmployer employer)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employer.EmployerId) 
-                         ?? throw new KeyNotFoundException($"Cannot update Employer {employer.EmployerId}.");
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employer.EmployerId);
+        if (dbEmployer is null)
+            throw new NotFoundException($"Employer with ID {employer.EmployerId} not found.");
+        
         dbEmployer.EmployerName = employer.EmployerName;
         dbEmployer.IsPublic = employer.IsPublic;
-        await _dbContext.SaveChangesAsync();
+        
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            throw new ConflictException($"An employer named '{employer.EmployerName}' already exists.");
+        }
     }
 
     public async Task DeleteEmployerAsync(int employerId)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId) 
-                         ?? throw new KeyNotFoundException($"Cannot delete {employerId}.");
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId);
+        if (dbEmployer is null)
+            throw new NotFoundException($"Employer with ID {employerId} not found.");
         _dbContext.DimEmployers.Remove(dbEmployer);
         await _dbContext.SaveChangesAsync();
     }
