@@ -56,7 +56,7 @@ public class DimCityService : IDimCityService
     public async Task<IEnumerable<DimCity>> GetAllCitiesAsync()
     {
         var cities = await _dimCityRepository.GetAllCitiesAsync();
-        _logger.LogInformation("Fetched {Count} cities", cities.Count());
+        _logger.LogInformation("Fetched {Count} city records", cities.Count());
         return cities;
     }
     
@@ -71,7 +71,7 @@ public class DimCityService : IDimCityService
             existing.OblastId = oblastId;
 
             await _dimCityRepository.UpdateCityAsync(existing);
-            _logger.LogInformation("Updated city {CityId} -> '{CityName}'", cityId, cityName);
+            _logger.LogInformation("Updated city {CityId}", cityId);
             return existing;
         }
         catch (NotFoundException ex)
@@ -81,7 +81,7 @@ public class DimCityService : IDimCityService
         }
         catch (ConflictException ex)
         {
-            _logger.LogWarning(ex, "Cannot update city {CityId} to '{CityName}': duplicate", cityId, cityName);
+            _logger.LogWarning(ex, "Cannot update city {CityId}: duplicate", cityId);
             throw;
         }
     }

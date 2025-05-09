@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimDateService.Validators;
 using Microsoft.Extensions.Logging;
@@ -19,21 +20,23 @@ public class DimDateService : IDimDateService
     public async Task<DimDate> CreateDateAsync(DateOnly fullDate)
     {
         DimDateValidator.ValidateForCreate(fullDate);
+        
         var year    = fullDate.Year;
         var month   = fullDate.Month;
         var quarter = (month - 1) / 3 + 1;
+        
         var date = new DimDate(0, fullDate, year, quarter, month);
 
         try
         {
             await _dimDateRepository.AddDateAsync(date);
-            _logger.LogInformation("Created DimDate {DateId}", date.DateId);
+            _logger.LogInformation("Created date {DateId}", date.DateId);
             return date;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create DimDate for {Date}", fullDate);
-            throw new Exception($"A dim_date row for {fullDate} already exists.");
+            _logger.LogError(ex, "Conflict creating date {FullDate}", date.FullDate);
+            throw;
         }
     }
     
@@ -43,10 +46,10 @@ public class DimDateService : IDimDateService
         {
             return await _dimDateRepository.GetDateByIdAsync(dateId);
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "DimDate {DateId} not found", dateId);
-            throw new Exception($"Date with ID {dateId} was not found.");
+            _logger.LogWarning(ex, "Date {DateId} not found", dateId);
+            throw;
         }
     }
     
@@ -63,19 +66,25 @@ public class DimDateService : IDimDateService
         try
         {
             var existing = await _dimDateRepository.GetDateByIdAsync(dateId);
+
             existing.FullDate = fullDate;
             existing.Year = fullDate.Year;
             existing.Month = fullDate.Month;
             existing.Quarter = (fullDate.Month - 1) / 3 + 1;
 
             await _dimDateRepository.UpdateDateAsync(existing);
-            _logger.LogInformation("Updated DimDate {DateId}", dateId);
+            _logger.LogInformation("Updated date {DateId}", dateId);
             return existing;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update – DimDate {DateId} not found", dateId);
-            throw new Exception($"Cannot update: date {dateId} not found.");
+            _logger.LogWarning(ex, "Cannot update date {DateId} not found", dateId);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogWarning(ex, "Cannot update date {DateId}: duplicate", dateId);
+            throw;
         }
     }
     
@@ -84,12 +93,12 @@ public class DimDateService : IDimDateService
         try
         {
             await _dimDateRepository.DeleteDateAsync(dateId);
-            _logger.LogInformation("Deleted DimDate {DateId}", dateId);
+            _logger.LogInformation("Deleted date {DateId}", dateId);
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete - DimDate {DateId} not found", dateId);
-            throw new Exception($"Cannot delete: date {dateId} not found.");
+            _logger.LogWarning(ex, "Cannot delete date {DateId}: not found", dateId);
+            throw;
         }
     }
 }

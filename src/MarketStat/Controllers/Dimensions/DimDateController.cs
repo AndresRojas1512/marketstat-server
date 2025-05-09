@@ -17,69 +17,72 @@ public class DimDateController : ControllerBase
         _dimDateService = dimDateService;
         _mapper = mapper;
     }
-
+    
+    /// <summary>
+    /// Returns all dates
+    /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DimDateDto>>> GetAll()
     {
         var dates = await _dimDateService.GetAllDatesAsync();
         var dtos = _mapper.Map<IEnumerable<DimDateDto>>(dates);
         return Ok(dtos);
     }
-
-    [HttpGet("id:int")]
+    
+    /// <summary>
+    /// Returns a single date by ID.
+    /// </summary>
+    /// <param name="id"></param>
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DimDateDto>> GetById(int id)
     {
-        try
-        {
-            var date = await _dimDateService.GetDateByIdAsync(id);
-            return Ok(_mapper.Map<DimDateDto>(date));
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        var date = await _dimDateService.GetDateByIdAsync(id);
+        var dto = _mapper.Map<DimDateDto>(date);
+        return Ok(dto);
     }
-
+    
+    /// <summary>
+    /// Creates a new date
+    /// </summary>
+    /// <param name="createDto"></param>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DimDateDto>> CreateDate([FromBody] CreateDimDateDto createDto)
     {
-        try
-        {
-            var created = await _dimDateService.CreateDateAsync(createDto.FullDate);
-            var dto = _mapper.Map<DimDateDto>(created);
-            return CreatedAtAction(nameof(GetById), new { id = dto.DateId }, dto);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var created = await _dimDateService.CreateDateAsync(createDto.FullDate);
+        var dto = _mapper.Map<DimDateDto>(created);
+        return CreatedAtAction(nameof(GetById), new { id = dto.DateId }, dto);
     }
-
+    
+    /// <summary>
+    /// Updated an existing date.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="updateDto"></param>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateDate(int id, [FromBody] UpdateDimDateDto updateDto)
     {
-        try
-        {
-            await _dimDateService.UpdateDateAsync(id, updateDto.FullDate);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        await _dimDateService.UpdateDateAsync(id, updateDto.FullDate);
+        return NoContent();
     }
-
+    
+    /// <summary>
+    /// Deletes a date
+    /// </summary>
+    /// <param name="id"></param>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteDate(int id)
     {
-        try
-        {
-            await _dimDateService.DeleteDateAsync(id);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        await _dimDateService.DeleteDateAsync(id);
+        return NoContent();
     }
 }
