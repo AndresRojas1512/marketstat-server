@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEmployerIndustryFieldService.Validators;
 using Microsoft.Extensions.Logging;
@@ -28,11 +29,18 @@ public class DimEmployerIndustryFieldService : IDimEmployerIndustryFieldService
                 industryFieldId);
             return link;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create link EmployerIndustryField ({EmployerId}, {IndustryFieldId}).",
+            _logger.LogError(ex, "Conflict creating link EmployerIndustryField ({EmployerId}, {IndustryFieldId}).",
                 employerId, industryFieldId);
-            throw new Exception($"Link ({employerId}, {industryFieldId}) already exists.");
+            throw;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex,
+                "Cannot create link EmployerIndustryField ({EmployerId}, {IndustryFieldId}): missing FK", employerId,
+                industryFieldId);
+            throw;
         }
     }
 
@@ -42,11 +50,11 @@ public class DimEmployerIndustryFieldService : IDimEmployerIndustryFieldService
         {
             return await _dimEmployerIndustryFieldRepository.GetEmployerIndustryFieldAsync(employerId, industryFieldId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "Link EmployerIndustryField ({EmployerId}, {IndustryFieldId}) not found.", employerId,
                 industryFieldId);
-            throw new Exception($"Link EmployerIndustryField ({employerId}, {industryFieldId}) not found.");
+            throw;
         }
     }
 
@@ -76,12 +84,12 @@ public class DimEmployerIndustryFieldService : IDimEmployerIndustryFieldService
         try
         {
             await _dimEmployerIndustryFieldRepository.DeleteEmployerIndustryFieldAsync(employerId, industryFieldId);
-            _logger.LogInformation("Deleted link EmployerIndustryField ({EmployerId}, {IndustryFieldId}).", employerId, industryFieldId);
+            _logger.LogInformation("Deleted link EmployerIndustryField ({EmployerId}, {IndustryFieldId})", employerId, industryFieldId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete EmployerIndustryField link ({EmployerId}, {IndustryFieldId}).", employerId, industryFieldId);
-            throw new Exception($"Cannot delete EmployerIndustryField link ({employerId}, {industryFieldId}).");
+            _logger.LogWarning(ex, "Cannot delete EmployerIndustryField link ({EmployerId}, {IndustryFieldId}): not found", employerId, industryFieldId);
+            throw;
         }
     }
 }
