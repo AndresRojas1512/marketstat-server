@@ -1,5 +1,6 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimFederalDistrictService.Validators;
 using Microsoft.Extensions.Logging;
@@ -26,13 +27,13 @@ public class DimFederalDistrictService : IDimFederalDistrictService
         try
         {
             await _dimFederalDistrictRepository.AddFederalDistrictAsync(district);
-            _logger.LogInformation("Created District {DistrictId}", district.DistrictId);
+            _logger.LogInformation("Created district {DistrictId} with name {DistrictName}", district.DistrictId, district.DistrictName);
             return district;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create DimDistrict {DistrictId}.", district.DistrictId);
-            throw new Exception($"An employer with ID {district.DistrictId} already exists.");
+            _logger.LogError(ex, "Conflict creating district {DistrictId}.", district.DistrictId);
+            throw;
         }
     }
 
@@ -42,10 +43,10 @@ public class DimFederalDistrictService : IDimFederalDistrictService
         {
             return await _dimFederalDistrictRepository.GetFederalDistrictByIdAsync(id);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "District {DistrictId} not found", id);
-            throw new Exception($"District with ID {id} was not found.");
+            throw;
         }
     }
 
@@ -67,10 +68,15 @@ public class DimFederalDistrictService : IDimFederalDistrictService
             _logger.LogInformation("Updated DimFederalDistrict {DistrictId}", districtId);
             return existing;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update - District {DistrictId} not found", districtId);
-            throw new Exception($"Cannot update: district {districtId} was not found.");
+            _logger.LogWarning(ex, "Cannot update: district {DistrictId} not found", districtId);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "Conflict updating federal district {DistrictId}", districtId);
+            throw;
         }
     }
 
@@ -81,10 +87,10 @@ public class DimFederalDistrictService : IDimFederalDistrictService
             await _dimFederalDistrictRepository.DeleteFederalDistrictAsync(id);
             _logger.LogInformation("Deleted DimFederalDistrict {DistrictId}", id);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete, DimFederalDistrict {DistrictId} not found", id);
-            throw new Exception($"Cannot delete: district {id} not found.");
+            _logger.LogWarning(ex, "Cannot delete: federal district {DistrictId} not found", id);
+            throw;
         }
     }
 }

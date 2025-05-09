@@ -19,71 +19,73 @@ public class DimFederalDistrictController : ControllerBase
         _dimFederalDistrictService = dimFederalDistrictService;
         _mapper = mapper;
     }
-
+    
+    /// <summary>
+    /// Returns all federal districts.
+    /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DimFederalDistrictDto>>> GetAll()
     {
         var list = await _dimFederalDistrictService.GetAllDistrictsAsync();
         var dtos = _mapper.Map<IEnumerable<DimFederalDistrictDto>>(list);
         return Ok(dtos);
     }
-
+    
+    /// <summary>
+    /// Returns a single federal district by ID.
+    /// </summary>
+    /// <param name="id"></param>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DimFederalDistrictDto>> GetById(int id)
     {
-        try
-        {
-            var district = await _dimFederalDistrictService.GetDistrictByIdAsync(id);
-            var dto = _mapper.Map<DimFederalDistrictDto>(district);
-            return Ok(dto);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        var district = await _dimFederalDistrictService.GetDistrictByIdAsync(id);
+        var dto = _mapper.Map<DimFederalDistrictDto>(district);
+        return Ok(dto);
     }
-
+    
+    /// <summary>
+    /// Creates a new federal district
+    /// </summary>
+    /// <param name="createDto"></param>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DimFederalDistrictDto>> PostFederalDistrict(
         [FromBody] CreateDimFederalDistrictDto createDto)
     {
-        try
-        {
-            var created = await _dimFederalDistrictService.CreateDistrictAsync(createDto.DistrictName);
-            var dto = _mapper.Map<DimFederalDistrictDto>(created);
-            return CreatedAtAction(nameof(GetById), new { id = dto.DistrictId }, dto);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var created = await _dimFederalDistrictService.CreateDistrictAsync(createDto.DistrictName);
+        var dto = _mapper.Map<DimFederalDistrictDto>(created);
+        return CreatedAtAction(nameof(GetById), new { id = dto.DistrictId }, dto);
     }
-
+    
+    /// <summary>
+    /// Updates an existing federal district
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="updateDto"></param>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutFederalDistrict(int id, [FromBody] UpdateDimFederalDistrictDto updateDto)
     {
-        try
-        {
-            await _dimFederalDistrictService.UpdateDistrictAsync(id, updateDto.DistrictName);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        await _dimFederalDistrictService.UpdateDistrictAsync(id, updateDto.DistrictName);
+        return NoContent();
     }
-
+    
+    /// <summary>
+    /// Deletes a federal district
+    /// </summary>
+    /// <param name="id"></param>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteById(int id)
     {
-        try
-        {
-            await _dimFederalDistrictService.DeleteDistrictAsync(id);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        await _dimFederalDistrictService.DeleteDistrictAsync(id);
+        return NoContent();
     }
 }
