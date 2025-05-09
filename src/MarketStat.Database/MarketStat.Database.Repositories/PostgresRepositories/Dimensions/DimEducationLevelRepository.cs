@@ -1,9 +1,11 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
@@ -23,14 +25,24 @@ public class DimEducationLevelRepository : BaseRepository, IDimEducationLevelRep
             educationLevelName: educationLevel.EducationLevelName
         );
         await _dbContext.DimEducationLevels.AddAsync(dbModel);
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            throw new ConflictException($"An education level '{dbModel.EducationLevelName}' already exists.");
+        }
         educationLevel.EducationLevelId = dbModel.EducationLevelId;
     }
 
     public async Task<DimEducationLevel> GetEducationLevelByIdAsync(int id)
     {
-        var dbEducationLevel = await _dbContext.DimEducationLevels.FindAsync(id)
-                               ?? throw new KeyNotFoundException($"EducationLevel {id} not found.");
+        var dbEducationLevel = await _dbContext.DimEducationLevels.FindAsync(id);
+        if (dbEducationLevel is null)
+            throw new NotFoundException($"Education level with ID {id} not found.");
         return DimEducationLevelConverter.ToDomain(dbEducationLevel);
     }
 
@@ -40,19 +52,31 @@ public class DimEducationLevelRepository : BaseRepository, IDimEducationLevelRep
         return allEducationLevels.Select(DimEducationLevelConverter.ToDomain);
     }
 
-    public async Task UpdateEducationLevelsAsync(DimEducationLevel educationLevel)
+    public async Task UpdateEducationLevelAsync(DimEducationLevel educationLevel)
     {
-        var dbEducationLevel = await _dbContext.DimEducationLevels.FindAsync(educationLevel.EducationLevelId)
-                               ?? throw new KeyNotFoundException(
-                                   $"Cannot update: EducationLevel {educationLevel.EducationLevelId} not found.");
+        var dbEducationLevel = await _dbContext.DimEducationLevels.FindAsync(educationLevel.EducationLevelId);
+        if (dbEducationLevel is null)
+            throw new NotFoundException($"Education level with ID {educationLevel.EducationLevelId} not found.");
+        
         dbEducationLevel.EducationLevelName = educationLevel.EducationLevelName;
-        await _dbContext.SaveChangesAsync();
+        
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            throw new ConflictException($"An education level '{dbEducationLevel.EducationLevelName}' already exists.");
+        }
     }
 
     public async Task DeleteEducationLevelAsync(int id)
     {
-        var dbEducationLevel = await _dbContext.DimEducationLevels.FindAsync(id)
-                               ?? throw new KeyNotFoundException($"Cannot delete: EducationLevel {id} not found.");
+        var dbEducationLevel = await _dbContext.DimEducationLevels.FindAsync(id);
+        if (dbEducationLevel is null)
+            throw new NotFoundException($"Education level with ID {id} not found.");
         _dbContext.DimEducationLevels.Remove(dbEducationLevel);
         await _dbContext.SaveChangesAsync();
     }

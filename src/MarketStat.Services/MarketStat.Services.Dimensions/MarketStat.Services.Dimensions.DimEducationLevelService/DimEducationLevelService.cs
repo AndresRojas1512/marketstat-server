@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEducationLevelService.Validators;
 using Microsoft.Extensions.Logging;
@@ -25,13 +26,13 @@ public class DimEducationLevelService : IDimEducationLevelService
         try
         {
             await _dimEducationLevelRepository.AddEducationLevelAsync(level);
-            _logger.LogInformation("Created DimEducationLevel {EducationLevelId}", level.EducationLevelId);
+            _logger.LogInformation("Created education level {EducationLevelId}", level.EducationLevelId);
             return level;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create DimEducationLevel {EducationLevelId}", level.EducationLevelId);
-            throw new Exception($"Could not create DimEducationLevel {level.EducationLevelId}.");
+            _logger.LogError(ex, "Conflict creating education level {EducationLevelName} with ID {EducationLevelId}", level.EducationLevelName, level.EducationLevelId);
+            throw;
         }
     }
 
@@ -41,10 +42,10 @@ public class DimEducationLevelService : IDimEducationLevelService
         {
             return await _dimEducationLevelRepository.GetEducationLevelByIdAsync(id);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "EducationLevel {Id} not found", id);
-            throw new Exception($"EducationLevel {id} was not found.");
+            _logger.LogWarning(ex, "Education level {Id} not found", id);
+            throw;
         }
     }
 
@@ -61,15 +62,22 @@ public class DimEducationLevelService : IDimEducationLevelService
         try
         {
             var existing = await _dimEducationLevelRepository.GetEducationLevelByIdAsync(id);
+
             existing.EducationLevelName = educationLevelName;
-            await _dimEducationLevelRepository.UpdateEducationLevelsAsync(existing);
+
+            await _dimEducationLevelRepository.UpdateEducationLevelAsync(existing);
             _logger.LogInformation("Updated {EducationLevelId}", id);
             return existing;
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update education level {EducationLevelId}.", id);
-            throw new Exception($"Cannot update: education level {id} not found.");
+            _logger.LogWarning(ex, "Cannot update: education level {EducationLevelId} not found", id);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "Conflict updating education level {Id}, already exists", id);
+            throw;
         }
     }
 
@@ -80,10 +88,10 @@ public class DimEducationLevelService : IDimEducationLevelService
             await _dimEducationLevelRepository.DeleteEducationLevelAsync(id);
             _logger.LogInformation("Deleted education level {EducationLevelId}", id);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete education level {EducationLevelId}.", id);
-            throw new Exception($"Cannot delete: education level {id} not found.");
+            _logger.LogWarning(ex, "Cannot delete: education level {EducationLevelId} not found.", id);
+            throw;
         }
     }
 }

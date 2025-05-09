@@ -18,70 +18,71 @@ public class DimEducationLevelController : ControllerBase
         _dimEducationLevelService = dimEducationLevelService;
         _mapper = mapper;
     }
-    
+    /// <summary>
+    /// Returns all education levels.
+    /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DimEducationLevelDto>>> GetAll()
     {
         var list = await _dimEducationLevelService.GetAllEducationLevelsAsync();
         var dtos = _mapper.Map<IEnumerable<DimEducationLevelDto>>(list);
         return Ok(dtos);
     }
-
+    
+    /// <summary>
+    /// Returns a single education level by ID.
+    /// </summary>
+    /// <param name="id"></param>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DimEducationLevelDto>> GetById(int id)
     {
-        try
-        {
-            var level = await _dimEducationLevelService.GetEducationLevelByIdAsync(id);
-            var dto = _mapper.Map<DimEducationLevelDto>(level);
-            return Ok(dto);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var level = await _dimEducationLevelService.GetEducationLevelByIdAsync(id);
+        var dto = _mapper.Map<DimEducationLevelDto>(level);
+        return Ok(dto);
     }
-
+    
+    /// <summary>
+    /// Creates a new education level.
+    /// </summary>
+    /// <param name="createDto"></param>
     [HttpPost]
-    public async Task<ActionResult<DimEducationLevelDto>> PostEducationLevel(CreateDimEducationLevelDto createDto)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<DimEducationLevelDto>> PostEducationLevel([FromBody] CreateDimEducationLevelDto createDto)
     {
-        try
-        {
-            var created = await _dimEducationLevelService.CreateEducationLevelAsync(createDto.EducationLevelName);
-            var dto = _mapper.Map<DimEducationLevelDto>(created);
-            return CreatedAtAction(nameof(GetById), new { id = dto.EducationLevelId }, dto);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest( new { message = ex.Message });
-        }
+        var created = await _dimEducationLevelService.CreateEducationLevelAsync(createDto.EducationLevelName);
+        var dto = _mapper.Map<DimEducationLevelDto>(created);
+        return CreatedAtAction(nameof(GetById), new { id = dto.EducationLevelId }, dto);
     }
-
+    
+    /// <summary>
+    /// Updates an existing education level.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="updateDto"></param>
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> PutEducationLevel(int id, UpdateDimEducationLevelDto dto)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> PutEducationLevel(int id, [FromBody] UpdateDimEducationLevelDto updateDto)
     {
-        try
-        {
-            await _dimEducationLevelService.UpdateEducationLevelAsync(id, dto.EducationLevelName);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        await _dimEducationLevelService.UpdateEducationLevelAsync(id, updateDto.EducationLevelName);
+        return NoContent();
     }
-
+    
+    /// <summary>
+    /// Deletes an education level.
+    /// </summary>
+    /// <param name="id"></param>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteEducationLevel(int id)
     {
-        try
-        {
-            await _dimEducationLevelService.DeleteEducationLevelAsync(id);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        await _dimEducationLevelService.DeleteEducationLevelAsync(id);
+        return NoContent();
     }
 }

@@ -107,7 +107,7 @@ public class DimEducationLevelServiceUnitTests
             .Setup(r => r.GetEducationLevelByIdAsync(3))
             .ReturnsAsync(existing);
         _dimEducationLevelRepositoryMock
-            .Setup(r => r.UpdateEducationLevelsAsync(It.IsAny<DimEducationLevel>()))
+            .Setup(r => r.UpdateEducationLevelAsync(It.IsAny<DimEducationLevel>()))
             .Returns(Task.CompletedTask);
 
         var updated = await _dimEducationLevelService.UpdateEducationLevelAsync(3, "NewName");
@@ -115,7 +115,7 @@ public class DimEducationLevelServiceUnitTests
         Assert.Equal(3, updated.EducationLevelId);
         Assert.Equal("NewName", updated.EducationLevelName);
         _dimEducationLevelRepositoryMock.Verify(r =>
-            r.UpdateEducationLevelsAsync(
+            r.UpdateEducationLevelAsync(
                 It.Is<DimEducationLevel>(lvl =>
                     lvl.EducationLevelId   == 3 &&
                     lvl.EducationLevelName == "NewName"
