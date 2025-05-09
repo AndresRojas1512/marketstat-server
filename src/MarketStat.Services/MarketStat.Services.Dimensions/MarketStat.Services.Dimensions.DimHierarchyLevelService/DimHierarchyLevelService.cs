@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimHierarchyLevelService.Validators;
 using Microsoft.Extensions.Logging;
@@ -27,11 +28,10 @@ public class DimHierarchyLevelService : IDimHierarchyLevelService
             _logger.LogInformation("Created DimHierarchyLevel {HierarchyLevelId}", hierarchyLevel.HierarchyLevelId);
             return hierarchyLevel;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create HierarchyLevel {HierarchyLevelId}", hierarchyLevel.HierarchyLevelId);
-            throw new Exception(
-                $"Could not create HierarchyLevel {hierarchyLevelName} with id {hierarchyLevel.HierarchyLevelId},");
+            _logger.LogError(ex, "A hierarchy level {HierarchyLevelId} with name '{HierarchyLevelName}' already exists", hierarchyLevel.HierarchyLevelId, hierarchyLevel.HierarchyLevelName);
+            throw;
         }
         
     }
@@ -42,10 +42,10 @@ public class DimHierarchyLevelService : IDimHierarchyLevelService
         {
             return await _dimHierarchyLevelRepository.GetHierarchyLevelByIdAsync(id);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "HierarchyLevel {Id} not found", id);
-            throw new Exception($"Industry field {id} was not found.");
+            throw;
         }
     }
 
@@ -61,16 +61,22 @@ public class DimHierarchyLevelService : IDimHierarchyLevelService
         DimHierarchyLevelValidator.ValidateForUpdate(hierarchyLevelId, hierarchyLevelName);
         try
         {
-            var existingHierarchyLevel = await _dimHierarchyLevelRepository.GetHierarchyLevelByIdAsync(hierarchyLevelId);
+            var existingHierarchyLevel =
+                await _dimHierarchyLevelRepository.GetHierarchyLevelByIdAsync(hierarchyLevelId);
             existingHierarchyLevel.HierarchyLevelName = hierarchyLevelName;
             await _dimHierarchyLevelRepository.UpdateHierarchyLevelAsync(existingHierarchyLevel);
             _logger.LogInformation("Updated HierarchyLevel {HierarchyLevelId}", hierarchyLevelId);
             return existingHierarchyLevel;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "Cannot update hierarchy level {HierarchyLevelId}", hierarchyLevelId);
-            throw new Exception($"Cannot update: hierarchy level {hierarchyLevelId} not found.");
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "Conflict updating hierarchy level {HierarchyLevelId}, already exists", hierarchyLevelId);
+            throw;
         }
     }
 
@@ -81,10 +87,10 @@ public class DimHierarchyLevelService : IDimHierarchyLevelService
             await _dimHierarchyLevelRepository.DeleteHierarchyLevelAsync(id);
             _logger.LogInformation("Deleted HierarchyLevel {Id}", id);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete hierarchy level {Id}.", id);
-            throw new Exception($"Cannot delete: hierarchy level {id} not found.");
+            _logger.LogWarning(ex, "Cannot delete: hierarchy level {Id} not found.", id);
+            throw;
         }
     }
 }

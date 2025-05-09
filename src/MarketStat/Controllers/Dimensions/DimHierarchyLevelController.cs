@@ -17,71 +17,73 @@ public class DimHierarchyLevelController : ControllerBase
         _dimHierarchyLevelService = dimHierarchyLevelService;
         _mapper = mapper;
     }
-
+    
+    /// <summary>
+    /// Returns all hierarchy levels.
+    /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DimHierarchyLevelDto>>> GetAll()
     {
         var list = await _dimHierarchyLevelService.GetAllHierarchyLevelsAsync();
         var dtos = _mapper.Map<IEnumerable<DimHierarchyLevelDto>>(list);
         return Ok(dtos);
     }
-
+    
+    /// <summary>
+    /// Returns a single hierarchy level.
+    /// </summary>
+    /// <param name="id"></param>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DimHierarchyLevelDto>> GetById(int id)
     {
-        try
-        {
-            var level = await _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(id);
-            var dto = _mapper.Map<DimHierarchyLevelDto>(level);
-            return Ok(dto);
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        var level = await _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(id);
+        var dto = _mapper.Map<DimHierarchyLevelDto>(level);
+        return Ok(dto);
     }
-
+    
+    /// <summary>
+    /// Creates a new hierarchy level.
+    /// </summary>
+    /// <param name="createDto"></param>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DimHierarchyLevelDto>> PostHierarchyLevel(
         [FromBody] CreateDimHierarchyLevelDto createDto)
     {
-        try
-        {
-            var created = await _dimHierarchyLevelService.CreateHierarchyLevelAsync(createDto.HierarchyLevelName);
-            var dto = _mapper.Map<DimHierarchyLevelDto>(created);
-            return CreatedAtAction(nameof(GetById), new { id = dto.HierarchyLevelId }, dto);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var created = await _dimHierarchyLevelService.CreateHierarchyLevelAsync(createDto.HierarchyLevelName);
+        var dto = _mapper.Map<DimHierarchyLevelDto>(created);
+        return CreatedAtAction(nameof(GetById), new { id = dto.HierarchyLevelId }, dto);
     }
-
+    
+    /// <summary>
+    /// Updates an existing hierarchy level.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="updateDto"></param>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PutHierarchyLevel(int id, [FromBody] UpdateDimHierarchyLevelDto updateDto)
     {
-        try
-        {
-            await _dimHierarchyLevelService.UpdateHierarchyLevelAsync(id, updateDto.HierarchyLevelName);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        await _dimHierarchyLevelService.UpdateHierarchyLevelAsync(id, updateDto.HierarchyLevelName);
+        return NoContent();
     }
-
+    
+    /// <summary>
+    /// Deletes a hierarchy level.
+    /// </summary>
+    /// <param name="id"></param>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteHierarchyLevel(int id)
     {
-        try
-        {
-            await _dimHierarchyLevelService.DeleteHierarchyLevelAsync(id);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        await _dimHierarchyLevelService.DeleteHierarchyLevelAsync(id);
+        return NoContent();
     }
 }
