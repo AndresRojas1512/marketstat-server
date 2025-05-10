@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimJobRoleService.Validators;
 using Microsoft.Extensions.Logging;
@@ -19,28 +20,23 @@ public class DimJobRoleService : IDimJobRoleService
     public async Task<DimJobRole> CreateJobRoleAsync(string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
     {
         DimJobRoleValidator.ValidateForCreate(jobRoleTitle, standardJobRoleId, hierarchyLevelId);
-
-        var allRoles = await _dimJobRoleRepository.GetAllJobRolesAsync();
-        if (allRoles.Any(r =>
-                r.JobRoleTitle       == jobRoleTitle
-                && r.StandardJobRoleId == standardJobRoleId
-                && r.HierarchyLevelId  == hierarchyLevelId))
-        {
-            throw new Exception($"Could not create job role '{jobRoleTitle}'");
-        }
-
         var role = new DimJobRole(0, jobRoleTitle, standardJobRoleId, hierarchyLevelId);
         try
         {
             await _dimJobRoleRepository.AddJobRoleAsync(role);
-            _logger.LogInformation("Created DimJobRole {JobRoleId}", role.JobRoleId);
+            _logger.LogInformation("Created job role {JobRoleId}", role.JobRoleId);
             return role;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
             _logger.LogError(ex,
                 "Failed to create DimJobRole (duplicate {JobRoleId})", role.JobRoleId);
-            throw new Exception($"Could not create job role '{jobRoleTitle}'");
+            throw;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "Either standard job role or hierarchy level FKs not found");
+            throw;
         }
     }
     
@@ -50,10 +46,10 @@ public class DimJobRoleService : IDimJobRoleService
         {
             return await _dimJobRoleRepository.GetJobRoleByIdAsync(jobRoleId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "JobRole {JobRoleId} not found", jobRoleId);
-            throw new Exception($"Job role {jobRoleId} was not found.");
+            throw;
         }
     }
     
@@ -70,6 +66,7 @@ public class DimJobRoleService : IDimJobRoleService
         try
         {
             var existing = await _dimJobRoleRepository.GetJobRoleByIdAsync(jobRoleId);
+            
             existing.JobRoleTitle   = jobRoleTitle;
             existing.StandardJobRoleId = standardJobRoleId;
             existing.HierarchyLevelId = hierarchyLevelId;
@@ -78,10 +75,16 @@ public class DimJobRoleService : IDimJobRoleService
             _logger.LogInformation("Updated DimJobRole {JobRoleId}", jobRoleId);
             return existing;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update, JobRole {JobRoleId} not found", jobRoleId);
-            throw new Exception($"Cannot update: job role {jobRoleId} not found.");
+            _logger.LogWarning(ex, "Cannot update: job role {JobRoleId} not found", jobRoleId);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex,
+                "Conflict updating job role {JobRoleId}", jobRoleId);
+            throw;
         }
     }
     
@@ -92,10 +95,10 @@ public class DimJobRoleService : IDimJobRoleService
             await _dimJobRoleRepository.DeleteJobRoleAsync(jobRoleId);
             _logger.LogInformation("Deleted DimJobRole {JobRoleId}", jobRoleId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete, DimJobRole {JobRoleId} not found", jobRoleId);
-            throw new Exception($"Cannot delete: job role {jobRoleId} not found.");
+            _logger.LogWarning(ex, "Cannot delete: DimJobRole {JobRoleId} not found", jobRoleId);
+            throw;
         }
     }
 }
