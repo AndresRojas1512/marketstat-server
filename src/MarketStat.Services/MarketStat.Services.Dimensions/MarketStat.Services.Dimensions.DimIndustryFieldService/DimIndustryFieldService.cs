@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimIndustryFieldService.Validators;
 using Microsoft.Extensions.Logging;
@@ -28,10 +29,11 @@ public class DimIndustryFieldService : IDimIndustryFieldService
             _logger.LogInformation("Created DimIndustryField {IndustryFieldId}", industryField.IndustryFieldId);
             return industryField;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create DimIndustryField {IndustryFieldId}.", industryField.IndustryFieldId);
-            throw new Exception($"Could not create industry field {industryFieldName}");
+            _logger.LogError(ex, "Conflict creating industry field {IndustryFieldId} with name {IndustryFieldName}.",
+                industryField.IndustryFieldId, industryField.IndustryFieldName);
+            throw;
         }
     }
     
@@ -41,10 +43,10 @@ public class DimIndustryFieldService : IDimIndustryFieldService
         {
             return await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "IndustryField {IndustryFieldId} not found", industryFieldId);
-            throw new Exception($"Industry field {industryFieldId} was not found.");
+            _logger.LogWarning(ex, "Industry field {IndustryFieldId} not found", industryFieldId);
+            throw;
         }
     }
     
@@ -61,15 +63,22 @@ public class DimIndustryFieldService : IDimIndustryFieldService
         try
         {
             var existingIndustryField = await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId);
+            
             existingIndustryField.IndustryFieldName = industryFieldName;
+            
             await _dimIndustryFieldRepository.UpdateIndustryFieldAsync(existingIndustryField);
             _logger.LogInformation("Updated DimIndustryField {IndustryFieldId}", industryFieldId);
             return existingIndustryField;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update industry field {IndustryFieldId}", industryFieldId);
-            throw new Exception($"Cannot update: industry field {industryFieldId} not found.");
+            _logger.LogWarning(ex, "Industry field {IndustryFieldId} not found", industryFieldId);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "Conflict updating industry field {IndustryFieldId}", industryFieldName);
+            throw;
         }
     }
     
@@ -80,10 +89,10 @@ public class DimIndustryFieldService : IDimIndustryFieldService
             await _dimIndustryFieldRepository.DeleteIndustryFieldAsync(industryFieldId);
             _logger.LogInformation("Deleted DimIndustryField {IndustryFieldId}", industryFieldId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete industry field {IndustryFieldId}", industryFieldId);
-            throw new Exception($"Cannot delete: industry field {industryFieldId} not found.");
+            _logger.LogWarning(ex, "Industry field {IndustryFieldId} not found", industryFieldId);
+            throw;
         }
     }
 }
