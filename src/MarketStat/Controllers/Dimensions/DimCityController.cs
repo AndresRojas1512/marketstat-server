@@ -70,7 +70,6 @@ public class DimCityController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCity(int id, [FromBody] UpdateDimCityDto updateDto)
     {
-
         await _dimCityService.UpdateCityAsync(id, updateDto.CityName, updateDto.OblastId);
         return NoContent();
     }

@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimStandardJobRoleService.Validators;
 using Microsoft.Extensions.Logging;
@@ -20,13 +21,6 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
     public async Task<DimStandardJobRole> CreateStandardJobRoleAsync(string jobRoleTitle, int industryFieldId)
     {
         DimStandardJobRoleValidator.ValidateForCreate(jobRoleTitle, industryFieldId);
-        var all = await _dimStandardJobRoleRepository.GetAllStandardJobRolesAsync();
-        if (all.Any(r => 
-                r.StandardJobRoleTitle.Equals(jobRoleTitle, StringComparison.OrdinalIgnoreCase) &&
-                r.IndustryFieldId == industryFieldId
-            ))
-            throw new Exception($"Could not create job role '{jobRoleTitle}'");
-
         var role = new DimStandardJobRole(0, jobRoleTitle, industryFieldId);
         try
         {
@@ -34,10 +28,15 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
             _logger.LogInformation("Created DimStandardJobRole {JobRoleId}", role.StandardJobRoleId);
             return role;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
             _logger.LogError(ex, "Failed to create DimStandardJobRole (duplicate {JobRoleId})", role.StandardJobRoleId);
-            throw new Exception($"Could not create job role '{jobRoleTitle}'");
+            throw;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "FK not found: Industry field ID not found");
+            throw;
         }
     }
 
@@ -47,10 +46,10 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
         {
             return await _dimStandardJobRoleRepository.GetStandardJobRoleByIdAsync(id);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "StandardJobRole {JobRoleId} not found", id);
-            throw new Exception($"Standard job role {id} was not found.");
+            throw;
         }
     }
 
@@ -67,16 +66,21 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
         try
         {
             var existing = await _dimStandardJobRoleRepository.GetStandardJobRoleByIdAsync(id);
-            existing.StandardJobRoleTitle   = jobRoleTitle;
+            existing.StandardJobRoleTitle = jobRoleTitle;
             existing.IndustryFieldId = industryFieldId;
             await _dimStandardJobRoleRepository.UpdateStandardJobRoleAsync(existing);
             _logger.LogInformation("Updated DimStandardJobRole {JobRoleId}", id);
             return existing;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update, StandardJobRole {JobRoleId} not found", id);
-            throw new Exception($"Cannot update: job role {id} not found.");
+            _logger.LogWarning(ex, "Cannot update, standard job role {JobRoleId} not found", id);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "Conflict updating standard job role {JobRoleId}", id);
+            throw;
         }
     }
 
@@ -87,10 +91,10 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
             await _dimStandardJobRoleRepository.DeleteStandardJobRoleAsync(id);
             _logger.LogInformation("Deleted DimStandardJobRole {JobRoleId}", id);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete, DimStandardJobRole {JobRoleId} not found", id);
-            throw new Exception($"Cannot delete: standard job role {id} not found.");
+            _logger.LogWarning(ex, "Cannot delete, standard job role {JobRoleId} not found", id);
+            throw;
         }
     }
 }
