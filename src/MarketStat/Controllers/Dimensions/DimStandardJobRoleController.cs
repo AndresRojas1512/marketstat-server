@@ -90,5 +90,4 @@ public class DimStandardJobRoleController : ControllerBase
         await _dimStandardJobRoleService.DeleteStandardJobRoleAsync(id);
         return NoContent();
     }
-    
 }
