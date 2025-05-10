@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEducationService;
 using Microsoft.Extensions.Logging;
@@ -47,21 +48,42 @@ public class DimEducationServiceUnitTests
                 e.IndustryFieldId  == 2
             )), Times.Once);
     }
-    
+
     [Fact]
-    public async Task CreateEducationAsync_Duplicate_ThrowsException()
+    public async Task CreateEducationAsync_Duplicate_ThrowsConflictException()
     {
+        var code = "01.03.04";
+        var msg  = $"An education with code '{code}' already exists.";
+
         _dimEducationRepositoryMock
             .Setup(r => r.AddEducationAsync(It.IsAny<DimEducation>()))
-            .ThrowsAsync(new InvalidOperationException("duplicate"));
+            .ThrowsAsync(new ConflictException(msg));
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationService.CreateEducationAsync("Math", "01.03.04", 3, 3)
+        var ex = await Assert.ThrowsAsync<ConflictException>(() =>
+            _dimEducationService.CreateEducationAsync("Math", code, 3, 3)
         );
 
-        Assert.Equal("An education record with ID 0 already exists.", ex.Message);
+        Assert.Equal(msg, ex.Message);
     }
-    
+
+    [Fact]
+    public async Task CreateEducationAsync_ForeignKeyViolation_ThrowsNotFoundException()
+    {
+        var levelId = 99;
+        var fieldId = 88;
+        var msg     = $"Referenced education level ({levelId}) or Industry Field ({fieldId}) not found.";
+
+        _dimEducationRepositoryMock
+            .Setup(r => r.AddEducationAsync(It.IsAny<DimEducation>()))
+            .ThrowsAsync(new NotFoundException(msg));
+
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimEducationService.CreateEducationAsync("Math", "02.02.02", levelId, fieldId)
+        );
+
+        Assert.Equal(msg, ex.Message);
+    }
+
     [Fact]
     public async Task CreateEducationAsync_NullSpecialty_ThrowsArgumentException()
     {
@@ -69,7 +91,7 @@ public class DimEducationServiceUnitTests
             _dimEducationService.CreateEducationAsync(null!, "01.03.01", 1, 1)
         );
     }
-    
+
     [Fact]
     public async Task GetEducationByIdAsync_Existing_ReturnsDimEducation()
     {
@@ -82,38 +104,42 @@ public class DimEducationServiceUnitTests
 
         Assert.Same(expected, actual);
     }
-    
-    [Fact]
-    public async Task GetEducationByIdAsync_NotFound_ThrowsException()
-    {
-        _dimEducationRepositoryMock
-            .Setup(r => r.GetEducationByIdAsync(7))
-            .ThrowsAsync(new KeyNotFoundException());
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationService.GetEducationByIdAsync(7)
+    [Fact]
+    public async Task GetEducationByIdAsync_NotFound_ThrowsNotFoundException()
+    {
+        var id  = 7;
+        var msg = $"Education with ID {id} not found.";
+
+        _dimEducationRepositoryMock
+            .Setup(r => r.GetEducationByIdAsync(id))
+            .ThrowsAsync(new NotFoundException(msg));
+
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimEducationService.GetEducationByIdAsync(id)
         );
-        Assert.Equal("Education with ID 7 was not found.", ex.Message);
+
+        Assert.Equal(msg, ex.Message);
     }
-    
+
     [Fact]
     public async Task GetAllEducationsAsync_ReturnsList()
     {
         var list = new List<DimEducation>
         {
-            new DimEducation(1, "CS",  "03.03.03", 1, 1),
-            new DimEducation(2, "EE",  "04.03.04", 2, 2)
+            new DimEducation(1, "CS", "03.03.03", 1, 1),
+            new DimEducation(2, "EE", "04.03.04", 2, 2)
         };
         _dimEducationRepositoryMock
             .Setup(r => r.GetAllEducationsAsync())
             .ReturnsAsync(list);
 
         var result = (await _dimEducationService.GetAllEducationsAsync()).ToList();
-            
+
         Assert.Equal(2, result.Count);
         Assert.Equal(list, result);
     }
-    
+
     [Fact]
     public async Task UpdateEducationAsync_ValidParameters_UpdatesAndReturns()
     {
@@ -144,20 +170,7 @@ public class DimEducationServiceUnitTests
                 e.IndustryFieldId  == 2
             )), Times.Once);
     }
-    
-    [Fact]
-    public async Task UpdateEducationAsync_NotFound_ThrowsException()
-    {
-        _dimEducationRepositoryMock
-            .Setup(r => r.GetEducationByIdAsync(9))
-            .ThrowsAsync(new KeyNotFoundException());
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationService.UpdateEducationAsync(9, "X", "07.05.07", 1, 1)
-        );
-        Assert.Equal("Cannot update: education 9 was not found.", ex.Message);
-    }
-    
     [Fact]
     public async Task UpdateEducationAsync_InvalidId_ThrowsArgumentException()
     {
@@ -165,15 +178,32 @@ public class DimEducationServiceUnitTests
             _dimEducationService.UpdateEducationAsync(0, "History", "08.04.07", 1, 1)
         );
     }
-    
+
     [Fact]
-    public async Task UpdateEducationAsync_EmptySpecialization_ThrowsArgumentException()
+    public async Task UpdateEducationAsync_NotFound_ThrowsNotFoundException()
+    {
+        var id  = 9;
+        var msg = $"Education with ID {id} not found.";
+
+        _dimEducationRepositoryMock
+            .Setup(r => r.GetEducationByIdAsync(id))
+            .ThrowsAsync(new NotFoundException(msg));
+
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimEducationService.UpdateEducationAsync(id, "X", "07.05.07", 1, 1)
+        );
+
+        Assert.Equal(msg, ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateEducationAsync_InvalidSpecialty_ThrowsArgumentException()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimEducationService.UpdateEducationAsync(1, "", "03.03.03", 1, 1)
         );
     }
-    
+
     [Fact]
     public async Task UpdateEducationAsync_InvalidEducationLevel_ThrowsArgumentException()
     {
@@ -181,7 +211,7 @@ public class DimEducationServiceUnitTests
             _dimEducationService.UpdateEducationAsync(1, "History", "04.04.04", -1, 1)
         );
     }
-    
+
     [Fact]
     public async Task UpdateEducationAsync_InvalidIndustryFieldId_ThrowsArgumentException()
     {
@@ -189,7 +219,7 @@ public class DimEducationServiceUnitTests
             _dimEducationService.UpdateEducationAsync(1, "History", "04.04.05", 1, 0)
         );
     }
-        
+
     [Fact]
     public async Task DeleteEducationAsync_Existing_Completes()
     {
@@ -202,17 +232,21 @@ public class DimEducationServiceUnitTests
         _dimEducationRepositoryMock.Verify(r =>
             r.DeleteEducationAsync(4), Times.Once);
     }
-        
-    [Fact]
-    public async Task DeleteEducationAsync_NotFound_ThrowsException()
-    {
-        _dimEducationRepositoryMock
-            .Setup(r => r.DeleteEducationAsync(6))
-            .ThrowsAsync(new KeyNotFoundException());
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationService.DeleteEducationAsync(6)
+    [Fact]
+    public async Task DeleteEducationAsync_NotFound_ThrowsNotFoundException()
+    {
+        var id  = 6;
+        var msg = $"Education with ID {id} not found.";
+
+        _dimEducationRepositoryMock
+            .Setup(r => r.DeleteEducationAsync(id))
+            .ThrowsAsync(new NotFoundException(msg));
+
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimEducationService.DeleteEducationAsync(id)
         );
-        Assert.Equal("Cannot delete: education 6 not found.", ex.Message);
+
+        Assert.Equal(msg, ex.Message);
     }
 }

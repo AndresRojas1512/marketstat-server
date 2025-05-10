@@ -1,5 +1,6 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Services.Facts.FactSalaryService.Validators;
 using Microsoft.Extensions.Logging;
@@ -29,10 +30,10 @@ public class FactSalaryService : IFactSalaryService
             _logger.LogInformation("Created FactSalary {FactId}", fact.SalaryFactId);
             return fact;
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogError(ex, "Failed to create FactSalary (duplicate {FactId})", fact.SalaryFactId);
-            throw new Exception($"Could not create salary fact {fact.SalaryFactId}");
+            _logger.LogError(ex, "FK not found when creating FactSalary");
+            throw;
         }
     }
     
@@ -42,10 +43,10 @@ public class FactSalaryService : IFactSalaryService
         {
             return await _factSalaryRepository.GetFactSalaryByIdAsync(salaryFactId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "FactSalary {FactId} not found", salaryFactId);
-            throw new Exception($"Salary fact {salaryFactId} was not found.");
+            throw;
         }
     }
     
@@ -72,6 +73,7 @@ public class FactSalaryService : IFactSalaryService
         try
         {
             var existing = await _factSalaryRepository.GetFactSalaryByIdAsync(salaryFactId);
+            
             existing.DateId = dateId;
             existing.CityId = cityId;
             existing.EmployerId = employerId;
@@ -84,10 +86,10 @@ public class FactSalaryService : IFactSalaryService
             _logger.LogInformation("Updated FactSalary {FactId}", salaryFactId);
             return existing;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "Cannot update, FactSalary {FactId} not found", salaryFactId);
-            throw new Exception($"Cannot update: salary fact {salaryFactId} not found.");
+            throw;
         }
     }
     
@@ -98,10 +100,10 @@ public class FactSalaryService : IFactSalaryService
             await _factSalaryRepository.DeleteFactSalaryByIdAsync(salaryFactId);
             _logger.LogInformation("Deleted FactSalary {FactId}", salaryFactId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "Cannot delete, FactSalary {FactId} not found", salaryFactId);
-            throw new Exception($"Cannot delete: salary fact {salaryFactId} not found.");
+            throw;
         }
     }
 

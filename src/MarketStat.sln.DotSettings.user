@@ -1,0 +1,33 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=0e22bc13_002D2cbc_002D469d_002Da0f0_002Dd2d3c6fd9c4a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreateEmployeeAsync_ValidDates_AssignsId #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEmployeeServiceUnitTests.CreateEmployeeAsync_ValidDates_AssignsId&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimDateServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEducationLevelServiceUnitTests.CreateEducationLevelAsync_ValidParameters_ReturnsNewLevel&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEducationServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEmployeeEducationServiceUnitTests.CreateEmployeeEducationAsync_ValidParameters_CallsRepositoryOnce&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEmployeeServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEmployerIndustryFieldServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEmployerServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEducationLevelServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimFederalDistrictServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimHierarchyLevelServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimIndustryFieldServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimJobRoleServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimOblastServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimStandardJobRoleHierarchyServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimStandardJobRoleServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Facts.FactSalaryServiceUnitTests&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=bf129059_002D3e82_002D43cd_002Da7de_002Da2cc102eaa42/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="FactSalaryServiceUnitTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Facts.FactSalaryServiceUnitTests&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d5b59537_002D6a12_002D4a9f_002Db260_002D48907a0d4644/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreateEmployeeAsync_ValidDates_AssignsId" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEmployeeServiceUnitTests.CreateEmployeeAsync_ValidDates_AssignsId&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

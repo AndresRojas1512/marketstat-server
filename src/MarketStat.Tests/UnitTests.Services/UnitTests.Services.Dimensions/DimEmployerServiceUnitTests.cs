@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEmployerService;
 using Microsoft.Extensions.Logging;
@@ -21,47 +22,34 @@ public class DimEmployerServiceUnitTests
     }
     
     [Fact]
-    public async Task CreateEmployerAsync_EmptyRepo_CreatesWithId1()
+    public async Task CreateEmployerAsync_ValidParameters_AssignsIdAndReturns()
     {
-        _dimEmployerRepositoryMock
-            .Setup(r => r.AddEmployerAsync(It.IsAny<DimEmployer>()))
-            .Callback<DimEmployer>(e => e.EmployerId = 1)
-            .Returns(Task.CompletedTask);
-        
-        var employer = await _dimEmployerService.CreateEmployerAsync("Acme", true);
+        _dimEmployerRepositoryMock.Setup(r => r.AddEmployerAsync(It.IsAny<DimEmployer>()))
+             .Callback<DimEmployer>(e => e.EmployerId = 42)
+             .Returns(Task.CompletedTask);
 
-        Assert.Equal(1, employer.EmployerId);
-        Assert.Equal("Acme", employer.EmployerName);
-        Assert.True(employer.IsPublic);
+        var result = await _dimEmployerService.CreateEmployerAsync("Acme Corp", true);
 
+        Assert.Equal(42, result.EmployerId);
+        Assert.Equal("Acme Corp", result.EmployerName);
+        Assert.True(result.IsPublic);
         _dimEmployerRepositoryMock.Verify(r => r.AddEmployerAsync(
             It.Is<DimEmployer>(e =>
-                e.EmployerName == "Acme" &&
-                e.IsPublic
-            )), Times.Once);
+                e.EmployerName == "Acme Corp" &&
+                e.IsPublic)), Times.Once);
     }
-    
+
     [Fact]
-    public async Task CreateEmployerAsync_NonEmptyRepo_IncrementsId()
+    public async Task CreateEmployerAsync_RepositoryThrowsConflict_ThrowsConflictException()
     {
-        _dimEmployerRepositoryMock
-            .Setup(r => r.AddEmployerAsync(It.IsAny<DimEmployer>()))
-            .Callback<DimEmployer>(e => e.EmployerId = 6)
-            .Returns(Task.CompletedTask);
+        _dimEmployerRepositoryMock.Setup(r => r.AddEmployerAsync(It.IsAny<DimEmployer>()))
+             .ThrowsAsync(new ConflictException("Duplicate"));
 
-        var employer = await _dimEmployerService.CreateEmployerAsync("NewCo", false);
-
-        Assert.Equal(6, employer.EmployerId);
-        Assert.Equal("NewCo", employer.EmployerName);
-        Assert.False(employer.IsPublic);
-
-        _dimEmployerRepositoryMock.Verify(r => r.AddEmployerAsync(
-            It.Is<DimEmployer>(e =>
-                e.EmployerName == "NewCo" &&
-                !e.IsPublic
-            )), Times.Once);
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            _dimEmployerService.CreateEmployerAsync("Acme", false)
+        );
     }
-    
+
     [Fact]
     public async Task CreateEmployerAsync_InvalidName_ThrowsArgumentException()
     {
@@ -69,122 +57,114 @@ public class DimEmployerServiceUnitTests
             _dimEmployerService.CreateEmployerAsync("", true)
         );
     }
-    
-    [Fact]
-    public async Task CreateEmployerAsync_RepositoryThrows_WrapsException()
-    {
-        _dimEmployerRepositoryMock
-            .Setup(r => r.AddEmployerAsync(It.IsAny<DimEmployer>()))
-            .ThrowsAsync(new InvalidOperationException("db error"));
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEmployerService.CreateEmployerAsync("Name", false)
+    [Fact]
+    public async Task GetEmployerByIdAsync_Found_ReturnsEntity()
+    {
+        var expected = new DimEmployer(7, "X", false);
+        _dimEmployerRepositoryMock.Setup(r => r.GetEmployerByIdAsync(7))
+             .ReturnsAsync(expected);
+
+        var actual = await _dimEmployerService.GetEmployerByIdAsync(7);
+
+        Assert.Same(expected, actual);
+    }
+
+    [Fact]
+    public async Task GetEmployerByIdAsync_NotFound_ThrowsNotFoundException()
+    {
+        _dimEmployerRepositoryMock.Setup(r => r.GetEmployerByIdAsync(9))
+             .ThrowsAsync(new NotFoundException("nope"));
+
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimEmployerService.GetEmployerByIdAsync(9)
         );
-        Assert.Contains("already exists", ex.Message);
     }
-    
-    [Fact]
-    public async Task GetEmployerByIdAsync_Found_ReturnsEmployer()
-    {
-        var e = new DimEmployer(2, "E2", true);
-        _dimEmployerRepositoryMock
-            .Setup(r => r.GetEmployerByIdAsync(2))
-            .ReturnsAsync(e);
 
-        var result = await _dimEmployerService.GetEmployerByIdAsync(2);
-
-        Assert.Same(e, result);
-    }
-    
     [Fact]
-    public async Task GetEmployerByIdAsync_NotFound_WrapsException()
+    public async Task GetAllEmployersAsync_ReturnsAll()
     {
-        _dimEmployerRepositoryMock
-            .Setup(r => r.GetEmployerByIdAsync(It.IsAny<int>()))
-            .ThrowsAsync(new KeyNotFoundException());
-
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEmployerService.GetEmployerByIdAsync(99)
-        );
-        Assert.Contains("Employer with ID 99 was not found", ex.Message);
-    }
-    
-    [Fact]
-    public async Task GetAllEmployersAsync_ReturnsList()
-    {
-        var list = new List<DimEmployer>
+        var list = new[]
         {
-            new DimEmployer(1, "A", false),
-            new DimEmployer(2, "B", true)
+            new DimEmployer(1, "A", true),
+            new DimEmployer(2, "B", false)
         };
-        _dimEmployerRepositoryMock
-            .Setup(r => r.GetAllEmployersAsync())
-            .ReturnsAsync(list);
+        _dimEmployerRepositoryMock.Setup(r => r.GetAllEmployersAsync())
+             .ReturnsAsync(list);
 
         var result = await _dimEmployerService.GetAllEmployersAsync();
 
-        Assert.Equal(2, result.Count());
         Assert.Equal(list, result);
     }
-    
+
     [Fact]
     public async Task UpdateEmployerAsync_ValidParameters_UpdatesAndReturns()
     {
         var existing = new DimEmployer(3, "Old", false);
-        _dimEmployerRepositoryMock
-            .Setup(r => r.GetEmployerByIdAsync(3))
-            .ReturnsAsync(existing);
+        _dimEmployerRepositoryMock.Setup(r => r.GetEmployerByIdAsync(3)).ReturnsAsync(existing);
+        _dimEmployerRepositoryMock.Setup(r => r.UpdateEmployerAsync(It.IsAny<DimEmployer>())).Returns(Task.CompletedTask);
 
-        var updated = await _dimEmployerService.UpdateEmployerAsync(3, "New", true);
+        var updated = await _dimEmployerService.UpdateEmployerAsync(3, "NewCo", true);
 
-        Assert.Equal("New", updated.EmployerName);
+        Assert.Equal("NewCo", updated.EmployerName);
         Assert.True(updated.IsPublic);
         _dimEmployerRepositoryMock.Verify(r => r.UpdateEmployerAsync(
             It.Is<DimEmployer>(e =>
-                e.EmployerId == 3 &&
-                e.EmployerName == "New" &&
-                e.IsPublic
-            )), Times.Once);
+                e.EmployerId   == 3 &&
+                e.EmployerName == "NewCo" &&
+                e.IsPublic)), Times.Once);
     }
-    
+
     [Fact]
     public async Task UpdateEmployerAsync_InvalidId_ThrowsArgumentException()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEmployerService.UpdateEmployerAsync(0, "N", false)
+            _dimEmployerService.UpdateEmployerAsync(0, "Any", false)
         );
     }
-    
-    [Fact]
-    public async Task UpdateEmployerAsync_NotFound_WrapsException()
-    {
-        _dimEmployerRepositoryMock
-            .Setup(r => r.GetEmployerByIdAsync(4))
-            .ThrowsAsync(new KeyNotFoundException());
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEmployerService.UpdateEmployerAsync(4, "N", false)
-        );
-        Assert.Contains("Cannot update: employer 4 was not found", ex.Message);
-    }
-    
     [Fact]
-    public async Task DeleteEmployerAsync_ValidId_CallsRepository()
+    public async Task UpdateEmployerAsync_NotFound_ThrowsNotFoundException()
     {
-        await _dimEmployerService.DeleteEmployerAsync(7);
-        _dimEmployerRepositoryMock.Verify(r => r.DeleteEmployerAsync(7), Times.Once);
-    }
-    
-    [Fact]
-    public async Task DeleteEmployerAsync_NotFound_WrapsException()
-    {
-        _dimEmployerRepositoryMock
-            .Setup(r => r.DeleteEmployerAsync(8))
-            .ThrowsAsync(new KeyNotFoundException());
+        _dimEmployerRepositoryMock.Setup(r => r.GetEmployerByIdAsync(5))
+             .ThrowsAsync(new NotFoundException("missing"));
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEmployerService.DeleteEmployerAsync(8)
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimEmployerService.UpdateEmployerAsync(5, "Name", true)
         );
-        Assert.Contains("Cannot delete: employer 8 not found", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateEmployerAsync_Conflict_ThrowsConflictException()
+    {
+        var existing = new DimEmployer(6, "Org", false);
+        _dimEmployerRepositoryMock.Setup(r => r.GetEmployerByIdAsync(6)).ReturnsAsync(existing);
+        _dimEmployerRepositoryMock.Setup(r => r.UpdateEmployerAsync(It.IsAny<DimEmployer>()))
+             .ThrowsAsync(new ConflictException("dupe"));
+
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            _dimEmployerService.UpdateEmployerAsync(6, "Org2", true)
+        );
+    }
+
+    [Fact]
+    public async Task DeleteEmployerAsync_ValidId_Completes()
+    {
+        _dimEmployerRepositoryMock.Setup(r => r.DeleteEmployerAsync(8)).Returns(Task.CompletedTask);
+
+        await _dimEmployerService.DeleteEmployerAsync(8);
+
+        _dimEmployerRepositoryMock.Verify(r => r.DeleteEmployerAsync(8), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteEmployerAsync_NotFound_ThrowsNotFoundException()
+    {
+        _dimEmployerRepositoryMock.Setup(r => r.DeleteEmployerAsync(9))
+             .ThrowsAsync(new NotFoundException("gone"));
+
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimEmployerService.DeleteEmployerAsync(9)
+        );
     }
 }

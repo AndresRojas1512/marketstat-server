@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using Microsoft.Extensions.Logging;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimDateService;
@@ -25,7 +26,6 @@ public class DimDateServiceUnitTests
     {
         var date = DateOnly.Parse("2025-04-24");
 
-        // simulate EF assigning a serial PK
         _dimDateRepositoryMock
             .Setup(r => r.AddDateAsync(It.IsAny<DimDate>()))
             .Callback<DimDate>(d => d.DateId = 1)
@@ -41,36 +41,37 @@ public class DimDateServiceUnitTests
 
         _dimDateRepositoryMock.Verify(r => r.AddDateAsync(
             It.Is<DimDate>(d =>
-                d.DateId == 1 &&
+                d.DateId   == 1 &&
                 d.FullDate == date &&
                 d.Year     == date.Year &&
                 d.Month    == date.Month &&
                 d.Quarter  == ((date.Month - 1) / 3 + 1)
             )), Times.Once);
     }
-    
-    [Fact]
-    public async Task CreateDateAsync_Duplicate_ThrowsException()
-    {
-        var date = DateOnly.Parse("2025-04-24");
-
-        _dimDateRepositoryMock
-            .Setup(r => r.AddDateAsync(It.IsAny<DimDate>()))
-            .ThrowsAsync(new InvalidOperationException("exists"));
-
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimDateService.CreateDateAsync(date));
-
-        Assert.Equal($"A dim_date row for {date} already exists.", ex.Message);
-    }
-    
+        
     [Fact]
     public async Task CreateDateAsync_InvalidDate_ThrowsArgumentException()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimDateService.CreateDateAsync(default));
     }
-    
+
+    [Fact]
+    public async Task CreateDateAsync_Duplicate_ThrowsConflictException()
+    {
+        var date = DateOnly.Parse("2025-04-24");
+        var expectedMessage = $"A date for {date:yyyy-MM-dd} already exists.";
+
+        _dimDateRepositoryMock
+            .Setup(r => r.AddDateAsync(It.IsAny<DimDate>()))
+            .ThrowsAsync(new ConflictException(expectedMessage));
+
+        var ex = await Assert.ThrowsAsync<ConflictException>(() =>
+            _dimDateService.CreateDateAsync(date));
+
+        Assert.Equal(expectedMessage, ex.Message);
+    }
+
     [Fact]
     public async Task GetDateByIdAsync_Existing_ReturnsDimDate()
     {
@@ -83,20 +84,23 @@ public class DimDateServiceUnitTests
 
         Assert.Same(expected, actual);
     }
-    
+
     [Fact]
-    public async Task GetDateByIdAsync_NotFound_ThrowsException()
+    public async Task GetDateByIdAsync_NotFound_ThrowsNotFoundException()
     {
+        var id = 42;
+        var expectedMessage = $"Date with ID {id} not found.";
+
         _dimDateRepositoryMock
-            .Setup(r => r.GetDateByIdAsync(42))
-            .ThrowsAsync(new KeyNotFoundException());
+            .Setup(r => r.GetDateByIdAsync(id))
+            .ThrowsAsync(new NotFoundException(expectedMessage));
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimDateService.GetDateByIdAsync(42));
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimDateService.GetDateByIdAsync(id));
 
-        Assert.Equal("Date with ID 42 was not found.", ex.Message);
+        Assert.Equal(expectedMessage, ex.Message);
     }
-    
+
     [Fact]
     public async Task GetAllDatesAsync_ReturnsList()
     {
@@ -114,7 +118,7 @@ public class DimDateServiceUnitTests
         Assert.Equal(2, result.Count);
         Assert.Equal(list, result);
     }
-    
+
     [Fact]
     public async Task UpdateDateAsync_ValidParameters_ReturnsUpdatedDimDate()
     {
@@ -142,20 +146,7 @@ public class DimDateServiceUnitTests
                 d.FullDate == newDate
             )), Times.Once);
     }
-    
-    [Fact]
-    public async Task UpdateDateAsync_NotFound_ThrowsException()
-    {
-        _dimDateRepositoryMock
-            .Setup(r => r.GetDateByIdAsync(9))
-            .ThrowsAsync(new KeyNotFoundException());
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimDateService.UpdateDateAsync(9, DateOnly.Parse("2025-08-01")));
-
-        Assert.Equal("Cannot update: date 9 not found.", ex.Message);
-    }
-    
     [Fact]
     public async Task UpdateDateAsync_InvalidParameters_ThrowsArgumentException()
     {
@@ -165,17 +156,36 @@ public class DimDateServiceUnitTests
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _dimDateService.UpdateDateAsync(1, default));
     }
-    
+
     [Fact]
-    public async Task DeleteDateAsync_NotFound_ThrowsException()
+    public async Task UpdateDateAsync_NotFound_ThrowsNotFoundException()
     {
+        var id = 9;
+        var expectedMessage = $"Date with ID {id} not found.";
+
         _dimDateRepositoryMock
-            .Setup(r => r.DeleteDateAsync(8))
-            .ThrowsAsync(new KeyNotFoundException());
+            .Setup(r => r.GetDateByIdAsync(id))
+            .ThrowsAsync(new NotFoundException(expectedMessage));
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimDateService.DeleteDateAsync(8));
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimDateService.UpdateDateAsync(id, DateOnly.Parse("2025-08-01")));
 
-        Assert.Equal("Cannot delete: date 8 not found.", ex.Message);
+        Assert.Equal(expectedMessage, ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteDateAsync_NotFound_ThrowsNotFoundException()
+    {
+        var id = 8;
+        var expectedMessage = $"Date with ID {id} not found.";
+
+        _dimDateRepositoryMock
+            .Setup(r => r.DeleteDateAsync(id))
+            .ThrowsAsync(new NotFoundException(expectedMessage));
+
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimDateService.DeleteDateAsync(id));
+
+        Assert.Equal(expectedMessage, ex.Message);
     }
 }

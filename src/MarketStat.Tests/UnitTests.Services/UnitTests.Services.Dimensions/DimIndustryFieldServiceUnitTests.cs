@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using Microsoft.Extensions.Logging;
@@ -62,15 +63,15 @@ public class DimIndustryFieldServiceUnitTests
     }
         
     [Fact]
-    public async Task GetIndustryFieldByIdAsync_NonExistingId_ThrowsException()
+    public async Task GetIndustryFieldByIdAsync_NonExistingId_ThrowsNotFoundException()
     {
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.GetIndustryFieldByIdAsync(It.IsAny<int>()))
-            .ThrowsAsync(new KeyNotFoundException());
+            .ThrowsAsync(new NotFoundException("Industry field with ID 99 not found."));
         
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimIndustryFieldService.GetIndustryFieldByIdAsync(99));
-        Assert.Equal("Industry field 99 was not found.", ex.Message);
+        Assert.Equal("Industry field with ID 99 not found.", ex.Message);
     }
         
     [Fact]
@@ -118,15 +119,15 @@ public class DimIndustryFieldServiceUnitTests
     }
         
     [Fact]
-    public async Task UpdateIndustryFieldAsync_NonExistingId_ThrowsException()
+    public async Task UpdateIndustryFieldAsync_NonExistingId_ThrowsNotFoundException()
     {
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.GetIndustryFieldByIdAsync(It.IsAny<int>()))
-            .ThrowsAsync(new KeyNotFoundException());
+            .ThrowsAsync(new NotFoundException("Industry field with ID 123 not found."));
         
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimIndustryFieldService.UpdateIndustryFieldAsync(123, "Name"));
-        Assert.Equal("Cannot update: industry field 123 not found.", ex.Message);
+        Assert.Equal("Industry field with ID 123 not found.", ex.Message);
     }
         
     [Fact]
@@ -149,14 +150,14 @@ public class DimIndustryFieldServiceUnitTests
     }
 
     [Fact]
-    public async Task DeleteIndustryFieldAsync_NonExistingId_ThrowsException()
+    public async Task DeleteIndustryFieldAsync_NonExistingId_ThrowsNotFoundException()
     {
         _dimIndustryFieldRepositoryMock
             .Setup(r => r.DeleteIndustryFieldAsync(It.IsAny<int>()))
-            .ThrowsAsync(new KeyNotFoundException());
+            .ThrowsAsync(new NotFoundException("Industry field with ID 88 not found."));
         
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimIndustryFieldService.DeleteIndustryFieldAsync(88));
-        Assert.Equal("Cannot delete: industry field 88 not found.", ex.Message);
+        Assert.Equal("Industry field with ID 88 not found.", ex.Message);
     }
 }

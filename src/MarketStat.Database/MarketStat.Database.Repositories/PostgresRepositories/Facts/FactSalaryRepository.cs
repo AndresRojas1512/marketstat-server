@@ -1,10 +1,12 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 
@@ -30,14 +32,24 @@ public class FactSalaryRepository : IFactSalaryRepository
             bonusAmount: salary.BonusAmount
         );
         await _dbContext.FactSalaries.AddAsync(dbModel);
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg &&
+                  pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
+        {
+            throw new NotFoundException("One or more referenced entities (date, city, employer, job role or employee) were not found.");
+        }
         salary.SalaryFactId = dbModel.SalaryFactId;
     }
 
     public async Task<FactSalary> GetFactSalaryByIdAsync(int salaryId)
     {
-        var dbSalary = await _dbContext.FactSalaries.FindAsync(salaryId)
-                      ?? throw new KeyNotFoundException($"FactSalary {salaryId} not found.");
+        var dbSalary = await _dbContext.FactSalaries.FindAsync(salaryId);
+        if (dbSalary is null)
+            throw new NotFoundException($"Salary fact with ID {salaryId} not found.");
         return FactSalaryConverter.ToDomain(dbSalary);
     }
     
@@ -63,8 +75,9 @@ public class FactSalaryRepository : IFactSalaryRepository
 
     public async Task UpdateFactSalaryAsync(FactSalary salaryFact)
     {
-        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFact.SalaryFactId)
-                      ?? throw new KeyNotFoundException($"Cannot update: salary fact {salaryFact.SalaryFactId} not found.");
+        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFact.SalaryFactId);
+        if (dbModel is null)
+            throw new NotFoundException($"Salary fact with ID {salaryFact.SalaryFactId} not found.");
 
         dbModel.DateId       = salaryFact.DateId;
         dbModel.CityId       = salaryFact.CityId;
@@ -74,13 +87,23 @@ public class FactSalaryRepository : IFactSalaryRepository
         dbModel.SalaryAmount = salaryFact.SalaryAmount;
         dbModel.BonusAmount  = salaryFact.BonusAmount;
 
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg &&
+                  pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
+        {
+            throw new NotFoundException("One or more referenced entities (date, city, employer, job role or employee) were not found.");
+        }
     }
 
     public async Task DeleteFactSalaryByIdAsync(int salaryFactId)
     {
-        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFactId)
-                      ?? throw new KeyNotFoundException($"Cannot delete: salary fact {salaryFactId} not found.");
+        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFactId);
+        if (dbModel is null)
+            throw new NotFoundException($"Salary fact with ID {salaryFactId} not found.");
 
         _dbContext.FactSalaries.Remove(dbModel);
         await _dbContext.SaveChangesAsync();
