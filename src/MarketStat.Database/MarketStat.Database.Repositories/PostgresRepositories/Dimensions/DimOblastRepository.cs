@@ -1,9 +1,11 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
@@ -23,14 +25,31 @@ public class DimOblastRepository : BaseRepository, IDimOblastRepository
             districtId: dimOblast.DistrictId
         );
         await _dbContext.DimOblasts.AddAsync(dbModel);
-        await _dbContext.SaveChangesAsync();
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            throw new ConflictException($"An oblast with name '{dimOblast.OblastName}' already exists.");
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
+        {
+            throw new NotFoundException(
+                $"Referenced federal district ({dimOblast.DistrictId}) not found.");
+        }
         dimOblast.OblastId = dbModel.OblastId;
     }
 
     public async Task<DimOblast> GetOblastByIdAsync(int id)
     {
-        var dbOblast = await _dbContext.DimOblasts.FindAsync(id) 
-                       ?? throw new KeyNotFoundException($"Oblast {id} not found");
+        var dbOblast = await _dbContext.DimOblasts.FindAsync(id);
+        if (dbOblast is null)
+            throw new NotFoundException($"Oblast {id} not found");
         return DimOblastConverter.ToDomain(dbOblast);
     }
 
@@ -50,17 +69,37 @@ public class DimOblastRepository : BaseRepository, IDimOblastRepository
 
     public async Task UpdateOblastAsync(DimOblast dimOblast)
     {
-        var dbOblast = await _dbContext.DimOblasts.FindAsync(dimOblast.OblastId) 
-                       ?? throw new KeyNotFoundException($"Cannot update Oblast {dimOblast.OblastId}.");
+        var dbOblast = await _dbContext.DimOblasts.FindAsync(dimOblast.OblastId);
+        if (dbOblast is null)
+            throw new NotFoundException($"Oblast {dimOblast.OblastId} not found");
+        
         dbOblast.OblastName = dimOblast.OblastName;
         dbOblast.DistrictId = dimOblast.DistrictId;
-        await _dbContext.SaveChangesAsync();
+        
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            throw new ConflictException($"An oblast with name '{dimOblast.OblastName}' already exists.");
+        }
+        catch (DbUpdateException dbEx)
+            when (dbEx.InnerException is PostgresException pg
+                  && pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
+        {
+            throw new NotFoundException(
+                $"Referenced federal district ({dimOblast.DistrictId}) not found.");
+        }
     }
 
     public async Task DeleteOblastAsync(int id)
     {
-        var dbOblast = await _dbContext.DimOblasts.FindAsync(id) 
-                       ?? throw new KeyNotFoundException($"Cannot delete Oblast {id}.");
+        var dbOblast = await _dbContext.DimOblasts.FindAsync(id);
+        if (dbOblast is null)
+            throw new NotFoundException($"Oblast {id} not found");
         _dbContext.DimOblasts.Remove(dbOblast);
         await _dbContext.SaveChangesAsync();
     }

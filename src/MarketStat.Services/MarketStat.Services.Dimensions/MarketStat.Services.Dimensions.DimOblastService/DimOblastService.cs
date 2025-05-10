@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimOblastService.Validators;
 using Microsoft.Extensions.Logging;
@@ -27,10 +28,15 @@ public class DimOblastService : IDimOblastService
             _logger.LogInformation("Created DimOblast {OblastId}", oblast.OblastId);
             return oblast;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create DimIndustryField {IndustryFieldId}.", oblast.OblastId);
-            throw new Exception($"Could not create oblast {oblastName}");
+            _logger.LogError(ex, "Conflict creating oblast {OblastId}.", oblast.OblastId);
+            throw;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "FKs not found: Federal district");
+            throw;
         }
     }
 
@@ -40,10 +46,10 @@ public class DimOblastService : IDimOblastService
         {
             return await _dimOblastRepository.GetOblastByIdAsync(oblastId);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "Oblast {OblastId} not found", oblastId);
-            throw new Exception($"Oblast {oblastId} was not found.");
+            throw;
         }
     }
 
@@ -56,18 +62,10 @@ public class DimOblastService : IDimOblastService
 
     public async Task<IEnumerable<DimOblast>> GetOblastsByFederalDistrictIdAsync(int districtId)
     {
-        try
-        {
-            var oblasts = await _dimOblastRepository.GetOblastsByFederalDistrictIdAsync(districtId);
-            _logger.LogInformation("Fetched {Count} oblast(s) for federal distric {DistrictId}.", oblasts.Count(),
-                districtId);
-            return oblasts;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error fetching oblasts for federal district {DistrictId}", districtId);
-            throw new Exception($"Could not retrieve oblasts for district {districtId}.");
-        }
+        var oblasts = await _dimOblastRepository.GetOblastsByFederalDistrictIdAsync(districtId);
+        _logger.LogInformation("Fetched {Count} oblast(s) for federal distric {DistrictId}.", oblasts.Count(),
+            districtId);
+        return oblasts;
     }
 
     public async Task<DimOblast> UpdateOblastAsync(int oblastId, string oblastName, int districtId)
@@ -82,10 +80,15 @@ public class DimOblastService : IDimOblastService
             _logger.LogInformation("Updated Oblast {OblastId}", oblastId);
             return existing;
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "Cannot update oblast {OblastId}", oblastId);
-            throw new Exception($"Cannot update: oblast {oblastId} not found.");
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "Conflict updating oblast {OblastId}, already exists", oblastId);
+            throw;
         }
     }
 
@@ -96,10 +99,10 @@ public class DimOblastService : IDimOblastService
             await _dimOblastRepository.DeleteOblastAsync(id);
             _logger.LogInformation("Deleted Oblast {OblastId}", id);
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
             _logger.LogWarning(ex, "Cannot delete oblast {OblastId}", id);
-            throw new Exception($"Cannot delete: oblast {id} not found.");
+            throw;
         }
     }
 }
