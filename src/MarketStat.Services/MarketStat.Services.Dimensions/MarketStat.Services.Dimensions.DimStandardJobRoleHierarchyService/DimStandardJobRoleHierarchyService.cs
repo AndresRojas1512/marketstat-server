@@ -1,5 +1,6 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService.Validators;
 using Microsoft.Extensions.Logging;
@@ -27,13 +28,18 @@ public class DimStandardJobRoleHierarchyService : IDimStandardJobRoleHierarchySe
         try
         {
             await _dimStandardJobRoleHierarchyRepository.AddStandardJobRoleHierarchyAsync(link);
-            _logger.LogInformation("Created link ({JobRoleId}, {LevelId}).", jobRoleId, levelId);
+            _logger.LogInformation("Created link ({JobRoleId},{LevelId})", jobRoleId, levelId);
             return link;
         }
-        catch (Exception ex)
+        catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create link ({JobRoleId},{LevelId})", jobRoleId, levelId);
-            throw new Exception($"Could not create link ({jobRoleId},{levelId}).");
+            _logger.LogError(ex, "Conflict creating link ({JobRoleId},{LevelId})", jobRoleId, levelId);
+            throw;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "Cannot create link: FK missing ({JobRoleId},{LevelId})", jobRoleId, levelId);
+            throw;
         }
     }
 
@@ -43,41 +49,25 @@ public class DimStandardJobRoleHierarchyService : IDimStandardJobRoleHierarchySe
         {
             return await _dimStandardJobRoleHierarchyRepository.GetStandardJobRoleHierarchyAsync(jobRoleId, levelId);
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Link ({JobRoleId}, {levelId}) not found.", jobRoleId, levelId);
-            throw new Exception($"Link ({jobRoleId}, {levelId}) not found.");
+            _logger.LogWarning(ex, "Link ({JobRoleId},{LevelId}) not found", jobRoleId, levelId);
+            throw;
         }
     }
 
     public async Task<IEnumerable<DimStandardJobRoleHierarchy>> GetLevelsByJobRoleIdAsync(int jobRoleId)
     {
-        try
-        {
-            var list = await _dimStandardJobRoleHierarchyRepository.GetLevelsByJobRoleIdAsync(jobRoleId);
-            _logger.LogInformation("Fetched {Count} levels for job {JobRoleId}.", list.Count(), jobRoleId);
-            return list;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error fetching levels for job {JobRoleId}.", jobRoleId);
-            throw new Exception($"Could not retrieve levels for job {jobRoleId}.");
-        }
+        var list = await _dimStandardJobRoleHierarchyRepository.GetLevelsByJobRoleIdAsync(jobRoleId);
+        _logger.LogInformation("Fetched {Count} levels for job {JobRoleId}.", list.Count(), jobRoleId);
+        return list;
     }
 
     public async Task<IEnumerable<DimStandardJobRoleHierarchy>> GetJobRolesByLevelIdAsync(int levelId)
     {
-        try
-        {
-            var list = await _dimStandardJobRoleHierarchyRepository.GetJobRolesByLevelIdAsync(levelId);
-            _logger.LogInformation("Fetched {Count} job roles for level {LevelId}.", list.Count(), levelId);
-            return list;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error fetching job roles for level {LevelId}.", levelId);
-            throw new Exception($"Could not retrieve job roles for level {levelId}");
-        }
+        var list = await _dimStandardJobRoleHierarchyRepository.GetJobRolesByLevelIdAsync(levelId);
+        _logger.LogInformation("Fetched {Count} job roles for level {LevelId}.", list.Count(), levelId);
+        return list;
     }
 
     public async Task<IEnumerable<DimStandardJobRoleHierarchy>> GetAllStandardJobRoleHierarchiesAsync()
@@ -94,10 +84,10 @@ public class DimStandardJobRoleHierarchyService : IDimStandardJobRoleHierarchySe
             await _dimStandardJobRoleHierarchyRepository.DeleteStandardJobRoleHierarchyAsync(jobRoleId, levelId);
             _logger.LogInformation("Deleted link ({JobRoleId}, {LevelId}).", jobRoleId, levelId);
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot delete link ({JobRoleId}, {LevelId}).", jobRoleId, levelId);
-            throw new Exception($"Cannot delete link ({jobRoleId}, {levelId}).");
+            _logger.LogWarning(ex, "Cannot delete link ({JobRoleId},{LevelId})", jobRoleId, levelId);
+            throw;
         }
     }
 }
