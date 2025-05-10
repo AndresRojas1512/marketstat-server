@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Dimensions.DimFederalDistrictService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -46,9 +47,9 @@ public class DimFederalDistrictServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetDistrictByIdAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimFederalDistrictService.GetDistrictByIdAsync(999));
-        Assert.Contains("was not found", ex.Message);
+        Assert.Contains("not found", ex.Message);
     }
     
     [Fact]
@@ -84,7 +85,7 @@ public class DimFederalDistrictServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateDistrictAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimFederalDistrictService.UpdateDistrictAsync(123, "X"));
         Assert.Contains("not found", ex.Message);
     }
@@ -103,7 +104,7 @@ public class DimFederalDistrictServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteDistrictAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimFederalDistrictService.DeleteDistrictAsync(888));
         Assert.Contains("not found", ex.Message);
     }

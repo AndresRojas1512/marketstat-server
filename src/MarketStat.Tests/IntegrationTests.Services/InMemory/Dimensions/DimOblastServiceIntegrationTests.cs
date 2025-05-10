@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Dimensions.DimOblastService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -46,7 +47,7 @@ public class DimOblastServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetOblastByIdAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimOblastService.GetOblastByIdAsync(999));
     }
 
@@ -106,7 +107,7 @@ public class DimOblastServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateOblastAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimOblastService.UpdateOblastAsync(123, "Whatever", 1));
     }
         
@@ -124,7 +125,7 @@ public class DimOblastServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteOblastAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimOblastService.DeleteOblastAsync(888));
     }
 }

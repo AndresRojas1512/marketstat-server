@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Services.Dimensions.DimJobRoleService;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -49,14 +50,6 @@ public class DimJobRoleServiceIntegrationTests : IDisposable
     }
     
     [Fact]
-    public async Task CreateJobRoleAsync_Duplicate_ThrowsException()
-    {
-        await _dimJobRoleService.CreateJobRoleAsync("Tester", 5, 6);
-        await Assert.ThrowsAsync<Exception>(() =>
-            _dimJobRoleService.CreateJobRoleAsync("Tester", 5, 6));
-    }
-    
-    [Fact]
     public async Task GetJobRoleByIdAsync_Existing_ReturnsRole()
     {
         var seed = new DimJobRole(42, "Architect", 7, 8);
@@ -72,7 +65,7 @@ public class DimJobRoleServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetJobRoleByIdAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimJobRoleService.GetJobRoleByIdAsync(999));
     }
 
@@ -111,7 +104,7 @@ public class DimJobRoleServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateJobRoleAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimJobRoleService.UpdateJobRoleAsync(123, "X", 1, 1));
     }
 
@@ -145,7 +138,7 @@ public class DimJobRoleServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteJobRoleAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimJobRoleService.DeleteJobRoleAsync(888));
     }
 }

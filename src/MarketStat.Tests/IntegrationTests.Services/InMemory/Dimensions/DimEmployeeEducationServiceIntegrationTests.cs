@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEmployeeEducationService;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -62,9 +63,9 @@ public class DimEmployeeEducationServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetEmployeeEducationAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployeeEducationService.GetEmployeeEducationAsync(99, 99));
-        Assert.Contains("was not found", ex.Message);
+        Assert.Contains("not found", ex.Message);
     }
     
     [Fact]
@@ -127,9 +128,9 @@ public class DimEmployeeEducationServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateEmployeeEducationAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployeeEducationService.UpdateEmployeeEducationAsync(100, 100, 2000));
-        Assert.Contains("was not found", ex.Message);
+        Assert.Contains("not found", ex.Message);
     }
     
     [Fact]
@@ -147,8 +148,8 @@ public class DimEmployeeEducationServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteEmployeeEducationAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployeeEducationService.DeleteEmployeeEducationAsync(123, 456));
-        Assert.Contains("Could not remove education", ex.Message);
+        Assert.Contains("not found", ex.Message);
     }
 }

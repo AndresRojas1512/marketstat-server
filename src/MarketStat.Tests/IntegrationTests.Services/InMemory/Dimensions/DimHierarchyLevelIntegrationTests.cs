@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimHierarchyLevelService;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -58,10 +59,10 @@ public class DimHierarchyLevelIntegrationTests : IDisposable
     [Fact]
     public async Task GetHierarchyLevelByIdAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(99));
 
-        Assert.Equal("Industry field 99 was not found.", ex.Message);
+        Assert.Equal("Hierarchy level 99 not found.", ex.Message);
     }
     
     [Fact]
@@ -97,10 +98,10 @@ public class DimHierarchyLevelIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateHierarchyLevelAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimHierarchyLevelService.UpdateHierarchyLevelAsync(99, "X"));
 
-        Assert.Equal("Cannot update: hierarchy level 99 not found.", ex.Message);
+        Assert.Equal("Hierarchy level 99 not found.", ex.Message);
     }
 
     [Fact]
@@ -128,9 +129,9 @@ public class DimHierarchyLevelIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteHierarchyLevelAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimHierarchyLevelService.DeleteHierarchyLevelAsync(123));
 
-        Assert.Equal("Cannot delete: hierarchy level 123 not found.", ex.Message);
+        Assert.Equal("Hierarchy level 123 not found.", ex.Message);
     }
 }

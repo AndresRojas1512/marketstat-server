@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -70,7 +71,7 @@ public class DimIndustryFieldServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetIndustryFieldByIdAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimIndustryFieldService.GetIndustryFieldByIdAsync(999));
     }
 
@@ -109,7 +110,7 @@ public class DimIndustryFieldServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateIndustryFieldAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimIndustryFieldService.UpdateIndustryFieldAsync(123, "X"));
     }
 
@@ -137,7 +138,7 @@ public class DimIndustryFieldServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteIndustryFieldAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimIndustryFieldService.DeleteIndustryFieldAsync(888));
     }
 }

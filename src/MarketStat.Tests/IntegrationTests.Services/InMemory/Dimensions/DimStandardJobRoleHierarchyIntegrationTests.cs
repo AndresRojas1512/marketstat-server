@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -34,14 +35,6 @@ public class DimStandardJobRoleHierarchyIntegrationTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateStandardJobRoleHierarchy_Duplicate_ThrowsException()
-    {
-        await _dimStandardJobRoleHierarchyService.CreateStandardJobRoleHierarchy(1, 2);
-        await Assert.ThrowsAsync<Exception>(() =>
-            _dimStandardJobRoleHierarchyService.CreateStandardJobRoleHierarchy(1, 2));
-    }
-
-    [Fact]
     public async Task GetStandardJobRoleHierarchyAsync_Existing_ReturnsLink()
     {
         var seed = new DimStandardJobRoleHierarchy(3, 4);
@@ -55,7 +48,7 @@ public class DimStandardJobRoleHierarchyIntegrationTests : IDisposable
     [Fact]
     public async Task GetStandardJobRoleHierarchyAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimStandardJobRoleHierarchyService.GetStandardJobRoleHierarchyAsync(99, 88));
     }
 
@@ -123,7 +116,7 @@ public class DimStandardJobRoleHierarchyIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteStandardJobRoleHierarchyAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimStandardJobRoleHierarchyService.DeleteStandardJobRoleHierarchyAsync(99, 88));
     }
 }

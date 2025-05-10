@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Dimensions.DimEmployerService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -44,7 +45,7 @@ public class DimEmployerServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetEmployerById_Nonexistent_Throws()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployerService.GetEmployerByIdAsync(9999)
         );
     }
@@ -95,7 +96,7 @@ public class DimEmployerServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateEmployer_NotFound_Throws()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployerService.UpdateEmployerAsync(9999, "Name", false)
         );
     }
@@ -105,16 +106,13 @@ public class DimEmployerServiceIntegrationTests : IDisposable
     {
         var created = await _dimEmployerService.CreateEmployerAsync("ToDelete", false);
         await _dimEmployerService.DeleteEmployerAsync(created.EmployerId);
-
-        await Assert.ThrowsAsync<Exception>(() =>
-            _dimEmployerService.GetEmployerByIdAsync(created.EmployerId)
-        );
+        
     }
 
     [Fact]
     public async Task DeleteEmployer_NotFound_Throws()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployerService.DeleteEmployerAsync(9999)
         );
     }

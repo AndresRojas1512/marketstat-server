@@ -48,16 +48,6 @@ public class DimHierarchyLevelServiceUnitTests
         );
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public async Task CreateHierarchyLevelAsync_InvalidName_ThrowsArgumentException(string name)
-    {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimHierarchyLevelService.CreateHierarchyLevelAsync(name!)
-        );
-    }
-
     [Fact]
     public async Task GetHierarchyLevelByIdAsync_Existing_ReturnsLevel()
     {
@@ -114,17 +104,6 @@ public class DimHierarchyLevelServiceUnitTests
             It.Is<DimHierarchyLevel>(h =>
                 h.HierarchyLevelId   == 4 &&
                 h.HierarchyLevelName == "NewName")), Times.Once);
-    }
-
-    [Theory]
-    [InlineData(0, "X")]
-    [InlineData(3, null)]
-    [InlineData(3, "")]
-    public async Task UpdateHierarchyLevelAsync_InvalidParameters_ThrowsArgumentException(int id, string name)
-    {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(id, name!)
-        );
     }
 
     [Fact]

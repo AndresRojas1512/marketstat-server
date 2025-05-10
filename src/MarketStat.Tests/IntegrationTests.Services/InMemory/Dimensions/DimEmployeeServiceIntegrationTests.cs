@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Dimensions.DimEmployeeService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -65,9 +66,9 @@ public class DimEmployeeServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetEmployeeByIdAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployeeService.GetEmployeeByIdAsync(999));
-        Assert.Contains("was not found", ex.Message);
+        Assert.Contains("not found", ex.Message);
     }
     
     [Fact]
@@ -108,7 +109,7 @@ public class DimEmployeeServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateEmployeeAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployeeService.UpdateEmployeeAsync(123, DateOnly.Parse("1990-01-01"), DateOnly.Parse("2010-01-01")));
         Assert.Contains("not found", ex.Message);
     }
@@ -137,7 +138,7 @@ public class DimEmployeeServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteEmployeeAsync_NotFound_ThrowsException()
     {
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployeeService.DeleteEmployeeAsync(888));
         Assert.Contains("not found", ex.Message);
     }

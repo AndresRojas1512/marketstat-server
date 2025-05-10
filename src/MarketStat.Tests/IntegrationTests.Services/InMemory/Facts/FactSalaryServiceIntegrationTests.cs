@@ -1,6 +1,7 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -79,7 +80,7 @@ public class FactSalaryServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetFactSalaryByIdAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _factSalaryService.GetFactSalaryByIdAsync(999)
         );
     }
@@ -167,7 +168,7 @@ public class FactSalaryServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateFactSalaryAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _factSalaryService.UpdateFactSalaryAsync(
                 salaryFactId: 99,
                 dateId: 1, cityId: 1, employerId: 1, jobRoleId: 1, employeeId: 1,
@@ -190,7 +191,7 @@ public class FactSalaryServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteFactSalaryAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _factSalaryService.DeleteFactSalaryAsync(888)
         );
     }

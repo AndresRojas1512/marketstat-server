@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Services.Dimensions.DimEducationService;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -86,7 +87,7 @@ public class DimEducationServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetEducationByIdAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEducationService.GetEducationByIdAsync(99));
     }
     
@@ -114,7 +115,7 @@ public class DimEducationServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateEducationAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEducationService.UpdateEducationAsync(
                 educationId: 123,
                 specialty:      "X",
@@ -139,7 +140,7 @@ public class DimEducationServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteEducationAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEducationService.DeleteEducationAsync(999));
     }
 }

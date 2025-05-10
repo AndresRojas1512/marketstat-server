@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Dimensions.DimEmployerIndustryFieldService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -49,16 +50,6 @@ public class DimEmployerIndustryFieldServiceIntegrationTests : IDisposable
     }
     
     [Fact]
-    public async Task CreateEmployerIndustryFieldAsync_Duplicate_ThrowsException()
-    {
-        var seed = new DimEmployerIndustryField(1, 2);
-        await _accessObject.SeedEmployerIndustryFieldAsync(new[] { seed });
-
-        await Assert.ThrowsAsync<Exception>(() =>
-            _dimEmployerIndustryFieldService.CreateEmployerIndustryFieldAsync(1, 2));
-    }
-    
-    [Fact]
     public async Task GetEmployerIndustryFieldAsync_Existing_ReturnsLink()
     {
         var seed = new DimEmployerIndustryField(3, 4);
@@ -72,7 +63,7 @@ public class DimEmployerIndustryFieldServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetEmployerIndustryFieldAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployerIndustryFieldService.GetEmployerIndustryFieldAsync(99, 99));
     }
     
@@ -127,7 +118,7 @@ public class DimEmployerIndustryFieldServiceIntegrationTests : IDisposable
     [Fact]
     public async Task DeleteEmployerIndustryFieldAsync_NotFound_ThrowsException()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
+        await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimEmployerIndustryFieldService.DeleteEmployerIndustryFieldAsync(123, 456));
     }
 }

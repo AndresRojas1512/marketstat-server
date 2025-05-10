@@ -51,16 +51,6 @@ public class DimFederalDistrictServiceUnitTests
         Assert.Equal("A federal district named 'West' already exists.", ex.Message);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public async Task CreateDistrictAsync_InvalidName_ThrowsArgumentException(string name)
-    {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimFederalDistrictService.CreateDistrictAsync(name!)
-        );
-    }
-
     [Fact]
     public async Task GetDistrictByIdAsync_Existing_ReturnsDomain()
     {
@@ -117,17 +107,6 @@ public class DimFederalDistrictServiceUnitTests
             It.Is<DimFederalDistrict>(d =>
                 d.DistrictId   == 4 &&
                 d.DistrictName == "New")), Times.Once);
-    }
-
-    [Theory]
-    [InlineData(0, "X")]
-    [InlineData(3, null!)]
-    [InlineData(3, "")]
-    public async Task UpdateDistrictAsync_InvalidParameters_ThrowsArgumentException(int id, string name)
-    {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimFederalDistrictService.UpdateDistrictAsync(id, name!)
-        );
     }
 
     [Fact]

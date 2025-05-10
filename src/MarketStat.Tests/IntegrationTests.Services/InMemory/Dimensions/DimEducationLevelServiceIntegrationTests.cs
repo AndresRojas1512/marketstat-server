@@ -1,5 +1,6 @@
 using IntegrationTests.Services.AccessObject;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Services.Dimensions.DimEducationLevelService;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -42,7 +43,7 @@ public class DimEducationLevelServiceIntegrationTests : IDisposable
         Assert.Contains(all, e => e.EducationLevelName == "Bachelor");
         Assert.Contains(all, e => e.EducationLevelName == "Master");
     }
-    
+
     [Fact]
     public async Task CreateEducationLevelAsync_Valid_CreatesAndReturns()
     {
@@ -54,15 +55,15 @@ public class DimEducationLevelServiceIntegrationTests : IDisposable
         var fetched = await _dimEducationLevelService.GetEducationLevelByIdAsync(created.EducationLevelId);
         Assert.Equal("PhD", fetched.EducationLevelName);
     }
-    
+
     [Fact]
     public async Task GetEducationLevelByIdAsync_NotFound_Throws()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationLevelService.GetEducationLevelByIdAsync(999)
+        await Assert.ThrowsAsync<NotFoundException>(async () =>
+            await _dimEducationLevelService.GetEducationLevelByIdAsync(999)
         );
     }
-    
+
     [Fact]
     public async Task UpdateEducationLevelAsync_Valid_UpdatesAndReturns()
     {
@@ -78,7 +79,7 @@ public class DimEducationLevelServiceIntegrationTests : IDisposable
         var fetched = await _dimEducationLevelService.GetEducationLevelByIdAsync(existing.EducationLevelId);
         Assert.Equal("Updated", fetched.EducationLevelName);
     }
-    
+
     [Fact]
     public async Task DeleteEducationLevelAsync_Valid_Removes()
     {
@@ -91,12 +92,12 @@ public class DimEducationLevelServiceIntegrationTests : IDisposable
         var remaining = await _dimEducationLevelService.GetAllEducationLevelsAsync();
         Assert.Empty(remaining);
     }
-    
+
     [Fact]
     public async Task DeleteEducationLevelAsync_NotFound_Throws()
     {
-        await Assert.ThrowsAsync<Exception>(() =>
-            _dimEducationLevelService.DeleteEducationLevelAsync(12345)
+        await Assert.ThrowsAsync<NotFoundException>(async () =>
+            await _dimEducationLevelService.DeleteEducationLevelAsync(12345)
         );
     }
 }
