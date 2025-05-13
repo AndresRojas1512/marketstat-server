@@ -4,4 +4,3 @@ diagrams/
 .vscode/
 .idea/
 **/Migrations
-**/database
