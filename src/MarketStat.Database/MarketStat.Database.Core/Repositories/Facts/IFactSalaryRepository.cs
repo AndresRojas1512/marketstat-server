@@ -1,5 +1,6 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Enums;
 
 namespace MarketStat.Database.Core.Repositories.Facts;
 
@@ -11,4 +12,6 @@ public interface IFactSalaryRepository
     Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync();
     Task UpdateFactSalaryAsync(FactSalary salaryFact);
     Task DeleteFactSalaryByIdAsync(int salaryFactId);
+    Task<SalaryStats> GetSalaryStatsAsync(FactSalaryFilter filter);
+    Task<IReadOnlyList<(DateOnly Date, decimal AvgSalary)>> GetAverageTimeSeriesAsync(FactSalaryFilter filter, TimeGranularity  granularity);
 }

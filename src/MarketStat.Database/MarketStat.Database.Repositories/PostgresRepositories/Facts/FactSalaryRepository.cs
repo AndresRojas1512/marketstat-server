@@ -1,6 +1,8 @@
+using System.Text;
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Enums;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Facts;
@@ -79,13 +81,13 @@ public class FactSalaryRepository : IFactSalaryRepository
         if (dbModel is null)
             throw new NotFoundException($"Salary fact with ID {salaryFact.SalaryFactId} not found.");
 
-        dbModel.DateId       = salaryFact.DateId;
-        dbModel.CityId       = salaryFact.CityId;
-        dbModel.EmployerId   = salaryFact.EmployerId;
-        dbModel.JobRoleId    = salaryFact.JobRoleId;
-        dbModel.EmployeeId   = salaryFact.EmployeeId;
+        dbModel.DateId = salaryFact.DateId;
+        dbModel.CityId = salaryFact.CityId;
+        dbModel.EmployerId = salaryFact.EmployerId;
+        dbModel.JobRoleId = salaryFact.JobRoleId;
+        dbModel.EmployeeId = salaryFact.EmployeeId;
         dbModel.SalaryAmount = salaryFact.SalaryAmount;
-        dbModel.BonusAmount  = salaryFact.BonusAmount;
+        dbModel.BonusAmount = salaryFact.BonusAmount;
 
         try
         {
@@ -107,5 +109,77 @@ public class FactSalaryRepository : IFactSalaryRepository
 
         _dbContext.FactSalaries.Remove(dbModel);
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<SalaryStats> GetSalaryStatsAsync(FactSalaryFilter filter)
+    {
+        var sql = new StringBuilder("""
+                                    SELECT
+                                        COUNT(*)                                                        AS count,
+                                        MIN(salary_amount)                                              AS min,
+                                        MAX(salary_amount)                                              AS max,
+                                        AVG(salary_amount)                                              AS mean,
+                                        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY salary_amount)     AS median,
+                                        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY salary_amount)     AS p25,
+                                        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY salary_amount)     AS p75
+                                    FROM   fact_salaries
+                                    WHERE  1 = 1
+                                    """);
+
+        var parameters = new List<NpgsqlParameter>();
+        if (filter.DateId     is { } date)  { sql.Append(" AND date_id     = @date");  parameters.Add(new NpgsqlParameter("date",  date)); }
+        if (filter.CityId     is { } city)  { sql.Append(" AND city_id     = @city");  parameters.Add(new NpgsqlParameter("city",  city)); }
+        if (filter.EmployerId is { } emp)   { sql.Append(" AND employer_id = @emp");   parameters.Add(new NpgsqlParameter("emp",   emp));  }
+        if (filter.JobRoleId  is { } role)  { sql.Append(" AND job_role_id = @role");  parameters.Add(new NpgsqlParameter("role",  role)); }
+        if (filter.EmployeeId is { } empl)  { sql.Append(" AND employee_id = @empl");  parameters.Add(new NpgsqlParameter("empl",  empl)); }
+
+        var row = await _dbContext
+            .Set<SalaryStatsDbModel>()
+            .FromSqlRaw(sql.ToString(), parameters.ToArray())
+            .AsNoTracking()
+            .SingleAsync();
+
+        return new SalaryStats(
+            row.Count,
+            row.Min,   row.Max,
+            row.Mean,  row.Median,
+            row.Percentile25, row.Percentile75);
+    }
+
+    public async Task<IReadOnlyList<(DateOnly Date, decimal AvgSalary)>> GetAverageTimeSeriesAsync(
+        FactSalaryFilter filter,
+        TimeGranularity  granularity)
+    {
+        IQueryable<FactSalaryDbModel> q = _dbContext.FactSalaries;
+
+        if (filter.CityId.HasValue)     q = q.Where(x => x.CityId     == filter.CityId);
+        if (filter.EmployerId.HasValue) q = q.Where(x => x.EmployerId == filter.EmployerId);
+        if (filter.JobRoleId.HasValue)  q = q.Where(x => x.JobRoleId  == filter.JobRoleId);
+        if (filter.EmployeeId.HasValue) q = q.Where(x => x.EmployeeId == filter.EmployeeId);
+        if (filter.DateId.HasValue)     q = q.Where(x => x.DateId     == filter.DateId);
+
+        var joined = from fs in q
+            join d in _dbContext.DimDates on fs.DateId equals d.DateId
+            select new { d.FullDate, fs.SalaryAmount };
+
+        var grouped = granularity switch
+        {
+            TimeGranularity.Month =>
+                joined.GroupBy(v => new DateOnly(v.FullDate.Year, v.FullDate.Month, 1)),
+
+            TimeGranularity.Quarter =>
+                joined.GroupBy(v =>
+                    new DateOnly(v.FullDate.Year, (((v.FullDate.Month - 1) / 3) * 3) + 1, 1)),
+
+            _ =>
+                joined.GroupBy(v => new DateOnly(v.FullDate.Year, 1, 1))
+        };
+
+        var list = await grouped
+            .Select(g => new { Date = g.Key, Avg = g.Average(v => v.SalaryAmount) })
+            .OrderBy(g => g.Date)
+            .ToListAsync();
+
+        return list.Select(e => (e.Date, e.Avg)).ToList();
     }
 }

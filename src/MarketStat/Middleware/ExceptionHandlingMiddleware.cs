@@ -32,8 +32,9 @@ public class ExceptionHandlingMiddleware
         var statusCode = ex switch
         {
             NotFoundException=> HttpStatusCode.NotFound,
-            ValidationException => HttpStatusCode.BadRequest,
             ConflictException => HttpStatusCode.Conflict,
+            ValidationException => HttpStatusCode.BadRequest,
+            ArgumentException => HttpStatusCode.BadRequest,
             _ => HttpStatusCode.InternalServerError
         };
         _logger.LogError(ex, "Unhandled exception occurred.");

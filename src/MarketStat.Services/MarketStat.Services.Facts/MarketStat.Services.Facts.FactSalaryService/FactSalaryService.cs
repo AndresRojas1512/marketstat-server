@@ -1,5 +1,6 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Enums;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Services.Facts.FactSalaryService.Validators;
@@ -119,5 +120,22 @@ public class FactSalaryService : IFactSalaryService
         var avg = amounts.Select(a => (decimal)a).Average();
         _logger.LogInformation("Computed average {Average} for filter {@Filter}", avg, filter);
         return avg;
+    }
+    
+    public async Task<SalaryStats> GetSalaryStatsAsync(FactSalaryFilter filter)
+    {
+        var stats = await _factSalaryRepository.GetSalaryStatsAsync(filter);
+        _logger.LogInformation("Computed salary stats for filter {@Filter}", filter);
+        return stats;
+    }
+
+    public async Task<IReadOnlyList<(DateOnly Date, decimal AvgSalary)>> GetAverageTimeSeriesAsync(
+        FactSalaryFilter filter,
+        TimeGranularity  granularity)
+    {
+        var series = await _factSalaryRepository.GetAverageTimeSeriesAsync(filter, granularity);
+        _logger.LogInformation("Computed time-series ({Granularity}) – {Points} points",
+            granularity, series.Count);
+        return series;
     }
 }

@@ -1,5 +1,6 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Enums;
 
 namespace MarketStat.Services.Facts.FactSalaryService;
 
@@ -14,4 +15,6 @@ public interface IFactSalaryService
         int employeeId, decimal salaryAmount, decimal bonusAmount);
     Task DeleteFactSalaryAsync(int salaryFactId);
     Task<decimal> GetAverageSalaryAsync(FactSalaryFilter filter);
+    Task<SalaryStats> GetSalaryStatsAsync(FactSalaryFilter filter);
+    Task<IReadOnlyList<(DateOnly Date, decimal AvgSalary)>> GetAverageTimeSeriesAsync(FactSalaryFilter filter, TimeGranularity  granularity);
 }

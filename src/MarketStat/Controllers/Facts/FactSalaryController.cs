@@ -1,6 +1,7 @@
 using System.Collections;
 using AutoMapper;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Enums;
 using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.AspNetCore.Mvc;
 
@@ -130,5 +131,23 @@ public class FactSalaryController : ControllerBase
     {
         await _factSalaryService.DeleteFactSalaryAsync(id);
         return NoContent();
+    }
+    
+    [HttpGet("stats")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<SalaryStatsDto>> GetStats([FromQuery] FactSalaryFilter filter)
+    {
+        var stats = await _factSalaryService.GetSalaryStatsAsync(filter);
+        return Ok(_mapper.Map<SalaryStatsDto>(stats));
+    }
+
+    [HttpGet("timeseries")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<object>>> GetTimeSeries([FromQuery] FactSalaryFilter filter,
+        [FromQuery] TimeGranularity  granularity = TimeGranularity.Month)
+    {
+        var series = await _factSalaryService.GetAverageTimeSeriesAsync(filter, granularity);
+        var payload = series.Select(p => new { date = p.Date, avgSalary = p.AvgSalary });
+        return Ok(payload);
     }
 }

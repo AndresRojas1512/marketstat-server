@@ -9,6 +9,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Enums\MarketStat.Common.Enums.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
   </ItemGroup>
 
 </Project>
