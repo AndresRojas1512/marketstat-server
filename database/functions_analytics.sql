@@ -1,5 +1,5 @@
 -- Filter function
-DROP FUNCTION marketstat.fn_filtered_salaries(integer,integer,integer,integer,integer,integer,date,date);
+DROP FUNCTION IF EXISTS marketstat.fn_filtered_salaries(integer,integer,integer,integer,integer,integer,date,date);
 CREATE OR REPLACE FUNCTION marketstat.fn_filtered_salaries(
     p_industry_field_id     INT     DEFAULT NULL,
     p_standard_job_role_id  INT     DEFAULT NULL,
@@ -57,6 +57,7 @@ $$;
 
 
 -- Histogram
+DROP FUNCTION IF EXISTS marketstat.fn_salary_distribution(integer,integer,integer,integer,integer,integer,date,date);
 CREATE OR REPLACE FUNCTION marketstat.fn_salary_distribution(
     p_industry_field_id     INT     DEFAULT NULL,
     p_standard_job_role_id  INT     DEFAULT NULL,
@@ -155,6 +156,7 @@ $$;
 
 
 -- Salary summary (percentiles + average + count)
+DROP FUNCTION IF EXISTS marketstat.fn_salary_time_summary(integer,integer,integer,integer,integer,integer,date,date,integer);
 CREATE OR REPLACE FUNCTION marketstat.fn_salary_summary(
     p_industry_field_id     INT     DEFAULT NULL,
     p_standard_job_role_id  INT     DEFAULT NULL,
@@ -183,13 +185,13 @@ BEGIN
 
   RETURN QUERY
     SELECT
-      percentile_cont(0.25) WITHIN GROUP (ORDER BY fs.salary_amount) AS percentile25,
-      percentile_cont(0.50) WITHIN GROUP (ORDER BY fs.salary_amount) AS percentile50,
-      percentile_cont(0.75) WITHIN GROUP (ORDER BY fs.salary_amount) AS percentile75,
-      percentile_cont(p_target_percentile / 100.0)
-        WITHIN GROUP (ORDER BY fs.salary_amount)                     AS percentile_target,
-      AVG(fs.salary_amount)                                          AS average_salary,
-      COUNT(*)                                                       AS total_count
+      (percentile_cont(0.25) WITHIN GROUP (ORDER BY fs.salary_amount))::NUMERIC AS percentile25,
+      (percentile_cont(0.50) WITHIN GROUP (ORDER BY fs.salary_amount))::NUMERIC AS percentile50,
+      (percentile_cont(0.75) WITHIN GROUP (ORDER BY fs.salary_amount))::NUMERIC AS percentile75,
+      (percentile_cont(p_target_percentile / 100.0)
+        WITHIN GROUP (ORDER BY fs.salary_amount))::NUMERIC                     AS percentile_target,
+      (AVG(fs.salary_amount))::NUMERIC                                         AS average_salary,
+      COUNT(*)                                                                 AS total_count
     FROM marketstat.fn_filtered_salaries(
            p_industry_field_id,
            p_standard_job_role_id,
@@ -207,6 +209,7 @@ $$;
 
 
 -- Time‐series of average salary
+DROP FUNCTION IF EXISTS marketstat.fn_salary_time_series(integer,integer,integer,integer,integer,integer,date,date, text, integer);
 CREATE OR REPLACE FUNCTION marketstat.fn_salary_time_series(
     p_industry_field_id    INT     DEFAULT NULL,
     p_standard_job_role_id INT     DEFAULT NULL,
@@ -221,7 +224,7 @@ CREATE OR REPLACE FUNCTION marketstat.fn_salary_time_series(
 )
 RETURNS TABLE(
     period_start DATE,
-    avg_salary   NUMERIC
+    avg_salary   NUMERIC -- Expected type
 )
 LANGUAGE plpgsql
 AS $$
@@ -253,9 +256,10 @@ BEGIN
   END IF;
 
   IF _filter_start_date > _filter_end_date THEN
-    RETURN QUERY SELECT NULL::DATE, NULL::NUMERIC WHERE FALSE;
-    RETURN;
-END IF;
+      RAISE NOTICE 'Date range for filtering is invalid (_filter_start_date: %, _filter_end_date: %). Returning empty set.', _filter_start_date, _filter_end_date;
+      RETURN QUERY SELECT NULL::DATE, NULL::NUMERIC WHERE FALSE;
+      RETURN;
+  END IF;
 
   RETURN QUERY
   WITH series AS (
@@ -284,7 +288,7 @@ END IF;
   )
   SELECT
     s.period_start,
-    AVG(d.salary_amount) AS avg_salary
+    (AVG(d.salary_amount))::NUMERIC AS avg_salary -- Added ::NUMERIC cast here
   FROM series s
   LEFT JOIN data d
     ON d.period_start = s.period_start
