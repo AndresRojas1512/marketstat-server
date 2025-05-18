@@ -297,3 +297,139 @@ BEGIN
 END;
 $$;
 
+
+
+
+-- Benchmarking
+CREATE OR REPLACE FUNCTION marketstat.fn_get_benchmarking_data(
+    -- String-based filter IN parameters
+    p_industry_field_name_filter   TEXT    DEFAULT NULL,
+    p_standard_job_role_title_filter TEXT  DEFAULT NULL,
+    p_hierarchy_level_name_filter  TEXT    DEFAULT NULL,
+    p_district_name_filter         TEXT    DEFAULT NULL,
+    p_oblast_name_filter           TEXT    DEFAULT NULL,
+    p_city_name_filter             TEXT    DEFAULT NULL,
+
+    -- Date filter IN parameters
+    p_date_start                   DATE    DEFAULT NULL,
+    p_date_end                     DATE    DEFAULT NULL,
+
+    -- Parameters specific to fn_salary_summary
+    p_target_percentile            INT     DEFAULT 90,
+
+    -- Parameters specific to fn_salary_time_series
+    p_granularity                  TEXT    DEFAULT 'month',
+    p_periods                      INT     DEFAULT 12
+)
+RETURNS JSONB -- Specifies the return type
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    -- Variables to hold resolved IDs from string lookups
+    v_industry_field_id     INT     DEFAULT NULL;
+    v_standard_job_role_id  INT     DEFAULT NULL;
+    v_hierarchy_level_id    INT     DEFAULT NULL;
+    v_district_id           INT     DEFAULT NULL;
+    v_oblast_id             INT     DEFAULT NULL;
+    v_city_id               INT     DEFAULT NULL;
+
+    -- Variables to store JSON results from underlying functions
+    v_salary_distribution JSONB;
+    v_salary_summary      JSONB;
+    v_salary_time_series  JSONB;
+
+    -- Variable to hold the final combined JSON payload
+    v_final_json_payload  JSONB;
+BEGIN
+    RAISE NOTICE 'Resolving filter strings to IDs...';
+
+    -- Step 1: Resolve string filter parameters to their corresponding IDs
+    IF p_industry_field_name_filter IS NOT NULL THEN
+        SELECT dif.industry_field_id INTO v_industry_field_id
+        FROM marketstat.dim_industry_field dif
+        WHERE dif.industry_field_name = p_industry_field_name_filter LIMIT 1;
+        IF NOT FOUND THEN RAISE NOTICE 'Industry field name "%" not found. Filter for industry will not be applied.', p_industry_field_name_filter; END IF;
+    END IF;
+
+    IF p_standard_job_role_title_filter IS NOT NULL THEN
+        SELECT dsjr.standard_job_role_id INTO v_standard_job_role_id
+        FROM marketstat.dim_standard_job_role dsjr
+        WHERE dsjr.standard_job_role_title = p_standard_job_role_title_filter LIMIT 1;
+        IF NOT FOUND THEN RAISE NOTICE 'Standard job role title "%" not found. Filter for standard job role will not be applied.', p_standard_job_role_title_filter; END IF;
+    END IF;
+
+    IF p_hierarchy_level_name_filter IS NOT NULL THEN
+        SELECT dhl.hierarchy_level_id INTO v_hierarchy_level_id
+        FROM marketstat.dim_hierarchy_level dhl
+        WHERE dhl.hierarchy_level_name = p_hierarchy_level_name_filter LIMIT 1;
+        IF NOT FOUND THEN RAISE NOTICE 'Hierarchy level name "%" not found. Filter for hierarchy level will not be applied.', p_hierarchy_level_name_filter; END IF;
+    END IF;
+
+    IF p_district_name_filter IS NOT NULL THEN
+        SELECT dfd.district_id INTO v_district_id
+        FROM marketstat.dim_federal_district dfd
+        WHERE dfd.district_name = p_district_name_filter LIMIT 1;
+        IF NOT FOUND THEN RAISE NOTICE 'Federal district name "%" not found. Filter for federal district will not be applied.', p_district_name_filter; END IF;
+    END IF;
+
+    IF p_oblast_name_filter IS NOT NULL THEN
+        SELECT dof.oblast_id INTO v_oblast_id
+        FROM marketstat.dim_oblast dof
+        WHERE dof.oblast_name = p_oblast_name_filter LIMIT 1;
+        IF NOT FOUND THEN RAISE NOTICE 'Oblast name "%" not found. Oblast and dependent City filter will not be applied.', p_oblast_name_filter; END IF;
+    END IF;
+
+    IF p_city_name_filter IS NOT NULL THEN
+        IF v_oblast_id IS NOT NULL THEN -- City lookup requires a valid oblast_id
+            SELECT dc.city_id INTO v_city_id
+            FROM marketstat.dim_city dc
+            WHERE dc.city_name = p_city_name_filter AND dc.oblast_id = v_oblast_id LIMIT 1;
+            IF NOT FOUND THEN RAISE NOTICE 'City name "%" in oblast ID % (name: "%") not found. Filter for city will not be applied.', p_city_name_filter, v_oblast_id, p_oblast_name_filter; END IF;
+        ELSE
+            RAISE NOTICE 'City name filter "%" provided, but corresponding oblast_id could not be determined (either oblast name filter was NULL, or the name was not found). City filter will not be applied.', p_city_name_filter;
+            v_city_id := NULL; -- Ensure it's NULL if oblast_id is not available
+        END IF;
+    END IF;
+
+    RAISE NOTICE 'Calling analytical functions with resolved IDs: industry_field_id=%, standard_job_role_id=%, hierarchy_level_id=%, district_id=%, oblast_id=%, city_id=%',
+                 v_industry_field_id, v_standard_job_role_id, v_hierarchy_level_id, v_district_id, v_oblast_id, v_city_id;
+
+    -- Step 2: Call the underlying analytical functions using the resolved IDs
+    RAISE NOTICE 'Fetching salary distribution...';
+    SELECT COALESCE(jsonb_agg(dist_data), '[]'::JSONB)
+    INTO v_salary_distribution
+    FROM marketstat.fn_salary_distribution(
+             v_industry_field_id, v_standard_job_role_id, v_hierarchy_level_id,
+             v_district_id, v_oblast_id, v_city_id, p_date_start, p_date_end
+         ) AS dist_data;
+
+    RAISE NOTICE 'Fetching salary summary...';
+    SELECT COALESCE(row_to_json(summary_data)::JSONB, '{}'::JSONB)
+    INTO v_salary_summary
+    FROM marketstat.fn_salary_summary(
+             v_industry_field_id, v_standard_job_role_id, v_hierarchy_level_id,
+             v_district_id, v_oblast_id, v_city_id, p_date_start, p_date_end,
+             p_target_percentile
+         ) AS summary_data;
+
+    RAISE NOTICE 'Fetching salary time series...';
+    SELECT COALESCE(jsonb_agg(ts_data), '[]'::JSONB)
+    INTO v_salary_time_series
+    FROM marketstat.fn_salary_time_series(
+             v_industry_field_id, v_standard_job_role_id, v_hierarchy_level_id,
+             v_district_id, v_oblast_id, v_city_id, p_date_start, p_date_end,
+             p_granularity, p_periods
+         ) AS ts_data;
+
+    -- Step 3: Build the final JSONB object
+    RAISE NOTICE 'Building final JSON payload...';
+    v_final_json_payload := jsonb_build_object(
+        'salaryDistribution', v_salary_distribution,
+        'salarySummary',      v_salary_summary,
+        'salaryTimeSeries',   v_salary_time_series
+    );
+
+    RAISE NOTICE 'Benchmarking data function finished.';
+    RETURN v_final_json_payload; -- Return the JSONB object
+END;
+$$;
