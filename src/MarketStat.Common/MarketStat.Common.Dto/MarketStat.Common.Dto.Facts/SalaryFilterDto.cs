@@ -1,6 +1,6 @@
 namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 
-public class FactSalaryFilter
+public class SalaryFilterDto
 {
     public int? DateId { get; set; }
     public int? CityId { get; set; }
