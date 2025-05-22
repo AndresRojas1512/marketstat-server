@@ -1,3 +1,4 @@
+using System.Data;
 using System.Text;
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
@@ -9,6 +10,8 @@ using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using System.Linq;
+using NpgsqlTypes;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 
@@ -24,7 +27,6 @@ public class FactSalaryRepository : IFactSalaryRepository
     public async Task AddFactSalaryAsync(FactSalary salary)
     {
         var dbModel = new FactSalaryDbModel(
-            salaryFactId: 0,
             dateId: salary.DateId,
             cityId: salary.CityId,
             employerId: salary.EmployerId,
@@ -42,44 +44,80 @@ public class FactSalaryRepository : IFactSalaryRepository
             when (dbEx.InnerException is PostgresException pg &&
                   pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
         {
-            throw new NotFoundException("One or more referenced entities (date, city, employer, job role or employee) were not found.");
+            throw new NotFoundException("One or more referenced entities (date, city, employer, job role or employee) were not found when adding salary fact.");
         }
         salary.SalaryFactId = dbModel.SalaryFactId;
     }
 
-    public async Task<FactSalary> GetFactSalaryByIdAsync(int salaryId)
+    public async Task<FactSalary> GetFactSalaryByIdAsync(long salaryId)
     {
         var dbSalary = await _dbContext.FactSalaries.FindAsync(salaryId);
         if (dbSalary is null)
             throw new NotFoundException($"Salary fact with ID {salaryId} not found.");
         return FactSalaryConverter.ToDomain(dbSalary);
     }
-    
-    public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(FactSalaryFilter filter)
-    {
-        IQueryable<FactSalaryDbModel> q = _dbContext.FactSalaries;
-
-        if (filter.DateId.HasValue) q = q.Where(x => x.DateId == filter.DateId);
-        if (filter.CityId.HasValue) q = q.Where(x => x.CityId == filter.CityId);
-        if (filter.EmployerId.HasValue) q = q.Where(x => x.EmployerId == filter.EmployerId);
-        if (filter.JobRoleId.HasValue) q = q.Where(x => x.JobRoleId == filter.JobRoleId);
-        if (filter.EmployeeId.HasValue) q = q.Where(x => x.EmployeeId == filter.EmployeeId);
-
-        var list = await q.ToListAsync();
-        return list.Select(FactSalaryConverter.ToDomain);
-    }
 
     public async Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync()
     {
-        var all = await _dbContext.FactSalaries.ToListAsync();
-        return all.Select(FactSalaryConverter.ToDomain);
+        var allDbModels = await _dbContext.FactSalaries.AsNoTracking().ToListAsync();
+        return allDbModels.Select(FactSalaryConverter.ToDomain);
+    }
+
+    public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto filterDto)
+    {
+        IQueryable<FactSalaryDbModel> query = _dbContext.FactSalaries.AsQueryable();
+        
+        if (filterDto.DateStart.HasValue)
+        {
+            query = query.Where(fs => fs.DimDate != null && fs.DimDate.FullDate >= filterDto.DateStart.Value);
+        }
+        if (filterDto.DateEnd.HasValue)
+        {
+            query = query.Where(fs => fs.DimDate != null && fs.DimDate.FullDate <= filterDto.DateEnd.Value);
+        }
+
+        if (filterDto.CityId.HasValue)
+        {
+            query = query.Where(fs => fs.CityId == filterDto.CityId.Value);
+        }
+        else if (filterDto.OblastId.HasValue)
+        {
+            query = query.Where(fs => fs.DimCity != null && fs.DimCity.OblastId == filterDto.OblastId.Value);
+        }
+        else if (filterDto.DistrictId.HasValue)
+        {
+            query = query.Where(fs => fs.DimCity != null && fs.DimCity.DimOblast != null &&
+                                   fs.DimCity.DimOblast.DistrictId == filterDto.DistrictId.Value);
+        }
+
+        if (filterDto.StandardJobRoleId.HasValue)
+        {
+            query = query.Where(fs => fs.DimJobRole != null && fs.DimJobRole.StandardJobRoleId == filterDto.StandardJobRoleId.Value);
+        }
+
+        if (filterDto.HierarchyLevelId.HasValue)
+        {
+            query = query.Where(fs => fs.DimJobRole != null && fs.DimJobRole.HierarchyLevelId == filterDto.HierarchyLevelId.Value);
+        }
+
+        if (filterDto.IndustryFieldId.HasValue)
+        {
+            query = query.Where(fs => fs.DimJobRole != null && fs.DimJobRole.DimStandardJobRole != null &&
+                                   fs.DimJobRole.DimStandardJobRole.IndustryFieldId == filterDto.IndustryFieldId.Value);
+        }
+
+        var dbModels = await query
+            .AsNoTracking()
+            .ToListAsync();
+
+        return dbModels.Select(dbModel => FactSalaryConverter.ToDomain(dbModel));
     }
 
     public async Task UpdateFactSalaryAsync(FactSalary salaryFact)
     {
         var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFact.SalaryFactId);
         if (dbModel is null)
-            throw new NotFoundException($"Salary fact with ID {salaryFact.SalaryFactId} not found.");
+            throw new NotFoundException($"Salary fact with ID {salaryFact.SalaryFactId} not found for update.");
 
         dbModel.DateId = salaryFact.DateId;
         dbModel.CityId = salaryFact.CityId;
@@ -97,89 +135,108 @@ public class FactSalaryRepository : IFactSalaryRepository
             when (dbEx.InnerException is PostgresException pg &&
                   pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
         {
-            throw new NotFoundException("One or more referenced entities (date, city, employer, job role or employee) were not found.");
+            throw new NotFoundException("One or more referenced entities (date, city, employer, job role or employee) were not found during update.");
         }
     }
 
-    public async Task DeleteFactSalaryByIdAsync(int salaryFactId)
+    public async Task DeleteFactSalaryByIdAsync(long salaryFactId)
     {
         var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFactId);
         if (dbModel is null)
-            throw new NotFoundException($"Salary fact with ID {salaryFactId} not found.");
+            throw new NotFoundException($"Salary fact with ID {salaryFactId} not found for deletion.");
 
         _dbContext.FactSalaries.Remove(dbModel);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<SalaryStats> GetSalaryStatsAsync(FactSalaryFilter filter)
+    public async Task<string?> GetBenchmarkingReportJsonAsync(BenchmarkQueryDto filters)
     {
-        var sql = new StringBuilder("""
-                                    SELECT
-                                        COUNT(*)                                                        AS count,
-                                        MIN(salary_amount)                                              AS min,
-                                        MAX(salary_amount)                                              AS max,
-                                        AVG(salary_amount)                                              AS mean,
-                                        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY salary_amount)     AS median,
-                                        PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY salary_amount)     AS p25,
-                                        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY salary_amount)     AS p75
-                                    FROM   fact_salaries
-                                    WHERE  1 = 1
-                                    """);
+        string granularityString = filters.Granularity.ToString().ToLowerInvariant();
 
-        var parameters = new List<NpgsqlParameter>();
-        if (filter.DateId     is { } date)  { sql.Append(" AND date_id     = @date");  parameters.Add(new NpgsqlParameter("date",  date)); }
-        if (filter.CityId     is { } city)  { sql.Append(" AND city_id     = @city");  parameters.Add(new NpgsqlParameter("city",  city)); }
-        if (filter.EmployerId is { } emp)   { sql.Append(" AND employer_id = @emp");   parameters.Add(new NpgsqlParameter("emp",   emp));  }
-        if (filter.JobRoleId  is { } role)  { sql.Append(" AND job_role_id = @role");  parameters.Add(new NpgsqlParameter("role",  role)); }
-        if (filter.EmployeeId is { } empl)  { sql.Append(" AND employee_id = @empl");  parameters.Add(new NpgsqlParameter("empl",  empl)); }
-
-        var row = await _dbContext
-            .Set<SalaryStatsDbModel>()
-            .FromSqlRaw(sql.ToString(), parameters.ToArray())
-            .AsNoTracking()
-            .SingleAsync();
-
-        return new SalaryStats(
-            row.Count,
-            row.Min,   row.Max,
-            row.Mean,  row.Median,
-            row.Percentile25, row.Percentile75);
-    }
-
-    public async Task<IReadOnlyList<(DateOnly Date, decimal AvgSalary)>> GetAverageTimeSeriesAsync(
-        FactSalaryFilter filter,
-        TimeGranularity  granularity)
-    {
-        IQueryable<FactSalaryDbModel> q = _dbContext.FactSalaries;
-
-        if (filter.CityId.HasValue)     q = q.Where(x => x.CityId     == filter.CityId);
-        if (filter.EmployerId.HasValue) q = q.Where(x => x.EmployerId == filter.EmployerId);
-        if (filter.JobRoleId.HasValue)  q = q.Where(x => x.JobRoleId  == filter.JobRoleId);
-        if (filter.EmployeeId.HasValue) q = q.Where(x => x.EmployeeId == filter.EmployeeId);
-        if (filter.DateId.HasValue)     q = q.Where(x => x.DateId     == filter.DateId);
-
-        var joined = from fs in q
-            join d in _dbContext.DimDates on fs.DateId equals d.DateId
-            select new { d.FullDate, fs.SalaryAmount };
-
-        var grouped = granularity switch
+        // BenchmarkQueryDto.DateStart/End are now DateOnly?
+        // NpgsqlParameter with NpgsqlDbType.Date handles DateOnly directly.
+        var parameters = new List<NpgsqlParameter>
         {
-            TimeGranularity.Month =>
-                joined.GroupBy(v => new DateOnly(v.FullDate.Year, v.FullDate.Month, 1)),
-
-            TimeGranularity.Quarter =>
-                joined.GroupBy(v =>
-                    new DateOnly(v.FullDate.Year, (((v.FullDate.Month - 1) / 3) * 3) + 1, 1)),
-
-            _ =>
-                joined.GroupBy(v => new DateOnly(v.FullDate.Year, 1, 1))
+            new NpgsqlParameter("p_industry_field_name_filter", NpgsqlDbType.Text) { Value = (object?)filters.IndustryFieldNameFilter ?? DBNull.Value },
+            new NpgsqlParameter("p_standard_job_role_title_filter", NpgsqlDbType.Text) { Value = (object?)filters.StandardJobRoleTitleFilter ?? DBNull.Value },
+            new NpgsqlParameter("p_hierarchy_level_name_filter", NpgsqlDbType.Text) { Value = (object?)filters.HierarchyLevelNameFilter ?? DBNull.Value },
+            new NpgsqlParameter("p_district_name_filter", NpgsqlDbType.Text) { Value = (object?)filters.DistrictNameFilter ?? DBNull.Value },
+            new NpgsqlParameter("p_oblast_name_filter", NpgsqlDbType.Text) { Value = (object?)filters.OblastNameFilter ?? DBNull.Value },
+            new NpgsqlParameter("p_city_name_filter", NpgsqlDbType.Text) { Value = (object?)filters.CityNameFilter ?? DBNull.Value },
+            new NpgsqlParameter("p_date_start", NpgsqlDbType.Date) { Value = (object?)filters.DateStart ?? DBNull.Value }, // Corrected: Direct use of DateOnly?
+            new NpgsqlParameter("p_date_end", NpgsqlDbType.Date) { Value = (object?)filters.DateEnd ?? DBNull.Value },       // Corrected: Direct use of DateOnly?
+            new NpgsqlParameter("p_target_percentile", NpgsqlDbType.Integer) { Value = filters.TargetPercentile },
+            new NpgsqlParameter("p_granularity", NpgsqlDbType.Text) { Value = granularityString },
+            new NpgsqlParameter("p_periods", NpgsqlDbType.Integer) { Value = filters.Periods }
         };
 
-        var list = await grouped
-            .Select(g => new { Date = g.Key, Avg = g.Average(v => v.SalaryAmount) })
-            .OrderBy(g => g.Date)
-            .ToListAsync();
+        var sql = @"SELECT marketstat.fn_get_benchmarking_data(
+                        p_industry_field_name_filter   := @p_industry_field_name_filter,
+                        p_standard_job_role_title_filter := @p_standard_job_role_title_filter,
+                        p_hierarchy_level_name_filter  := @p_hierarchy_level_name_filter,
+                        p_district_name_filter         := @p_district_name_filter,
+                        p_oblast_name_filter           := @p_oblast_name_filter,
+                        p_city_name_filter             := @p_city_name_filter,
+                        p_date_start                   := @p_date_start,
+                        p_date_end                     := @p_date_end,
+                        p_target_percentile            := @p_target_percentile,
+                        p_granularity                  := @p_granularity,
+                        p_periods                      := @p_periods
+                    );";
 
-        return list.Select(e => (e.Date, e.Avg)).ToList();
+        string? jsonResult = null;
+        var connection = _dbContext.Database.GetDbConnection();
+        var closeConnection = false;
+        try
+        {
+            if (connection.State != ConnectionState.Open)
+            {
+                await connection.OpenAsync();
+                closeConnection = true;
+            }
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = sql;
+                command.Parameters.AddRange(parameters.ToArray());
+                var scalarResult = await command.ExecuteScalarAsync();
+                if (scalarResult != null && scalarResult != DBNull.Value)
+                {
+                    jsonResult = scalarResult as string;
+                }
+            }
+        }
+        finally
+        {
+            if (closeConnection && connection.State == ConnectionState.Open)
+            {
+                await connection.CloseAsync();
+            }
+        }
+        return jsonResult;
+    }
+
+    public async Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters)
+    {
+        return await _dbContext.Set<SalaryDistributionBucketDto>()
+            .FromSqlInterpolated($"SELECT * FROM marketstat.fn_salary_distribution({filters.IndustryFieldId}, {filters.StandardJobRoleId}, {filters.HierarchyLevelId}, {filters.DistrictId}, {filters.OblastId}, {filters.CityId}, {filters.DateStart}, {filters.DateEnd})")
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile)
+    {
+        return await _dbContext.Set<SalarySummaryDto>()
+            .FromSqlInterpolated($"SELECT * FROM marketstat.fn_salary_summary({filters.IndustryFieldId}, {filters.StandardJobRoleId}, {filters.HierarchyLevelId}, {filters.DistrictId}, {filters.OblastId}, {filters.CityId}, {filters.DateStart}, {filters.DateEnd}, {targetPercentile})")
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters, TimeGranularity granularity, int periods)
+    {
+        string granularityString = granularity.ToString().ToLowerInvariant();
+        return await _dbContext.Set<SalaryTimeSeriesPointDto>()
+            .FromSqlInterpolated($"SELECT * FROM marketstat.fn_salary_time_series({filters.IndustryFieldId}, {filters.StandardJobRoleId}, {filters.HierarchyLevelId}, {filters.DistrictId}, {filters.OblastId}, {filters.CityId}, {filters.DateStart}, {filters.DateEnd}, {granularityString}, {periods})")
+            .AsNoTracking()
+            .ToListAsync();
     }
 }

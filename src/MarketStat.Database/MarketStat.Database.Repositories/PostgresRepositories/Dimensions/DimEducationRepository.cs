@@ -24,8 +24,7 @@ public class DimEducationRepository : BaseRepository, IDimEducationRepository
             educationId: 0,
             specialty: education.Specialty,
             specialtyCode: education.SpecialtyCode,
-            educationLevelId: education.EducationLevelId,
-            industryFieldId: education.IndustryFieldId
+            educationLevelId: education.EducationLevelId
         );
         await _dbContext.DimEducations.AddAsync(dbModel);
         try
@@ -38,13 +37,7 @@ public class DimEducationRepository : BaseRepository, IDimEducationRepository
         {
             throw new ConflictException($"An education with code '{education.SpecialtyCode}' already exists.");
         }
-        catch (DbUpdateException dbEx)
-            when (dbEx.InnerException is PostgresException pg
-                  && pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
-        {
-            throw new NotFoundException(
-                $"Referenced education level ({education.EducationLevelId}) or Industry Field ({education.IndustryFieldId}) not found.");
-        }
+        
         education.EducationId = dbModel.EducationId;
     }
 
@@ -71,7 +64,7 @@ public class DimEducationRepository : BaseRepository, IDimEducationRepository
         dbEducation.Specialty = education.Specialty;
         dbEducation.SpecialtyCode = education.SpecialtyCode;
         dbEducation.EducationLevelId = education.EducationLevelId;
-        dbEducation.IndustryFieldId = education.IndustryFieldId;
+        
         try
         {
             await _dbContext.SaveChangesAsync();
@@ -81,13 +74,6 @@ public class DimEducationRepository : BaseRepository, IDimEducationRepository
                   && pg.SqlState == PostgresErrorCodes.UniqueViolation)
         {
             throw new ConflictException($"An education with code '{education.SpecialtyCode}' already exists.");
-        }
-        catch (DbUpdateException dbEx)
-            when (dbEx.InnerException is PostgresException pg
-                  && pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
-        {
-            throw new NotFoundException(
-                $"Referenced education level ({education.EducationLevelId}) or Industry Field ({education.IndustryFieldId}) not found.");
         }
     }
 

@@ -6,15 +6,23 @@ namespace MarketStat.Database.Models;
 [Table("dim_employee_education")]
 public class DimEmployeeEducationDbModel
 {
-    [Key, Column("employee_id", Order = 0)]
+    [Column("employee_id")]
     public int EmployeeId { get; set; }
     
-    [Key, Column("education_id", Order = 1)]
+    [Column("education_id")]
     public int EducationId { get; set; }
     
     [Required]
     [Column("graduation_year")]
     public short GraduationYear { get; set; }
+    
+    [ForeignKey(nameof(EmployeeId))]
+    public virtual DimEmployeeDbModel? Employee { get; set; }
+    
+    [ForeignKey(nameof(EducationId))]
+    public virtual DimEducationDbModel? Education { get; set; }
+    
+    public DimEmployeeEducationDbModel() { }
 
     public DimEmployeeEducationDbModel(int employeeId, int educationId, short graduationYear)
     {

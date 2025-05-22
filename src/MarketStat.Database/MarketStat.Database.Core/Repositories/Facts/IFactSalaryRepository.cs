@@ -6,12 +6,18 @@ namespace MarketStat.Database.Core.Repositories.Facts;
 
 public interface IFactSalaryRepository
 {
+    // CRUD 
     Task AddFactSalaryAsync(FactSalary salary);
-    Task<FactSalary> GetFactSalaryByIdAsync(int salaryId);
-    public Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(FactSalaryFilter salaryFilter);
+    Task<FactSalary> GetFactSalaryByIdAsync(long salaryId);
     Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync();
+    public Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto salaryFilterDto);
     Task UpdateFactSalaryAsync(FactSalary salaryFact);
-    Task DeleteFactSalaryByIdAsync(int salaryFactId);
-    Task<SalaryStats> GetSalaryStatsAsync(FactSalaryFilter filter);
-    Task<IReadOnlyList<(DateOnly Date, decimal AvgSalary)>> GetAverageTimeSeriesAsync(FactSalaryFilter filter, TimeGranularity  granularity);
+    Task DeleteFactSalaryByIdAsync(long salaryFactId);
+    
+    // Analytics
+    Task<string?> GetBenchmarkingReportJsonAsync(BenchmarkQueryDto filters);
+    Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters);
+    Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
+    Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters,
+        TimeGranularity granularity, int periods);
 }

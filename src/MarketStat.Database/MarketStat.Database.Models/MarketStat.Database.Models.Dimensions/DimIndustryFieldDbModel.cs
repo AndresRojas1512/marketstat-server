@@ -3,18 +3,27 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MarketStat.Database.Models;
 
-[Table("dim_industry_fields")]
+[Table("dim_industry_field")]
 public class DimIndustryFieldDbModel
 {
     [Key]
     [Column("industry_field_id")]
     public int IndustryFieldId { get; set; }
-    
+
     [Required]
     [Column("industry_field_name")]
     [StringLength(255)]
-    public string IndustryFieldName { get; set; }
-
+    public string IndustryFieldName { get; set; } = string.Empty;
+    
+    public virtual ICollection<DimEmployerIndustryFieldDbModel> EmployerIndustryFields { get; set; } = new List<DimEmployerIndustryFieldDbModel>();
+    public virtual ICollection<DimStandardJobRoleDbModel> DimStandardJobRoles { get; set; }
+    
+    public DimIndustryFieldDbModel() 
+    {
+        EmployerIndustryFields = new List<DimEmployerIndustryFieldDbModel>();
+        DimStandardJobRoles = new List<DimStandardJobRoleDbModel>();
+    }
+    
     public DimIndustryFieldDbModel(int industryFieldId, string industryFieldName)
     {
         IndustryFieldId = industryFieldId;

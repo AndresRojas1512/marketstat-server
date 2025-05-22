@@ -34,36 +34,33 @@ public class DimEducationServiceIntegrationTests : IDisposable
     {
         var seed = new List<DimEducation>
         {
-            new DimEducation(1, "Computer Science", "CS101", 1, 10),
-            new DimEducation(2, "Mathematics",      "MATH1", 2, 20)
+            new DimEducation(1, "Computer Science", "CS101", 1),
+            new DimEducation(2, "Mathematics",      "MATH1", 2)
         };
         await _accessObject.SeedEducationAsync(seed);
 
         var all = (await _dimEducationService.GetAllEducationsAsync()).ToList();
 
         Assert.Equal(2, all.Count);
-        Assert.Contains(all, e => e.Specialty     == "Computer Science"
+        Assert.Contains(all, e => e.Specialty == "Computer Science"
                                   && e.SpecialtyCode == "CS101"
-                                  && e.EducationLevelId == 1
-                                  && e.IndustryFieldId  == 10);
-        Assert.Contains(all, e => e.Specialty     == "Mathematics"
+                                  && e.EducationLevelId == 1);
+        Assert.Contains(all, e => e.Specialty == "Mathematics"
                                   && e.SpecialtyCode == "MATH1"
-                                  && e.EducationLevelId == 2
-                                  && e.IndustryFieldId  == 20);
+                                  && e.EducationLevelId == 2);
     }
     
     [Fact]
     public async Task CreateEducationAsync_Valid_ReturnsCreated()
     {
         var created = await _dimEducationService.CreateEducationAsync(
-            "Physics", "PHY1", educationLevelId: 3, industryFieldId: 30);
+            "Physics", "PHY1", educationLevelId: 3);
 
         Assert.NotNull(created);
         Assert.True(created.EducationId > 0);
         Assert.Equal("Physics",     created.Specialty);
         Assert.Equal("PHY1",        created.SpecialtyCode);
         Assert.Equal(3,             created.EducationLevelId);
-        Assert.Equal(30,            created.IndustryFieldId);
 
         var fromDb = await _dimEducationService.GetEducationByIdAsync(created.EducationId);
         Assert.Equal(created.EducationId, fromDb.EducationId);
@@ -72,7 +69,7 @@ public class DimEducationServiceIntegrationTests : IDisposable
     [Fact]
     public async Task GetEducationByIdAsync_Existing_ReturnsEducation()
     {
-        var seed = new DimEducation(5, "Biology", "BIO1", 4, 40);
+        var seed = new DimEducation(5, "Biology", "BIO1", 4);
         await _accessObject.SeedEducationAsync(new[] { seed });
 
         var fetched = await _dimEducationService.GetEducationByIdAsync(5);
@@ -81,7 +78,6 @@ public class DimEducationServiceIntegrationTests : IDisposable
         Assert.Equal("Biology",  fetched.Specialty);
         Assert.Equal("BIO1",     fetched.SpecialtyCode);
         Assert.Equal(4,          fetched.EducationLevelId);
-        Assert.Equal(40,         fetched.IndustryFieldId);
     }
     
     [Fact]
@@ -94,22 +90,20 @@ public class DimEducationServiceIntegrationTests : IDisposable
     [Fact]
     public async Task UpdateEducationAsync_Valid_ReturnsUpdated()
     {
-        var seed = new DimEducation(7, "History", "HIS1", 5, 50);
+        var seed = new DimEducation(7, "History", "HIS1", 5);
         await _accessObject.SeedEducationAsync(new[] { seed });
 
         var updated = await _dimEducationService.UpdateEducationAsync(
             educationId: 7,
             specialty:      "World History",
             specialtyCode:  "WHIS",
-            educationLevelId: 6,
-            industryFieldId:  60
+            educationLevelId: 6
         );
 
         Assert.Equal(7,          updated.EducationId);
         Assert.Equal("World History", updated.Specialty);
         Assert.Equal("WHIS",         updated.SpecialtyCode);
         Assert.Equal(6,              updated.EducationLevelId);
-        Assert.Equal(60,             updated.IndustryFieldId);
     }
     
     [Fact]
@@ -120,15 +114,14 @@ public class DimEducationServiceIntegrationTests : IDisposable
                 educationId: 123,
                 specialty:      "X",
                 specialtyCode:  "X",
-                educationLevelId: 1,
-                industryFieldId:  1
+                educationLevelId: 1
             ));
     }
     
     [Fact]
     public async Task DeleteEducationAsync_Existing_Completes()
     {
-        var seed = new DimEducation(9, "Chemistry", "CHEM", 7, 70);
+        var seed = new DimEducation(9, "Chemistry", "CHEM", 7);
         await _accessObject.SeedEducationAsync(new[] { seed });
 
         await _dimEducationService.DeleteEducationAsync(9);

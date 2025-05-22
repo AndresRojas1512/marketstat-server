@@ -103,44 +103,6 @@ public class FactSalaryServiceIntegrationTests : IDisposable
     }
     
     [Fact]
-    public async Task GetFactSalariesByFilterAsync_DateFilter_ReturnsFiltered()
-    {
-        var seeds = new[]
-        {
-            new FactSalary(1, 10, 1, 1, 1, 1, 100m, 10m),
-            new FactSalary(2, 20, 1, 1, 1, 1, 200m, 20m)
-        };
-        await _accessObject.SeedSalaryAsync(seeds);
-    
-        var filter = new FactSalaryFilter { DateId = 10  };
-        var filtered = (await _factSalaryService.GetFactSalariesByFilterAsync(filter)).ToList();
-    
-        Assert.Single(filtered);
-        Assert.Equal(100m, filtered[0].SalaryAmount);
-    }
-    
-    [Fact]
-    public async Task GetAverageSalaryAsync_NoMatches_ReturnsZero()
-    {
-        var avg = await _factSalaryService.GetAverageSalaryAsync(new FactSalaryFilter());
-        Assert.Equal(0m, avg);
-    }
-    
-    [Fact]
-    public async Task GetAverageSalaryAsync_WithMatches_ReturnsCorrectAverage()
-    {
-        var seeds = new[]
-        {
-            new FactSalary(1, 1, 1, 1, 1, 1, 100m, 10m),
-            new FactSalary(2, 1, 1, 1, 2, 1, 200m, 20m)
-        };
-        await _accessObject.SeedSalaryAsync(seeds);
-    
-        var avg = await _factSalaryService.GetAverageSalaryAsync(new FactSalaryFilter());
-        Assert.Equal(150m, avg);
-    }
-    
-    [Fact]
     public async Task UpdateFactSalaryAsync_Existing_UpdatesAndReturns()
     {
         var original = new FactSalary(5, 1, 1, 1, 1, 1, 300m, 30m);

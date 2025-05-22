@@ -14,7 +14,4 @@ public record CreateDimEducationDto
     
     [Required]
     public int EducationLevelId { get; init; }
-    
-    [Required]
-    public int IndustryFieldId { get; init; }
 }

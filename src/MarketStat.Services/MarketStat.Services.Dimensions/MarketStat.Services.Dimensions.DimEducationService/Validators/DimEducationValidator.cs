@@ -2,8 +2,7 @@ namespace MarketStat.Services.Dimensions.DimEducationService.Validators;
 
 public class DimEducationValidator
 {
-    public static void ValidateForCreate(string specialty, string specialtyCode, int educationLevelId,
-        int industryFieldId)
+    public static void ValidateForCreate(string specialty, string specialtyCode, int educationLevelId)
     {
         
         if (string.IsNullOrWhiteSpace(specialty))
@@ -18,16 +17,12 @@ public class DimEducationValidator
 
         if (educationLevelId <= 0)
             throw new ArgumentException("EducationLevelId must be a positiver integer.");
-        
-        if (industryFieldId <= 0)
-            throw new ArgumentException("IndustryFieldId must be a positive integer.");
     }
 
-    public static void ValidateForUpdate(int educationId, string specialty, string specialtyCode, int educationLevelId,
-        int industryFieldId)
+    public static void ValidateForUpdate(int educationId, string specialty, string specialtyCode, int educationLevelId)
     {
         if (educationId <= 0)
             throw new ArgumentException("EducationId must be a positive integer.");
-        ValidateForCreate(specialty, specialtyCode, educationLevelId, industryFieldId);
+        ValidateForCreate(specialty, specialtyCode, educationLevelId);
     }
 }

@@ -164,11 +164,11 @@ public class FactSalaryServiceUnitTests
             new FactSalary(3,1,20,1,1,1,300m,0m)
         };
         _factSalaryRepositoryMock
-            .Setup(r => r.GetFactSalariesByFilterAsync(It.IsAny<FactSalaryFilter>()))
-            .ReturnsAsync((FactSalaryFilter f) =>
+            .Setup(r => r.GetFactSalariesByFilterAsync(It.IsAny<SalaryFilterDto>()))
+            .ReturnsAsync((SalaryFilterDto f) =>
                 all.Where(x => !f.CityId.HasValue || x.CityId == f.CityId));
 
-        var filter = new FactSalaryFilter { CityId = 10 };
+        var filter = new SalaryFilterDto { CityId = 10 };
         var actual = (await _factSalaryService.GetFactSalariesByFilterAsync(filter)).ToList();
 
         Assert.All(actual, f => Assert.Equal(10, f.CityId));
@@ -272,35 +272,5 @@ public class FactSalaryServiceUnitTests
             _factSalaryService.DeleteFactSalaryAsync(123));
 
         Assert.Equal("FactSalary 123 was not found.", ex.Message);
-    }
-
-    [Fact]
-    public async Task GetAverageSalaryAsync_NoMatches_ReturnsZero()
-    {
-        _factSalaryRepositoryMock
-            .Setup(r => r.GetFactSalariesByFilterAsync(It.IsAny<FactSalaryFilter>()))
-            .ReturnsAsync(Array.Empty<FactSalary>());
-
-        var avg = await _factSalaryService.GetAverageSalaryAsync(new FactSalaryFilter());
-
-        Assert.Equal(0m, avg);
-    }
-
-    [Fact]
-    public async Task GetAverageSalaryAsync_WithMatches_ReturnsCorrectAverage()
-    {
-        var list = new[]
-        {
-            new FactSalary(1,1,1,1,1,1,100m,0m),
-            new FactSalary(2,1,1,1,1,1,200m,0m),
-            new FactSalary(3,1,1,1,1,1,300m,0m)
-        };
-        _factSalaryRepositoryMock
-            .Setup(r => r.GetFactSalariesByFilterAsync(It.IsAny<FactSalaryFilter>()))
-            .ReturnsAsync(list);
-
-        var avg = await _factSalaryService.GetAverageSalaryAsync(new FactSalaryFilter());
-
-        Assert.Equal(200m, avg);
     }
 }

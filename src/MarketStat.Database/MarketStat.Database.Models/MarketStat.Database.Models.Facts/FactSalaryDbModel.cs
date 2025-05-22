@@ -8,7 +8,7 @@ public class FactSalaryDbModel
 {
     [Key]
     [Column("salary_fact_id")]
-    public int SalaryFactId { get; set; }
+    public long SalaryFactId { get; set; }
     
     [Required]
     [Column("date_id")]
@@ -31,15 +31,38 @@ public class FactSalaryDbModel
     public int EmployeeId { get; set; }
     
     [Required]
-    [Column("salary_amount")]
+    [Column("salary_amount", TypeName = "numeric(18, 2)")]
     public decimal SalaryAmount { get; set; }
     
     [Required]
-    [Column("bonus_amount")]
+    [Column("bonus_amount", TypeName = "numeric(18, 2)")]
     public decimal BonusAmount { get; set; }
+    
+    [ForeignKey(nameof(DateId))]
+    public virtual DimDateDbModel? DimDate { get; set; }
 
-    public FactSalaryDbModel(int salaryFactId, int dateId, int cityId, int employerId, int jobRoleId, int employeeId,
-        decimal salaryAmount, decimal bonusAmount)
+    [ForeignKey(nameof(CityId))]
+    public virtual DimCityDbModel? DimCity { get; set; }
+
+    [ForeignKey(nameof(EmployerId))]
+    public virtual DimEmployerDbModel? DimEmployer { get; set; }
+
+    [ForeignKey(nameof(JobRoleId))]
+    public virtual DimJobRoleDbModel? DimJobRole { get; set; }
+
+    [ForeignKey(nameof(EmployeeId))]
+    public virtual DimEmployeeDbModel? DimEmployee { get; set; }
+
+    public FactSalaryDbModel(
+        int dateId,
+        int cityId,
+        int employerId,
+        int jobRoleId,
+        int employeeId,
+        decimal salaryAmount,
+        decimal bonusAmount,
+        long salaryFactId = 0
+    )
     {
         SalaryFactId = salaryFactId;
         DateId = dateId;

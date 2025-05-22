@@ -6,11 +6,19 @@ namespace MarketStat.Database.Models;
 [Table("dim_employer_industry_field")]
 public class DimEmployerIndustryFieldDbModel
 {
-    [Key, Column("employer_id", Order = 0)]
+    [Column("employer_id")]
     public int EmployerId { get; set; }
     
-    [Key, Column("industry_field_id", Order = 1)]
+    [Column("industry_field_id")]
     public int IndustryFieldId { get; set; }
+    
+    [ForeignKey(nameof(EmployerId))]
+    public virtual DimEmployerDbModel? Employer { get; set; }
+    
+    [ForeignKey(nameof(IndustryFieldId))]
+    public virtual DimIndustryFieldDbModel? IndustryField { get; set; }
+    
+    public DimEmployerIndustryFieldDbModel() { }
 
     public DimEmployerIndustryFieldDbModel(int employerId, int industryFieldId)
     {

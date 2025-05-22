@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
 
 namespace MarketStat.Database.Models;
 
@@ -25,6 +26,13 @@ public class DimDateDbModel
     [Required]
     [Column("month")]
     public int Month { get; set; }
+    
+    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; } = new List<FactSalaryDbModel>();
+
+    public DimDateDbModel()
+    {
+        FactSalaries = new List<FactSalaryDbModel>();
+    }
 
     public DimDateDbModel(int dateId, DateOnly fullDate, int year, int quarter, int month)
     {
@@ -33,5 +41,6 @@ public class DimDateDbModel
         Year = year;
         Quarter = quarter;
         Month = month;
+        FactSalaries = new List<FactSalaryDbModel>();
     }
 }

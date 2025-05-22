@@ -22,7 +22,7 @@ public static class FactSalaryValidator
             throw new ArgumentException("BonusAmount cannot be negative.");
     }
     
-    public static void ValidateForUpdate(int salaryFactId, int dateId, int cityId, int employerId, int jobRoleId,
+    public static void ValidateForUpdate(long salaryFactId, int dateId, int cityId, int employerId, int jobRoleId,
         int employeeId, decimal salaryAmount, decimal bonusAmount)
     {
         if (salaryFactId <= 0)

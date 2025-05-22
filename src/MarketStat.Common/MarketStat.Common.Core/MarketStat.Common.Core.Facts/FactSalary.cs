@@ -2,7 +2,7 @@ namespace MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 
 public class FactSalary
 {
-    public int SalaryFactId { get; set; }
+    public long SalaryFactId { get; set; }
     public int DateId { get; set; }
     public int CityId { get; set; }
     public int EmployerId { get; set; }
@@ -11,7 +11,7 @@ public class FactSalary
     public decimal SalaryAmount { get; set; }
     public decimal BonusAmount { get; set; }
 
-    public FactSalary(int salaryFactId, int dateId, int cityId, int employerId, int jobRoleId, int employeeId,
+    public FactSalary(long salaryFactId, int dateId, int cityId, int employerId, int jobRoleId, int employeeId,
         decimal salaryAmount, decimal bonusAmount)
     {
         SalaryFactId = salaryFactId;

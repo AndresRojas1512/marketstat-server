@@ -4,6 +4,5 @@ public record DimEducationDto(
     int EducationId,
     string Specialty,
     string SpecialtyCode,
-    int EducationLevelId,
-    int IndustryFieldId
+    int EducationLevelId
 );

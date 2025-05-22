@@ -11,8 +11,7 @@ public class DimEducationConverter
             dimEducation.EducationId,
             dimEducation.Specialty,
             dimEducation.SpecialtyCode,
-            dimEducation.EducationLevelId,
-            dimEducation.IndustryFieldId
+            dimEducation.EducationLevelId
         );
     }
 
@@ -22,8 +21,7 @@ public class DimEducationConverter
             dbEducation.EducationId,
             dbEducation.Specialty,
             dbEducation.SpecialtyCode,
-            dbEducation.EducationLevelId,
-            dbEducation.IndustryFieldId
+            dbEducation.EducationLevelId
         );
     }
 }

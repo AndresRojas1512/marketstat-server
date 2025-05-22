@@ -6,11 +6,19 @@ namespace MarketStat.Database.Models;
 [Table("dim_standard_job_role_hierarchy")]
 public class DimStandardJobRoleHierarchyDbModel
 {
-    [Key, Column("standard_job_role_id", Order = 0)]
+    [Column("standard_job_role_id")]
     public int StandardJobRoleId { get; set; }
     
-    [Key, Column("hierarchy_level_id", Order = 1)]
+    [Column("hierarchy_level_id")]
     public int HierarchyLevelId { get; set; }
+    
+    [ForeignKey(nameof(StandardJobRoleId))]
+    public virtual DimStandardJobRoleDbModel? StandardJobRole { get; set; }
+    
+    [ForeignKey(nameof(HierarchyLevelId))]
+    public virtual DimHierarchyLevelDbModel? HierarchyLevel { get; set; }
+    
+    public DimStandardJobRoleHierarchyDbModel() { }
 
     public DimStandardJobRoleHierarchyDbModel(int standardJobRoleId, int hierarchyLevelId)
     {

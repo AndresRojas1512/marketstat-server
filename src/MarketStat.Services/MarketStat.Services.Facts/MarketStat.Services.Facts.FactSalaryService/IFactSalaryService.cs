@@ -6,15 +6,19 @@ namespace MarketStat.Services.Facts.FactSalaryService;
 
 public interface IFactSalaryService
 {
+    // CRUD
     Task<FactSalary> CreateFactSalaryAsync(int dateId, int cityId, int employerId, int jobRoleId, int employeeId,
         decimal salaryAmount, decimal bonusAmount);
-    Task<FactSalary> GetFactSalaryByIdAsync(int salaryFactId);
+    Task<FactSalary?> GetFactSalaryByIdAsync(long salaryFactId);
     Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync();
-    Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(FactSalaryFilter filter);
-    Task<FactSalary> UpdateFactSalaryAsync(int salaryFactId, int dateId, int cityId, int employerId, int jobRoleId,
+    Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto filterDto);
+    Task<FactSalary> UpdateFactSalaryAsync(long salaryFactId, int dateId, int cityId, int employerId, int jobRoleId,
         int employeeId, decimal salaryAmount, decimal bonusAmount);
     Task DeleteFactSalaryAsync(int salaryFactId);
-    Task<decimal> GetAverageSalaryAsync(FactSalaryFilter filter);
-    Task<SalaryStats> GetSalaryStatsAsync(FactSalaryFilter filter);
-    Task<IReadOnlyList<(DateOnly Date, decimal AvgSalary)>> GetAverageTimeSeriesAsync(FactSalaryFilter filter, TimeGranularity  granularity);
+    
+    // Analytics
+    Task<BenchmarkDataDto?> GetBenchmarkingReportAsync(BenchmarkQueryDto filters);
+    Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters);
+    Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
+    Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters, TimeGranularity granularity, int periods);
 }

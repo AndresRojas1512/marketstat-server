@@ -22,7 +22,7 @@ public static class FactSalaryConverter
     public static FactSalary ToDomain(FactSalaryDbModel dbSalary)
     {
         return new FactSalary(
-            salaryFactId: (int)dbSalary.SalaryFactId,
+            salaryFactId: dbSalary.SalaryFactId,
             dateId: dbSalary.DateId,
             cityId: dbSalary.CityId,
             employerId: dbSalary.EmployerId,
