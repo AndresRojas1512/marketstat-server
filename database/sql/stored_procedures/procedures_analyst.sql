@@ -128,3 +128,4 @@ BEGIN
     RAISE NOTICE 'Benchmarking data procedure finished.';
 END;
 $$;
+

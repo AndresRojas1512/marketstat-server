@@ -1,3 +1,4 @@
+DROP PROCEDURE IF EXISTS marketstat.bulk_load_salary_facts_from_staging(TEXT);
 CREATE OR REPLACE PROCEDURE marketstat.bulk_load_salary_facts_from_staging(
     p_source_staging_table_name TEXT  -- Name of the caller-created temp table with raw CSV data
 )
@@ -313,6 +314,3 @@ EXCEPTION
         RAISE; -- Re-raise the exception
 END;
 $$;
-
--- Command to drop the procedure if you need to recreate it
-DROP PROCEDURE IF EXISTS marketstat.bulk_load_salary_facts_from_staging(TEXT);
