@@ -206,7 +206,6 @@ CREATE INDEX IF NOT EXISTS idx_fact_jrole     ON fact_salaries (job_role_id);
 CREATE INDEX IF NOT EXISTS idx_fact_employee  ON fact_salaries (employee_id);
 
 
-\echo 'Creating table "users"...'
 CREATE TABLE IF NOT EXISTS marketstat.users (
     user_id                 INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     username                VARCHAR(100) NOT NULL UNIQUE,
@@ -218,16 +217,13 @@ CREATE TABLE IF NOT EXISTS marketstat.users (
     last_login_at           TIMESTAMPTZ NULL,
     saved_benchmarks_count  INT NOT NULL DEFAULT 0 -- For the trigger idea we discussed
 );
-\echo 'Table "users" created.'
 
-\echo 'Creating table "benchmark_history"...'
 CREATE TABLE IF NOT EXISTS marketstat.benchmark_history (
     benchmark_history_id    BIGSERIAL PRIMARY KEY,
     user_id                 INT NOT NULL,
     benchmark_name          VARCHAR(255) NULL,
     saved_at                TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    -- Filter parameters as they were effectively used
     filter_industry_field_name   TEXT NULL,
     filter_standard_job_role_title TEXT NULL,
     filter_hierarchy_level_name  TEXT NULL,
@@ -246,4 +242,3 @@ CREATE TABLE IF NOT EXISTS marketstat.benchmark_history (
 );
 CREATE INDEX IF NOT EXISTS idx_benchmark_history_user_id ON marketstat.benchmark_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_benchmark_history_saved_at ON marketstat.benchmark_history(saved_at DESC);
-\echo 'Table "benchmark_history" created.'

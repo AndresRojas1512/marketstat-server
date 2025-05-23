@@ -1,6 +1,6 @@
 DROP PROCEDURE IF EXISTS marketstat.bulk_load_salary_facts_from_staging(TEXT);
 CREATE OR REPLACE PROCEDURE marketstat.bulk_load_salary_facts_from_staging(
-    p_source_staging_table_name TEXT  -- Name of the caller-created temp table with raw CSV data
+    p_source_staging_table_name TEXT
 )
 LANGUAGE plpgsql
 AS $$
@@ -10,7 +10,6 @@ DECLARE
     v_processing_staging_table_name TEXT := 'processing_facts_temp_' || replace(gen_random_uuid()::text, '-', '');
     v_sql TEXT;
 BEGIN
-    -- 1. Create an internal temporary table for processing (with ID columns, error_message etc.)
     v_sql := format('
         CREATE TEMP TABLE %I (
             id SERIAL PRIMARY KEY,
