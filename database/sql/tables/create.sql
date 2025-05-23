@@ -123,7 +123,9 @@ CREATE TABLE IF NOT EXISTS dim_job_role (
     standard_job_role_id    INT NOT NULL,
     hierarchy_level_id      INT NOT NULL,
     CONSTRAINT fk_dim_jr_sjr FOREIGN KEY (standard_job_role_id) REFERENCES dim_standard_job_role(standard_job_role_id),
-    CONSTRAINT fk_dim_jr_hl  FOREIGN KEY (hierarchy_level_id) REFERENCES dim_hierarchy_level(hierarchy_level_id)
+    CONSTRAINT fk_dim_jr_hl  FOREIGN KEY (hierarchy_level_id) REFERENCES dim_hierarchy_level(hierarchy_level_id),
+    CONSTRAINT uq_dim_job_role_natural_key UNIQUE (job_role_title, standard_job_role_id, hierarchy_level_id)
+
 );
 CREATE INDEX IF NOT EXISTS idx_dim_jr_sjr
     ON dim_job_role (standard_job_role_id);
@@ -159,7 +161,8 @@ CREATE TABLE IF NOT EXISTS dim_employee (
                             CONSTRAINT pk_dim_employee PRIMARY KEY,
     birth_date          DATE CHECK (birth_date <= CURRENT_DATE),
     career_start_date   DATE NOT NULL
-                            CONSTRAINT ck_dim_emp_career_start CHECK (career_start_date <= CURRENT_DATE)
+                            CONSTRAINT ck_dim_emp_career_start CHECK (career_start_date <= CURRENT_DATE),
+    CONSTRAINT uq_dim_employee_natural_key UNIQUE (birth_date, career_start_date)
 );
 
 
@@ -201,3 +204,46 @@ CREATE INDEX IF NOT EXISTS idx_fact_city      ON fact_salaries (city_id);
 CREATE INDEX IF NOT EXISTS idx_fact_employer  ON fact_salaries (employer_id);
 CREATE INDEX IF NOT EXISTS idx_fact_jrole     ON fact_salaries (job_role_id);
 CREATE INDEX IF NOT EXISTS idx_fact_employee  ON fact_salaries (employee_id);
+
+
+\echo 'Creating table "users"...'
+CREATE TABLE IF NOT EXISTS marketstat.users (
+    user_id                 INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username                VARCHAR(100) NOT NULL UNIQUE,
+    password_hash           TEXT NOT NULL, -- Store securely hashed passwords only!
+    email                   VARCHAR(255) NULL UNIQUE,
+    full_name               VARCHAR(255) NULL,
+    is_active               BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at           TIMESTAMPTZ NULL,
+    saved_benchmarks_count  INT NOT NULL DEFAULT 0 -- For the trigger idea we discussed
+);
+\echo 'Table "users" created.'
+
+\echo 'Creating table "benchmark_history"...'
+CREATE TABLE IF NOT EXISTS marketstat.benchmark_history (
+    benchmark_history_id    BIGSERIAL PRIMARY KEY,
+    user_id                 INT NOT NULL,
+    benchmark_name          VARCHAR(255) NULL,
+    saved_at                TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Filter parameters as they were effectively used
+    filter_industry_field_name   TEXT NULL,
+    filter_standard_job_role_title TEXT NULL,
+    filter_hierarchy_level_name  TEXT NULL,
+    filter_district_name         TEXT NULL,
+    filter_oblast_name           TEXT NULL,
+    filter_city_name             TEXT NULL,
+    filter_date_start            DATE NULL,
+    filter_date_end              DATE NULL,
+    filter_target_percentile     INT NULL,
+    filter_granularity           TEXT NULL,
+    filter_periods               INT NULL,
+
+    benchmark_result_json      JSONB NOT NULL,
+
+    CONSTRAINT fk_benchmark_history_user FOREIGN KEY (user_id) REFERENCES marketstat.users(user_id) ON DELETE CASCADE -- Or SET NULL, depending on desired behavior
+);
+CREATE INDEX IF NOT EXISTS idx_benchmark_history_user_id ON marketstat.benchmark_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_benchmark_history_saved_at ON marketstat.benchmark_history(saved_at DESC);
+\echo 'Table "benchmark_history" created.'

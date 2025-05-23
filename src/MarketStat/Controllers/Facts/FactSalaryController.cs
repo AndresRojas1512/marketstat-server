@@ -4,11 +4,13 @@ using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Enums;
 using MarketStat.Common.Exceptions;
 using MarketStat.Services.Facts.FactSalaryService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketStat.Controllers.Facts;
 
 [ApiController]
+[Authorize]
 [Route("api/salaries")]
 public class FactSalaryController : ControllerBase
 {
@@ -27,6 +29,7 @@ public class FactSalaryController : ControllerBase
     /// Gets all salary fact records.
     /// </summary>
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(typeof(IEnumerable<FactSalaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FactSalaryDto>>> GetAllSalaries()
     {
@@ -42,6 +45,7 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the salary fact.</param>
     [HttpGet("{id:long}")]
+    [Authorize]
     [ProducesResponseType(typeof(FactSalaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FactSalaryDto>> GetSalaryById(long id)
@@ -64,6 +68,7 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="filterDto">The filter criteria.</param>
     [HttpGet("query")]
+    [Authorize]
     [ProducesResponseType(typeof(IEnumerable<FactSalaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<FactSalaryDto>>> GetSalariesByFilter([FromQuery] SalaryFilterDto filterDto)
     {
@@ -79,6 +84,7 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="createDto">The DTO containing data for the new salary fact.</param>
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(FactSalaryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -105,6 +111,7 @@ public class FactSalaryController : ControllerBase
     /// <param name="id">The ID of the salary fact to update.</param>
     /// <param name="updateDto">The DTO containing updated data.</param>
     [HttpPut("{id:long}")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -133,6 +140,7 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the salary fact to delete.</param>
     [HttpDelete("{id:long}")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteSalaryFact(long id)
@@ -152,6 +160,7 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="filters">Filter criteria for the report.</param>
     [HttpGet("benchmarking-report")]
+    [Authorize]
     [ProducesResponseType(typeof(BenchmarkDataDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -171,6 +180,7 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="filters">ID-based filter criteria.</param>
     [HttpGet("distribution")]
+    [Authorize]
     [ProducesResponseType(typeof(List<SalaryDistributionBucketDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<SalaryDistributionBucketDto>>> GetSalaryDistribution([FromQuery] SalaryFilterDto filters)
@@ -187,6 +197,7 @@ public class FactSalaryController : ControllerBase
     /// <param name="filters">ID-based filter criteria.</param>
     /// <param name="targetPercentile">The target percentile to calculate.</param>
     [HttpGet("summary")]
+    [Authorize]
     [ProducesResponseType(typeof(SalarySummaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -210,6 +221,7 @@ public class FactSalaryController : ControllerBase
     /// <param name="granularity">Time granularity (Month, Quarter, Year).</param>
     /// <param name="periods">Number of periods to show.</param>
     [HttpGet("timeseries")]
+    [Authorize]
     [ProducesResponseType(typeof(List<SalaryTimeSeriesPointDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<SalaryTimeSeriesPointDto>>> GetSalaryTimeSeries(

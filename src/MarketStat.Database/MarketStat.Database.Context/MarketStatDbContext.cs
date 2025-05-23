@@ -32,6 +32,7 @@ public class MarketStatDbContext : DbContext
     public DbSet<FactSalaryDbModel> FactSalaries { get; set; }
     
     public DbSet<UserDbModel> Users { get; set; }
+    public DbSet<BenchmarkHistoryDbModel> BenchmarkHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -500,29 +501,31 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("saved_at")
                 .IsRequired()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
-            
-            b.Property(bh => bh.FilterIndustryFieldName).HasColumnName("filter_industry_field_name").IsRequired(false);
-            b.Property(bh => bh.FilterStandardJobRoleTitle).HasColumnName("filter_standard_job_role_title").IsRequired(false);
-            b.Property(bh => bh.FilterHierarchyLevelName).HasColumnName("filter_hierarchy_level_name").IsRequired(false);
-            b.Property(bh => bh.FilterDistrictName).HasColumnName("filter_district_name").IsRequired(false);
-            b.Property(bh => bh.FilterOblastName).HasColumnName("filter_oblast_name").IsRequired(false);
-            b.Property(bh => bh.FilterCityName).HasColumnName("filter_city_name").IsRequired(false);
+            b.Property(bh => bh.FilterIndustryFieldName).HasColumnName("filter_industry_field_name").HasMaxLength(255).IsRequired(false);
+            b.Property(bh => bh.FilterStandardJobRoleTitle).HasColumnName("filter_standard_job_role_title").HasMaxLength(255).IsRequired(false);
+            b.Property(bh => bh.FilterHierarchyLevelName).HasColumnName("filter_hierarchy_level_name").HasMaxLength(255).IsRequired(false);
+            b.Property(bh => bh.FilterDistrictName).HasColumnName("filter_district_name").HasMaxLength(255).IsRequired(false);
+            b.Property(bh => bh.FilterOblastName).HasColumnName("filter_oblast_name").HasMaxLength(255).IsRequired(false);
+            b.Property(bh => bh.FilterCityName).HasColumnName("filter_city_name").HasMaxLength(255).IsRequired(false);
             
             b.Property(bh => bh.FilterDateStart).HasColumnName("filter_date_start").HasColumnType("date").IsRequired(false);
             b.Property(bh => bh.FilterDateEnd).HasColumnName("filter_date_end").HasColumnType("date").IsRequired(false);
             
             b.Property(bh => bh.FilterTargetPercentile).HasColumnName("filter_target_percentile").IsRequired(false);
-            b.Property(bh => bh.FilterGranularity).HasColumnName("filter_granularity").IsRequired(false);
+            b.Property(bh => bh.FilterGranularity).HasColumnName("filter_granularity").HasColumnType("text").IsRequired(false); // TEXT in DB
             b.Property(bh => bh.FilterPeriods).HasColumnName("filter_periods").IsRequired(false);
+
             b.Property(bh => bh.BenchmarkResultJson)
                 .HasColumnName("benchmark_result_json")
                 .HasColumnType("jsonb")
                 .IsRequired();
+
             b.HasOne(bh => bh.User)
                 .WithMany(u => u.BenchmarkHistories)
                 .HasForeignKey(bh => bh.UserId)
                 .HasConstraintName("fk_benchmark_history_user")
                 .OnDelete(DeleteBehavior.Cascade);
+
             b.HasIndex(bh => bh.UserId).HasDatabaseName("idx_benchmark_history_user_id");
             b.HasIndex(bh => bh.SavedAt).HasDatabaseName("idx_benchmark_history_saved_at");
         });
