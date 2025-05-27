@@ -11,7 +11,7 @@ BEGIN
         RETURN NEW;
     ELSIF (TG_OP = 'DELETE') THEN
         UPDATE marketstat.users
-        SET saved_benchmarks_count = GREATEST(0, saved_benchmarks_count - 1) -- Ensure count doesn't go below 0
+        SET saved_benchmarks_count = GREATEST(0, saved_benchmarks_count - 1)
         WHERE user_id = OLD.user_id;
         RAISE NOTICE 'Decremented benchmark count for user_id: % due to DELETE on benchmark_history', OLD.user_id;
         RETURN OLD;
