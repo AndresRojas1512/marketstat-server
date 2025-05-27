@@ -206,7 +206,7 @@ CREATE INDEX IF NOT EXISTS idx_fact_jrole     ON fact_salaries (job_role_id);
 CREATE INDEX IF NOT EXISTS idx_fact_employee  ON fact_salaries (employee_id);
 
 
-CREATE TABLE IF NOT EXISTS marketstat.users (
+CREATE TABLE IF NOT EXISTS users (
     user_id                 INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     username                VARCHAR(100) NOT NULL UNIQUE,
     password_hash           TEXT NOT NULL, -- Store securely hashed passwords only!
@@ -218,27 +218,29 @@ CREATE TABLE IF NOT EXISTS marketstat.users (
     saved_benchmarks_count  INT NOT NULL DEFAULT 0 -- For the trigger idea we discussed
 );
 
-CREATE TABLE IF NOT EXISTS marketstat.benchmark_history (
-    benchmark_history_id    BIGSERIAL PRIMARY KEY,
-    user_id                 INT NOT NULL,
-    benchmark_name          VARCHAR(255) NULL,
-    saved_at                TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS benchmark_history (
+    benchmark_history_id        BIGINT GENERATED ALWAYS AS IDENTITY
+                                    CONSTRAINT pk_benchmark_history PRIMARY KEY,
+    user_id                     INT NOT NULL REFERENCES marketstat.users(user_id) ON DELETE CASCADE,
+    benchmark_name              VARCHAR(255) NULL,
+    saved_at                    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    filter_industry_field_name   TEXT NULL,
-    filter_standard_job_role_title TEXT NULL,
-    filter_hierarchy_level_name  TEXT NULL,
-    filter_district_name         TEXT NULL,
-    filter_oblast_name           TEXT NULL,
-    filter_city_name             TEXT NULL,
-    filter_date_start            DATE NULL,
-    filter_date_end              DATE NULL,
-    filter_target_percentile     INT NULL,
-    filter_granularity           TEXT NULL,
-    filter_periods               INT NULL,
+    -- Filter parameters stored as IDs
+    filter_industry_field_id    INT NULL REFERENCES marketstat.dim_industry_field(industry_field_id) ON DELETE SET NULL,
+    filter_standard_job_role_id INT NULL REFERENCES marketstat.dim_standard_job_role(standard_job_role_id) ON DELETE SET NULL,
+    filter_hierarchy_level_id   INT NULL REFERENCES marketstat.dim_hierarchy_level(hierarchy_level_id) ON DELETE SET NULL,
+    filter_district_id          INT NULL REFERENCES marketstat.dim_federal_district(district_id) ON DELETE SET NULL,
+    filter_oblast_id            INT NULL REFERENCES marketstat.dim_oblast(oblast_id) ON DELETE SET NULL,
+    filter_city_id              INT NULL REFERENCES marketstat.dim_city(city_id) ON DELETE SET NULL,
+    filter_date_start           DATE NULL,
+    filter_date_end             DATE NULL,
 
-    benchmark_result_json      JSONB NOT NULL,
+    filter_target_percentile    INT NULL,
+    filter_granularity          TEXT NULL,
+    filter_periods              INT NULL,
 
-    CONSTRAINT fk_benchmark_history_user FOREIGN KEY (user_id) REFERENCES marketstat.users(user_id) ON DELETE CASCADE -- Or SET NULL, depending on desired behavior
+    benchmark_result_json       JSONB NOT NULL
 );
+
 CREATE INDEX IF NOT EXISTS idx_benchmark_history_user_id ON marketstat.benchmark_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_benchmark_history_saved_at ON marketstat.benchmark_history(saved_at DESC);

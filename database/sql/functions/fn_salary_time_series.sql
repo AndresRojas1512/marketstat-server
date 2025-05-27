@@ -1,7 +1,5 @@
--- Run as marketstat_administrator
 SET search_path = marketstat, public;
 
--- Drop the function with its previous full signature if it exists
 DROP FUNCTION IF EXISTS marketstat.fn_salary_time_series(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,TEXT,INT);
 
 CREATE OR REPLACE FUNCTION marketstat.fn_salary_time_series(
@@ -12,15 +10,15 @@ CREATE OR REPLACE FUNCTION marketstat.fn_salary_time_series(
     p_district_id            INT     DEFAULT NULL,
     p_oblast_id              INT     DEFAULT NULL,
     p_city_id                INT     DEFAULT NULL,
-    p_filter_date_start      DATE    DEFAULT NULL, -- Overall start for filtering if not using temp table
-    p_filter_date_end        DATE    DEFAULT NULL, -- Overall end for filtering if not using temp table, AND basis for series end
+    p_filter_date_start      DATE    DEFAULT NULL,
+    p_filter_date_end        DATE    DEFAULT NULL,
     p_granularity            TEXT    DEFAULT 'month',
     p_periods                INT     DEFAULT 12
 )
 RETURNS TABLE(
     period_start            DATE,
     avg_salary              NUMERIC,
-    salary_count_in_period  BIGINT  -- Count of salaries in the period
+    salary_count_in_period  BIGINT
 )
 LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
@@ -44,7 +42,6 @@ BEGIN
 
     IF p_source_temp_table_name IS NOT NULL THEN
         RAISE NOTICE '[fn_salary_time_series] Using pre-filtered data from temp table: %', p_source_temp_table_name;
-        -- The source temp table (created from fn_filtered_salaries) has full_date and salary_amount
         _sql := format('
             WITH series AS (
                 SELECT generate_series(%L::DATE, %L::DATE, %L::INTERVAL)::DATE AS period_start

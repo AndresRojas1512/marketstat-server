@@ -24,7 +24,7 @@ DECLARE
     v_salary_summary      JSONB;
     v_salary_time_series  JSONB;
     v_final_json_payload  JSONB;
-    -- Generate a unique temporary table name for this execution to avoid conflicts
+
     v_temp_table_name     TEXT    := 'temp_benchmark_filtered_data_' || replace(replace(gen_random_uuid()::text, '-', ''), '{', '') || '}';
     v_row_count_in_temp   BIGINT;
     v_sql_create_temp     TEXT;
@@ -33,8 +33,6 @@ BEGIN
                  p_industry_field_id, p_standard_job_role_id, p_hierarchy_level_id, p_district_id, p_oblast_id, p_city_id, p_date_start, p_date_end;
     RAISE NOTICE '[fn_compute_benchmark_data] Using temporary table name: %', v_temp_table_name;
 
-    -- Step 1: Create and populate the temporary table with filtered data ONCE.
-    -- ON COMMIT DROP ensures the temp table is cleaned up at the end of the transaction.
     v_sql_create_temp := format(
         'CREATE TEMP TABLE %I ON COMMIT DROP AS
          SELECT * FROM marketstat.fn_filtered_salaries(%L, %L, %L, %L, %L, %L, %L, %L);',
@@ -54,7 +52,6 @@ BEGIN
     EXCEPTION
         WHEN OTHERS THEN
             RAISE WARNING '[fn_compute_benchmark_data] Error creating or populating temp table %: % - %', v_temp_table_name, SQLSTATE, SQLERRM;
-            -- Construct an error JSON or a JSON indicating no data due to error
             v_final_json_payload := jsonb_build_object(
                 'salaryDistribution', '[]'::JSONB,
                 'salarySummary',      '{}'::JSONB,
@@ -62,19 +59,15 @@ BEGIN
                 'error',              'Failed to prepare filtered data for benchmarking due to an internal error.',
                 'detail',             SQLERRM
             );
-            -- Attempt to clean up if temp table was partially created or if error occurred after creation
             EXECUTE format('DROP TABLE IF EXISTS %I;', v_temp_table_name);
             RETURN v_final_json_payload;
     END;
 
-    -- Step 2: Call the underlying analytical functions, passing the name of the temp table.
-    -- The helper functions will ignore their own filter parameters when p_source_temp_table_name is provided.
     RAISE NOTICE '[fn_compute_benchmark_data] Fetching salary distribution using temp table % ...', v_temp_table_name;
     SELECT COALESCE(jsonb_agg(dist_data), '[]'::JSONB)
     INTO v_salary_distribution
     FROM marketstat.fn_salary_distribution(
         p_source_temp_table_name := v_temp_table_name
-        -- Other filter parameters will default to NULL and be ignored by fn_salary_distribution
     ) AS dist_data;
 
     RAISE NOTICE '[fn_compute_benchmark_data] Fetching salary summary using temp table % ...', v_temp_table_name;
@@ -83,7 +76,6 @@ BEGIN
     FROM marketstat.fn_salary_summary(
             p_source_temp_table_name := v_temp_table_name,
             p_target_percentile      := p_target_percentile
-            -- Other filter parameters will default to NULL and be ignored
          ) AS summary_data;
 
     RAISE NOTICE '[fn_compute_benchmark_data] Fetching salary time series using temp table % ...', v_temp_table_name;
@@ -91,13 +83,11 @@ BEGIN
     INTO v_salary_time_series
     FROM marketstat.fn_salary_time_series(
              p_source_temp_table_name      := v_temp_table_name,
-             p_filter_date_end             := p_date_end, -- fn_salary_time_series uses this for its series end calculation
+             p_filter_date_end             := p_date_end,
              p_granularity                 := p_granularity,
              p_periods                     := p_periods
-             -- Other filter parameters will default to NULL and be ignored
          ) AS ts_data;
 
-    -- Step 3: Build the final JSONB object
     RAISE NOTICE '[fn_compute_benchmark_data] Building final JSON payload...';
     v_final_json_payload := jsonb_build_object(
         'salaryDistribution', v_salary_distribution,
@@ -110,7 +100,6 @@ BEGIN
 END;
 $$;
 
--- Ensure ownership and grants are correct for the orchestrator function
 ALTER FUNCTION marketstat.fn_compute_benchmark_data(INT,INT,INT,INT,INT,INT,DATE,DATE,INT,TEXT,INT) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_compute_benchmark_data(INT,INT,INT,INT,INT,INT,DATE,DATE,INT,TEXT,INT) TO marketstat_analyst;
 \echo 'Function marketstat.fn_compute_benchmark_data (orchestrator for hybrid helpers) created/replaced.'
