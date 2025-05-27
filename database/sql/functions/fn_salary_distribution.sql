@@ -29,20 +29,28 @@ BEGIN
 
   IF p_source_temp_table_name IS NOT NULL THEN
     RAISE NOTICE '[fn_salary_distribution] Using pre-filtered data from temp table: %', p_source_temp_table_name;
-    _query_source_sql := format('SELECT src.salary_amount FROM %I src WHERE src.salary_amount IS NOT NULL', p_source_temp_table_name);
+    _query_source_sql := format('INSERT INTO tmp_distrib_data_for_calc (salary_amount) SELECT src.salary_amount FROM %I src WHERE src.salary_amount IS NOT NULL', p_source_temp_table_name);
+    RAISE NOTICE '[fn_salary_distribution] Data source query (from temp table): %', _query_source_sql;
+    BEGIN
+        EXECUTE _query_source_sql;
+    EXCEPTION
+        WHEN undefined_table THEN
+            RAISE WARNING '[fn_salary_distribution] ERROR: Source temporary table % not found. Returning empty distribution.', p_source_temp_table_name;
+            RETURN QUERY SELECT NULL::NUMERIC, NULL::NUMERIC, 0::BIGINT WHERE FALSE;
+            RETURN; -- Exit the function
+    END;
   ELSE
     RAISE NOTICE '[fn_salary_distribution] Filtering data internally. Filters: IndustryID=% SJRID=% HLevelID=% DistrictID=% OblastID=% CityID=% DateStart=% DateEnd=%',
                  p_industry_field_id, p_standard_job_role_id, p_hierarchy_level_id, p_district_id, p_oblast_id, p_city_id, p_date_start, p_date_end;
     _query_source_sql := format('SELECT fs.salary_amount FROM marketstat.fn_filtered_salaries(%L, %L, %L, %L, %L, %L, %L, %L) fs WHERE fs.salary_amount IS NOT NULL',
            p_industry_field_id, p_standard_job_role_id, p_hierarchy_level_id,
            p_district_id, p_oblast_id, p_city_id, p_date_start, p_date_end);
+    RAISE NOTICE '[fn_salary_distribution] Data source query (internal filtering): %', _query_source_sql;
+    EXECUTE 'INSERT INTO tmp_distrib_data_for_calc (salary_amount) ' || _query_source_sql;
   END IF;
 
-  RAISE NOTICE '[fn_salary_distribution] Data source query: %', _query_source_sql;
-  EXECUTE 'INSERT INTO tmp_distrib_data_for_calc (salary_amount) ' || _query_source_sql;
-
   SELECT COUNT(s.salary_amount) INTO _n FROM tmp_distrib_data_for_calc s;
-  RAISE NOTICE '[fn_salary_distribution] Rows inserted into tmp_distrib_data_for_calc: %', _n;
+  RAISE NOTICE '[fn_salary_distribution] Rows available for distribution calculation: %', _n;
 
   SELECT MIN(s.salary_amount), MAX(s.salary_amount)
   INTO _min_val, _max_val
@@ -50,7 +58,7 @@ BEGIN
   RAISE NOTICE '[fn_salary_distribution] Calculated from tmp_distrib_data_for_calc: _min_val=%, _max_val=%, _n=%', _min_val, _max_val, _n;
 
   IF _n IS NULL OR _n = 0 THEN
-    RAISE NOTICE '[fn_salary_distribution] No data or zero count, returning empty set.';
+    RAISE NOTICE '[fn_salary_distribution] No data or zero count after sourcing, returning empty set.';
     RETURN QUERY SELECT NULL::NUMERIC, NULL::NUMERIC, 0::BIGINT WHERE FALSE;
     RETURN;
   END IF;
@@ -81,7 +89,7 @@ BEGIN
       END IF;
   END IF;
 
-  RAISE NOTICE '[fn_salary_distribution DEBUG] Using values: _min_val=%, _max_val=%, _m=%, _delta=%',
+  RAISE NOTICE '[fn_salary_distribution DEBUG] Using values for final query: _min_val=%, _max_val=%, _m=%, _delta=%',
                _min_val, _max_val, _m, _delta;
 
   _final_sql := '
@@ -108,4 +116,5 @@ END; $$;
 
 ALTER FUNCTION marketstat.fn_salary_distribution(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_salary_distribution(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE) TO marketstat_analyst;
-\echo 'Function marketstat.fn_salary_distribution (hybrid, using EXECUTE...USING) created/replaced.'
+\echo 'Function marketstat.fn_salary_distribution (hybrid, with temp table exception handling) created/replaced.'
+

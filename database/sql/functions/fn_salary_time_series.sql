@@ -1,3 +1,4 @@
+-- Run as marketstat_administrator
 SET search_path = marketstat, public;
 
 DROP FUNCTION IF EXISTS marketstat.fn_salary_time_series(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,TEXT,INT);
@@ -48,15 +49,15 @@ BEGIN
             ), data_for_series AS (
                 SELECT
                     date_trunc(%L, src.full_date)::DATE AS period_start,
-                    src.salary_amount -- Need salary_amount for AVG and COUNT
-                FROM %I src
+                    src.salary_amount
+                FROM %I src -- src refers to p_source_temp_table_name, which has full_date from fn_filtered_salaries
                 WHERE src.full_date >= %L::DATE AND src.full_date <= (%L::DATE + %L::INTERVAL - INTERVAL ''1 day'')
                   AND src.salary_amount IS NOT NULL
             )
             SELECT
                 s.period_start,
                 (AVG(dfs.salary_amount))::NUMERIC AS avg_salary,
-                COUNT(dfs.salary_amount)::BIGINT AS salary_count_in_period -- Count non-null salaries
+                COUNT(dfs.salary_amount)::BIGINT AS salary_count_in_period
             FROM series s
             LEFT JOIN data_for_series dfs ON dfs.period_start = s.period_start
             GROUP BY s.period_start
@@ -64,6 +65,18 @@ BEGIN
             _actual_series_start_date, _actual_series_end_date, _step,
             p_granularity, p_source_temp_table_name,
             _actual_series_start_date, _actual_series_end_date, _step);
+
+        RAISE NOTICE '[fn_salary_time_series] Executing SQL for temp table: %', _sql;
+        BEGIN
+            RETURN QUERY EXECUTE _sql;
+        EXCEPTION
+            WHEN undefined_table THEN
+                RAISE WARNING '[fn_salary_time_series] ERROR: Source temporary table % not found. Returning empty time series.', p_source_temp_table_name;
+                RETURN QUERY SELECT
+                                NULL::DATE, NULL::NUMERIC, 0::BIGINT
+                             WHERE FALSE;
+                RETURN;
+        END;
     ELSE
         DECLARE
             _effective_filter_start_date DATE;
@@ -91,7 +104,7 @@ BEGIN
                 ), data_for_series AS (
                     SELECT
                         date_trunc(%L, fs.full_date)::DATE AS period_start,
-                        fs.salary_amount -- Need salary_amount for AVG and COUNT
+                        fs.salary_amount
                     FROM marketstat.fn_filtered_salaries(%L, %L, %L, %L, %L, %L, %L, %L) fs
                     WHERE fs.full_date >= %L::DATE AND fs.full_date <= (%L::DATE + %L::INTERVAL - INTERVAL ''1 day'')
                       AND fs.salary_amount IS NOT NULL
@@ -99,7 +112,7 @@ BEGIN
                 SELECT
                     s.period_start,
                     (AVG(dfs.salary_amount))::NUMERIC AS avg_salary,
-                    COUNT(dfs.salary_amount)::BIGINT AS salary_count_in_period -- Count non-null salaries
+                    COUNT(dfs.salary_amount)::BIGINT AS salary_count_in_period
                 FROM series s
                 LEFT JOIN data_for_series dfs ON dfs.period_start = s.period_start
                 GROUP BY s.period_start
@@ -109,12 +122,15 @@ BEGIN
                 p_industry_field_id, p_standard_job_role_id, p_hierarchy_level_id, p_district_id, p_oblast_id, p_city_id,
                 _effective_filter_start_date, _effective_filter_end_date,
                 _actual_series_start_date, _actual_series_end_date, _step);
+
+            RAISE NOTICE '[fn_salary_time_series] Executing SQL for internal filtering: %', _sql;
+            RETURN QUERY EXECUTE _sql;
         END;
     END IF;
-    RETURN QUERY EXECUTE _sql;
 END;
 $$;
 
 ALTER FUNCTION marketstat.fn_salary_time_series(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,TEXT,INT) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_salary_time_series(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,TEXT,INT) TO marketstat_analyst;
-\echo 'Function marketstat.fn_salary_time_series (hybrid, with count, no salary_ids) created/replaced.'
+\echo 'Function marketstat.fn_salary_time_series (hybrid, with count, no salary_ids, with temp table exception handling) created/replaced.'
+

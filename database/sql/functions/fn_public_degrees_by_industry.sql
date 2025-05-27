@@ -50,4 +50,4 @@ $$;
 ALTER FUNCTION marketstat.fn_public_degrees_by_industry(INT, INT, INT) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_public_degrees_by_industry(INT, INT, INT) TO marketstat_public_guest;
 GRANT EXECUTE ON FUNCTION marketstat.fn_public_degrees_by_industry(INT, INT, INT) TO marketstat_analyst;
-\echo 'Function marketstat.fn_public_top_degrees_by_industry created/replaced.'
+\echo 'Function marketstat.fn_public_degrees_by_industry created/replaced.'
