@@ -159,7 +159,7 @@ CREATE INDEX IF NOT EXISTS idx_dim_edu_lvl
 CREATE TABLE IF NOT EXISTS dim_employee (
     employee_id         INT GENERATED ALWAYS AS IDENTITY
                             CONSTRAINT pk_dim_employee PRIMARY KEY,
-    birth_date          DATE CHECK (birth_date <= CURRENT_DATE),
+    birth_date          DATE CHECK (birth_date <= CURRENT_DATE) NOT NULL,
     career_start_date   DATE NOT NULL
                             CONSTRAINT ck_dim_emp_career_start CHECK (career_start_date <= CURRENT_DATE),
     CONSTRAINT uq_dim_employee_natural_key UNIQUE (birth_date, career_start_date)
@@ -209,13 +209,13 @@ CREATE INDEX IF NOT EXISTS idx_fact_employee  ON fact_salaries (employee_id);
 CREATE TABLE IF NOT EXISTS users (
     user_id                 INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     username                VARCHAR(100) NOT NULL UNIQUE,
-    password_hash           TEXT NOT NULL, -- Store securely hashed passwords only!
-    email                   VARCHAR(255) NULL UNIQUE,
-    full_name               VARCHAR(255) NULL,
+    password_hash           TEXT NOT NULL,
+    email                   VARCHAR(255) NOT NULL UNIQUE,
+    full_name               VARCHAR(255) NOT NULL,
     is_active               BOOLEAN NOT NULL DEFAULT TRUE,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at           TIMESTAMPTZ NULL,
-    saved_benchmarks_count  INT NOT NULL DEFAULT 0 -- For the trigger idea we discussed
+    saved_benchmarks_count  INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS benchmark_history (
@@ -225,7 +225,6 @@ CREATE TABLE IF NOT EXISTS benchmark_history (
     benchmark_name              VARCHAR(255) NULL,
     saved_at                    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    -- Filter parameters stored as IDs
     filter_industry_field_id    INT NULL REFERENCES marketstat.dim_industry_field(industry_field_id) ON DELETE SET NULL,
     filter_standard_job_role_id INT NULL REFERENCES marketstat.dim_standard_job_role(standard_job_role_id) ON DELETE SET NULL,
     filter_hierarchy_level_id   INT NULL REFERENCES marketstat.dim_hierarchy_level(hierarchy_level_id) ON DELETE SET NULL,
