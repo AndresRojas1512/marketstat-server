@@ -22,7 +22,7 @@ public class UserDbModel
     [Required]
     [Column("email")]
     [StringLength(255)]
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty; 
 
     [Required]
     [Column("full_name")]

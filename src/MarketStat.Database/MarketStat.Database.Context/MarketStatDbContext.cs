@@ -432,7 +432,7 @@ public class MarketStatDbContext : DbContext
 
         modelBuilder.Entity<UserDbModel>(b =>
         {
-            b.ToTable("users", "marketstat");
+            b.ToTable("users"); 
             b.HasKey(u => u.UserId);
             b.Property(u => u.UserId)
                 .HasColumnName("user_id")
@@ -442,17 +442,22 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("username")
                 .HasMaxLength(100)
                 .IsRequired();
-            b.HasIndex(u => u.Username).IsUnique();
+            b.HasIndex(u => u.Username)
+                .IsUnique()
+                .HasDatabaseName("uq_users_username");
 
             b.Property(u => u.PasswordHash)
                 .HasColumnName("password_hash")
+                .HasColumnType("text")
                 .IsRequired();
 
             b.Property(u => u.Email)
                 .HasColumnName("email")
                 .HasMaxLength(255)
                 .IsRequired();
-            b.HasIndex(u => u.Email).IsUnique();
+            b.HasIndex(u => u.Email)
+                .IsUnique()
+                .HasDatabaseName("uq_users_email");
 
             b.Property(u => u.FullName)
                 .HasColumnName("full_name")
@@ -477,8 +482,9 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("saved_benchmarks_count")
                 .IsRequired()
                 .HasDefaultValue(0);
+
             b.HasMany(u => u.BenchmarkHistories)
-                .WithOne(bh => bh.User)
+                .WithOne(bh => bh.User) 
                 .HasForeignKey(bh => bh.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

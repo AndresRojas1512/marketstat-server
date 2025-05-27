@@ -34,29 +34,39 @@ public class UserRepository : IUserRepository
         return UserConverter.ToDomain(dbUser);
     }
 
-    public async Task<User?> GetUserByUsernameAsync(string username)
+    public async Task<User> GetUserByUsernameAsync(string username)
     {
         var dbUser = await _dbContext.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Username == username);
-        return dbUser == null ? null : UserConverter.ToDomain(dbUser);
+        if (dbUser == null)
+        {
+            throw new NotFoundException($"User with username '{username}' not found.");
+        }
+
+        return UserConverter.ToDomain(dbUser);
     }
 
-    public async Task<User?> GetUserByIdAsync(int userId)
+    public async Task<User> GetUserByIdAsync(int userId)
     {
         var dbUser = await _dbContext.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserId == userId);
-        return dbUser == null ? null : UserConverter.ToDomain(dbUser);
+        if (dbUser == null)
+        {
+            throw new NotFoundException($"User with ID {userId} not found.");
+        }
+
+        return UserConverter.ToDomain(dbUser);
     }
 
     public async Task<bool> UserExistsAsync(string username, string email)
     {
+        string lowerUsername = username.ToLowerInvariant();
+        string lowerEmail = email.ToLowerInvariant();
         return await _dbContext.Users
             .AsNoTracking()
-            .AnyAsync(u =>
-                u.Username.ToLower() == username.ToLower() ||
-                u.Email.ToLower() == email.ToLower());
+            .AnyAsync(u => u.Username.ToLower() == lowerUsername || u.Email.ToLower() == lowerEmail);
     }
 
     public async Task UpdateUserAsync(User user)
@@ -72,7 +82,6 @@ public class UserRepository : IUserRepository
         dbUser.IsActive = user.IsActive;
         dbUser.LastLoginAt = user.LastLoginAt;
 
-        _dbContext.Users.Update(dbUser);
         try
         {
             await _dbContext.SaveChangesAsync();

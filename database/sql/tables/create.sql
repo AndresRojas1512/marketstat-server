@@ -240,12 +240,11 @@ CREATE TABLE IF NOT EXISTS benchmark_history (
 
     benchmark_result_json       JSONB NOT NULL
 );
-
 CREATE INDEX IF NOT EXISTS idx_benchmark_history_user_id ON marketstat.benchmark_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_benchmark_history_saved_at ON marketstat.benchmark_history(saved_at DESC);
 
 
-CREATE TABLE marketstat.failed_salary_facts_load (
+CREATE TABLE IF NOT EXISTS failed_salary_facts_load (
     failed_load_id              SERIAL PRIMARY KEY,
     run_timestamp               TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     recorded_date_text          TEXT,

@@ -7,7 +7,10 @@ public static class UserConverter
 {
     public static UserDbModel ToDbModel(User domainUser)
     {
-        return new UserDbModel
+        if (domainUser == null)
+            throw new ArgumentNullException(nameof(domainUser));
+
+        var dbModel = new UserDbModel
         {
             UserId = domainUser.UserId,
             Username = domainUser.Username,
@@ -19,11 +22,15 @@ public static class UserConverter
             LastLoginAt = domainUser.LastLoginAt,
             SavedBenchmarksCount = domainUser.SavedBenchmarksCount
         };
+        return dbModel;
     }
 
     public static User ToDomain(UserDbModel dbUser)
     {
-        return new User(
+        if (dbUser == null)
+            throw new ArgumentNullException(nameof(dbUser));
+
+        var domainUser = new User(
             userId: dbUser.UserId,
             username: dbUser.Username,
             passwordHash: dbUser.PasswordHash,
@@ -34,5 +41,25 @@ public static class UserConverter
             lastLoginAt: dbUser.LastLoginAt,
             savedBenchmarksCount: dbUser.SavedBenchmarksCount
         );
+
+        if (dbUser.BenchmarkHistories != null && dbUser.BenchmarkHistories.Any())
+        {
+            domainUser.BenchmarkHistories = dbUser.BenchmarkHistories
+                .Select(BenchmarkHistoryConverter.ToDomain)
+                .ToList();
+        }
+        else
+        {
+            domainUser.BenchmarkHistories = new List<BenchmarkHistory>();
+        }
+
+        return domainUser;
+    }
+
+    public static List<User> ToDomainList(IEnumerable<UserDbModel> dbUsers)
+    {
+        if (dbUsers == null)
+            return new List<User>();
+        return dbUsers.Select(ToDomain).ToList();
     }
 }

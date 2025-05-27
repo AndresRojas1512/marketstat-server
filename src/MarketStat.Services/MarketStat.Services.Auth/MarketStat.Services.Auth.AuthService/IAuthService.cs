@@ -5,5 +5,5 @@ namespace MarketStat.Services.Auth.AuthService;
 public interface IAuthService
 {
     Task<UserDto> RegisterAsync(RegisterUserDto registerDto);
-    Task<AuthResponseDto?> LoginAsync(LoginRequestDto loginDto);
+    Task<AuthResponseDto> LoginAsync(LoginRequestDto loginDto);
 }

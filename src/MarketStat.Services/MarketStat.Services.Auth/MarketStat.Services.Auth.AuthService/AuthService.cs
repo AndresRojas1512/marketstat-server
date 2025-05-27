@@ -65,28 +65,49 @@ public class AuthService : IAuthService
         return _mapper.Map<UserDto>(createdUserDomain);
     }
 
-    public async Task<AuthResponseDto?> LoginAsync(LoginRequestDto loginDto)
+    public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginDto)
     {
-        UserValidator.ValidateLogin(loginDto); // Call validator
+        UserValidator.ValidateLogin(loginDto);
 
         _logger.LogInformation("Attempting login for user: {Username}", loginDto.Username);
 
-        var userDomain = await _userRepository.GetUserByUsernameAsync(loginDto.Username);
-
-        if (userDomain == null || !userDomain.IsActive)
+        User userDomain;
+        try
         {
-            _logger.LogWarning("Login failed for user {Username}: User not found or not active.", loginDto.Username);
-            throw new MarketStat.Common.Exceptions.AuthenticationException("Invalid username or password.");
+            userDomain = await _userRepository.GetUserByUsernameAsync(loginDto.Username);
+        }
+        catch (NotFoundException)
+        {
+            _logger.LogWarning("Login failed for user {Username}: User not found.", loginDto.Username);
+            throw new Common.Exceptions.AuthenticationException("Invalid username or password."); // Obscure reason
+        }
+
+        if (!userDomain.IsActive)
+        {
+            _logger.LogWarning("Login failed for user {Username}: Account is not active.", loginDto.Username);
+            throw new Common.Exceptions.AuthenticationException("User account is inactive.");
         }
 
         if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, userDomain.PasswordHash))
         {
-            _logger.LogWarning("Login failed for user {Username}: Invalid password (verification failed).", loginDto.Username);
-             throw new MarketStat.Common.Exceptions.AuthenticationException("Invalid username or password.");
+            _logger.LogWarning("Login failed for user {Username}: Invalid password.", loginDto.Username);
+            throw new Common.Exceptions.AuthenticationException("Invalid username or password.");
         }
 
         userDomain.LastLoginAt = DateTimeOffset.UtcNow;
-        await _userRepository.UpdateUserAsync(userDomain);
+        try
+        {
+            await _userRepository.UpdateUserAsync(userDomain);
+        }
+        catch(NotFoundException ex)
+        {
+            _logger.LogError(ex, "Error updating LastLoginAt for user {Username}: User suddenly not found.", userDomain.Username);
+        }
+        catch(ConflictException ex)
+        {
+             _logger.LogError(ex, "Conflict error updating LastLoginAt for user {Username}.", userDomain.Username);
+        }
+
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwtKey = _configuration["JwtSettings:Key"];
@@ -96,8 +117,8 @@ public class AuthService : IAuthService
 
         if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
         {
-            _logger.LogError("JWT settings (Key, Issuer, Audience) are not configured properly.");
-            throw new ApplicationException("Authentication configuration error. Please contact support.");
+            _logger.LogCritical("JWT settings (Key, Issuer, Audience) are not configured properly in appsettings.json.");
+            throw new ApplicationException("Authentication system configuration error. Please contact administrator.");
         }
         
         var key = Encoding.ASCII.GetBytes(jwtKey);
@@ -106,7 +127,7 @@ public class AuthService : IAuthService
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userDomain.Username),
-                new Claim(JwtRegisteredClaimNames.NameId, userDomain.UserId.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, userDomain.UserId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, userDomain.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             }),
