@@ -8,23 +8,28 @@ public class BenchmarkHistory
     public string? BenchmarkName { get; set; }
     public DateTimeOffset SavedAt { get; set; }
 
-    public string? FilterIndustryFieldName { get; set; }
-    public string? FilterStandardJobRoleTitle { get; set; }
-    public string? FilterHierarchyLevelName { get; set; }
-    public string? FilterDistrictName { get; set; }
-    public string? FilterOblastName { get; set; }
-    public string? FilterCityName { get; set; }
+    // Filter parameters stored as IDs
+    public int? FilterIndustryFieldId { get; set; }
+    public int? FilterStandardJobRoleId { get; set; }
+    public int? FilterHierarchyLevelId { get; set; }
+    public int? FilterDistrictId { get; set; }
+    public int? FilterOblastId { get; set; }
+    public int? FilterCityId { get; set; }
     public DateOnly? FilterDateStart { get; set; }
     public DateOnly? FilterDateEnd { get; set; }
+    
+    // Analytical parameters used
     public int? FilterTargetPercentile { get; set; }
     public string? FilterGranularity { get; set; }
     public int? FilterPeriods { get; set; }
-    
+
+    // JSON result of the benchmark that was saved.
     public string BenchmarkResultJson { get; set; }
 
+    // Navigation property to the User who saved this benchmark
     public virtual User? User { get; set; }
 
-
+    // Parameterless constructor
     public BenchmarkHistory()
     {
         BenchmarkResultJson = "{}";
@@ -36,12 +41,13 @@ public class BenchmarkHistory
         int userId,
         string? benchmarkName,
         DateTimeOffset savedAt,
-        string? filterIndustryFieldName,
-        string? filterStandardJobRoleTitle,
-        string? filterHierarchyLevelName,
-        string? filterDistrictName,
-        string? filterOblastName,
-        string? filterCityName,
+        // ID-based filters
+        int? filterIndustryFieldId,
+        int? filterStandardJobRoleId,
+        int? filterHierarchyLevelId,
+        int? filterDistrictId,
+        int? filterOblastId,
+        int? filterCityId,
         DateOnly? filterDateStart,
         DateOnly? filterDateEnd,
         int? filterTargetPercentile,
@@ -53,12 +59,12 @@ public class BenchmarkHistory
         UserId = userId;
         BenchmarkName = benchmarkName;
         SavedAt = savedAt;
-        FilterIndustryFieldName = filterIndustryFieldName;
-        FilterStandardJobRoleTitle = filterStandardJobRoleTitle;
-        FilterHierarchyLevelName = filterHierarchyLevelName;
-        FilterDistrictName = filterDistrictName;
-        FilterOblastName = filterOblastName;
-        FilterCityName = filterCityName;
+        FilterIndustryFieldId = filterIndustryFieldId;
+        FilterStandardJobRoleId = filterStandardJobRoleId;
+        FilterHierarchyLevelId = filterHierarchyLevelId;
+        FilterDistrictId = filterDistrictId;
+        FilterOblastId = filterOblastId;
+        FilterCityId = filterCityId;
         FilterDateStart = filterDateStart;
         FilterDateEnd = filterDateEnd;
         FilterTargetPercentile = filterTargetPercentile;

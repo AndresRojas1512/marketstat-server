@@ -22,23 +22,24 @@ public class BenchmarkHistoryDbModel
     [Column("saved_at")]
     public DateTimeOffset SavedAt { get; set; }
 
-    [Column("filter_industry_field_name")]
-    public string? FilterIndustryFieldName { get; set; }
+    // Filter parameters stored as IDs
+    [Column("filter_industry_field_id")]
+    public int? FilterIndustryFieldId { get; set; }
 
-    [Column("filter_standard_job_role_title")]
-    public string? FilterStandardJobRoleTitle { get; set; }
+    [Column("filter_standard_job_role_id")]
+    public int? FilterStandardJobRoleId { get; set; }
 
-    [Column("filter_hierarchy_level_name")]
-    public string? FilterHierarchyLevelName { get; set; }
+    [Column("filter_hierarchy_level_id")]
+    public int? FilterHierarchyLevelId { get; set; }
 
-    [Column("filter_district_name")]
-    public string? FilterDistrictName { get; set; }
+    [Column("filter_district_id")]
+    public int? FilterDistrictId { get; set; }
 
-    [Column("filter_oblast_name")]
-    public string? FilterOblastName { get; set; }
+    [Column("filter_oblast_id")]
+    public int? FilterOblastId { get; set; }
 
-    [Column("filter_city_name")]
-    public string? FilterCityName { get; set; }
+    [Column("filter_city_id")]
+    public int? FilterCityId { get; set; }
 
     [Column("filter_date_start", TypeName = "date")]
     public DateOnly? FilterDateStart { get; set; }
@@ -49,8 +50,8 @@ public class BenchmarkHistoryDbModel
     [Column("filter_target_percentile")]
     public int? FilterTargetPercentile { get; set; }
 
-    [Column("filter_granularity")]
-    public string? FilterGranularity { get; set; } // TEXT
+    [Column("filter_granularity", TypeName = "text")]
+    public string? FilterGranularity { get; set; }
 
     [Column("filter_periods")]
     public int? FilterPeriods { get; set; }

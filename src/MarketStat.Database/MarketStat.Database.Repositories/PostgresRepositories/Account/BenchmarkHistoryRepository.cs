@@ -2,6 +2,7 @@ using System.Data;
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Account;
 using MarketStat.Common.Core.MarketStat.Common.Core.Account;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.BenchmarkHistory;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Account;
 using Microsoft.EntityFrameworkCore;
@@ -26,16 +27,18 @@ public class BenchmarkHistoryRepository : IBenchmarkHistoryRepository
         var parameters = new List<NpgsqlParameter>
         {
             new NpgsqlParameter("p_new_benchmark_history_id_out", NpgsqlDbType.Bigint) { Direction = ParameterDirection.Output },
-            
             new NpgsqlParameter("p_user_id_in", NpgsqlDbType.Integer) { Value = userId },
             new NpgsqlParameter("p_benchmark_result_json_in", NpgsqlDbType.Jsonb) { Value = saveRequest.BenchmarkResultJson },
             new NpgsqlParameter("p_benchmark_name_in", NpgsqlDbType.Varchar) { Value = (object?)saveRequest.BenchmarkName ?? DBNull.Value },
-            new NpgsqlParameter("p_filter_industry_field_name_in", NpgsqlDbType.Text) { Value = (object?)saveRequest.FilterIndustryFieldName ?? DBNull.Value },
-            new NpgsqlParameter("p_filter_standard_job_role_title_in", NpgsqlDbType.Text) { Value = (object?)saveRequest.FilterStandardJobRoleTitle ?? DBNull.Value },
-            new NpgsqlParameter("p_filter_hierarchy_level_name_in", NpgsqlDbType.Text) { Value = (object?)saveRequest.FilterHierarchyLevelName ?? DBNull.Value },
-            new NpgsqlParameter("p_filter_district_name_in", NpgsqlDbType.Text) { Value = (object?)saveRequest.FilterDistrictName ?? DBNull.Value },
-            new NpgsqlParameter("p_filter_oblast_name_in", NpgsqlDbType.Text) { Value = (object?)saveRequest.FilterOblastName ?? DBNull.Value },
-            new NpgsqlParameter("p_filter_city_name_in", NpgsqlDbType.Text) { Value = (object?)saveRequest.FilterCityName ?? DBNull.Value },
+            
+            // ID-based filter parameters
+            new NpgsqlParameter("p_filter_industry_field_id_in", NpgsqlDbType.Integer) { Value = (object?)saveRequest.FilterIndustryFieldId ?? DBNull.Value },
+            new NpgsqlParameter("p_filter_standard_job_role_id_in", NpgsqlDbType.Integer) { Value = (object?)saveRequest.FilterStandardJobRoleId ?? DBNull.Value },
+            new NpgsqlParameter("p_filter_hierarchy_level_id_in", NpgsqlDbType.Integer) { Value = (object?)saveRequest.FilterHierarchyLevelId ?? DBNull.Value },
+            new NpgsqlParameter("p_filter_district_id_in", NpgsqlDbType.Integer) { Value = (object?)saveRequest.FilterDistrictId ?? DBNull.Value },
+            new NpgsqlParameter("p_filter_oblast_id_in", NpgsqlDbType.Integer) { Value = (object?)saveRequest.FilterOblastId ?? DBNull.Value },
+            new NpgsqlParameter("p_filter_city_id_in", NpgsqlDbType.Integer) { Value = (object?)saveRequest.FilterCityId ?? DBNull.Value },
+            
             new NpgsqlParameter("p_filter_date_start_in", NpgsqlDbType.Date) { Value = (object?)saveRequest.FilterDateStart ?? DBNull.Value },
             new NpgsqlParameter("p_filter_date_end_in", NpgsqlDbType.Date) { Value = (object?)saveRequest.FilterDateEnd ?? DBNull.Value },
             new NpgsqlParameter("p_filter_target_percentile_in", NpgsqlDbType.Integer) { Value = (object?)saveRequest.FilterTargetPercentile ?? DBNull.Value },
@@ -44,32 +47,20 @@ public class BenchmarkHistoryRepository : IBenchmarkHistoryRepository
         };
         
         var sql = @"CALL marketstat.sp_save_benchmark(
-                        p_new_benchmark_history_id := @p_new_benchmark_history_id_out, -- For OUT param
-                        p_user_id := @p_user_id_in,
-                        p_benchmark_result_json := @p_benchmark_result_json_in,
-                        p_benchmark_name := @p_benchmark_name_in,
-                        p_filter_industry_field_name := @p_filter_industry_field_name_in,
-                        p_filter_standard_job_role_title := @p_filter_standard_job_role_title_in,
-                        p_filter_hierarchy_level_name := @p_filter_hierarchy_level_name_in,
-                        p_filter_district_name := @p_filter_district_name_in,
-                        p_filter_oblast_name := @p_filter_oblast_name_in,
-                        p_filter_city_name := @p_filter_city_name_in,
-                        p_filter_date_start := @p_filter_date_start_in,
-                        p_filter_date_end := @p_filter_date_end_in,
-                        p_filter_target_percentile := @p_filter_target_percentile_in,
-                        p_filter_granularity := @p_filter_granularity_in,
-                        p_filter_periods := @p_filter_periods_in
+                        @p_new_benchmark_history_id_out, @p_user_id_in, @p_benchmark_result_json_in,
+                        @p_benchmark_name_in, 
+                        @p_filter_industry_field_id_in, @p_filter_standard_job_role_id_in, 
+                        @p_filter_hierarchy_level_id_in, @p_filter_district_id_in,
+                        @p_filter_oblast_id_in, @p_filter_city_id_in,
+                        @p_filter_date_start_in, @p_filter_date_end_in,
+                        @p_filter_target_percentile_in, @p_filter_granularity_in, @p_filter_periods_in
                     );";
 
         var connection = _dbContext.Database.GetDbConnection();
         var closeConnection = false;
         try
         {
-            if (connection.State != ConnectionState.Open)
-            {
-                await connection.OpenAsync();
-                closeConnection = true;
-            }
+            if (connection.State != ConnectionState.Open) { await connection.OpenAsync(); closeConnection = true; }
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = sql;
@@ -85,20 +76,25 @@ public class BenchmarkHistoryRepository : IBenchmarkHistoryRepository
                 }
                 else
                 {
-                    throw new ApplicationException("Failed to retrieve new benchmark history ID from stored procedure.");
+                    throw new ApplicationException("Failed to retrieve new benchmark history ID from stored procedure. The OUT parameter was not set.");
                 }
             }
         }
+        catch (PostgresException pgEx)
+        {
+            throw new ApplicationException($"Database error saving benchmark: {pgEx.MessageText}", pgEx);
+        }
         catch (Exception ex)
         {
-            throw new ApplicationException("Error saving benchmark via stored procedure.", ex);
+            throw new ApplicationException("An unexpected error occurred while saving the benchmark.", ex);
         }
         finally
         {
-            if (closeConnection && connection.State == ConnectionState.Open)
-            {
-                await connection.CloseAsync();
-            }
+            if (closeConnection && connection.State == ConnectionState.Open) { await connection.CloseAsync(); }
+        }
+        
+        if (newBenchmarkHistoryId <= 0) {
+            throw new ApplicationException("Stored procedure did not return a valid new benchmark history ID.");
         }
         return newBenchmarkHistoryId;
     }
@@ -111,31 +107,35 @@ public class BenchmarkHistoryRepository : IBenchmarkHistoryRepository
             .OrderByDescending(bh => bh.SavedAt)
             .AsNoTracking()
             .ToListAsync();
-
+            
         return dbHistories.Select(BenchmarkHistoryConverter.ToDomain).ToList();
     }
 
-    public async Task<BenchmarkHistory?> GetBenchmarkHistoryByIdAndUserIdAsync(long benchmarkHistoryId, int userId)
+    public async Task<BenchmarkHistory> GetBenchmarkHistoryByIdAndUserIdAsync(long benchmarkHistoryId, int userId)
     {
         var dbHistory = await _dbContext.BenchmarkHistories
+            .Include(bh => bh.User)
             .AsNoTracking()
             .FirstOrDefaultAsync(bh => bh.BenchmarkHistoryId == benchmarkHistoryId && bh.UserId == userId);
-        
-        return dbHistory == null ? null : BenchmarkHistoryConverter.ToDomain(dbHistory);
+            
+        if (dbHistory == null)
+        {
+            throw new NotFoundException($"Benchmark history with ID {benchmarkHistoryId} not found for user ID {userId}.");
+        }
+        return BenchmarkHistoryConverter.ToDomain(dbHistory);
     }
 
-    public async Task<bool> DeleteBenchmarkHistoryAsync(long benchmarkHistoryId, int userId)
+    public async Task DeleteBenchmarkHistoryAsync(long benchmarkHistoryId, int userId)
     {
         var dbHistory = await _dbContext.BenchmarkHistories
             .FirstOrDefaultAsync(bh => bh.BenchmarkHistoryId == benchmarkHistoryId && bh.UserId == userId);
 
         if (dbHistory == null)
         {
-            return false;
+            throw new NotFoundException($"Benchmark history with ID {benchmarkHistoryId} not found for user ID {userId} to delete.");
         }
 
         _dbContext.BenchmarkHistories.Remove(dbHistory);
-        int affectedRows = await _dbContext.SaveChangesAsync();
-        return affectedRows > 0;
+        await _dbContext.SaveChangesAsync();
     }
 }

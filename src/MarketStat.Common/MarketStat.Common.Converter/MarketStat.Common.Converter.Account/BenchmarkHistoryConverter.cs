@@ -10,27 +10,33 @@ public static class BenchmarkHistoryConverter
         if (domainHistory == null)
             throw new ArgumentNullException(nameof(domainHistory));
 
-        return new BenchmarkHistoryDbModel
+        var dbModel = new BenchmarkHistoryDbModel
         {
             BenchmarkHistoryId = domainHistory.BenchmarkHistoryId,
             UserId = domainHistory.UserId,
             BenchmarkName = domainHistory.BenchmarkName,
             SavedAt = domainHistory.SavedAt,
-            FilterIndustryFieldName = domainHistory.FilterIndustryFieldName,
-            FilterStandardJobRoleTitle = domainHistory.FilterStandardJobRoleTitle,
-            FilterHierarchyLevelName = domainHistory.FilterHierarchyLevelName,
-            FilterDistrictName = domainHistory.FilterDistrictName,
-            FilterOblastName = domainHistory.FilterOblastName,
-            FilterCityName = domainHistory.FilterCityName,
+
+            FilterIndustryFieldId = domainHistory.FilterIndustryFieldId,
+            FilterStandardJobRoleId = domainHistory.FilterStandardJobRoleId,
+            FilterHierarchyLevelId = domainHistory.FilterHierarchyLevelId,
+            FilterDistrictId = domainHistory.FilterDistrictId,
+            FilterOblastId = domainHistory.FilterOblastId,
+            FilterCityId = domainHistory.FilterCityId,
             FilterDateStart = domainHistory.FilterDateStart,
             FilterDateEnd = domainHistory.FilterDateEnd,
             FilterTargetPercentile = domainHistory.FilterTargetPercentile,
             FilterGranularity = domainHistory.FilterGranularity,
             FilterPeriods = domainHistory.FilterPeriods,
+
             BenchmarkResultJson = domainHistory.BenchmarkResultJson
         };
+        if (domainHistory.User != null && domainHistory.User.UserId == domainHistory.UserId) {
+            dbModel.User = UserConverter.ToDbModel(domainHistory.User);
+        }
+        return dbModel;
     }
-
+    
     public static BenchmarkHistory ToDomain(BenchmarkHistoryDbModel dbHistory)
     {
         if (dbHistory == null)
@@ -41,20 +47,22 @@ public static class BenchmarkHistoryConverter
             userId: dbHistory.UserId,
             benchmarkName: dbHistory.BenchmarkName,
             savedAt: dbHistory.SavedAt,
-            filterIndustryFieldName: dbHistory.FilterIndustryFieldName,
-            filterStandardJobRoleTitle: dbHistory.FilterStandardJobRoleTitle,
-            filterHierarchyLevelName: dbHistory.FilterHierarchyLevelName,
-            filterDistrictName: dbHistory.FilterDistrictName,
-            filterOblastName: dbHistory.FilterOblastName,
-            filterCityName: dbHistory.FilterCityName,
+
+            filterIndustryFieldId: dbHistory.FilterIndustryFieldId,
+            filterStandardJobRoleId: dbHistory.FilterStandardJobRoleId,
+            filterHierarchyLevelId: dbHistory.FilterHierarchyLevelId,
+            filterDistrictId: dbHistory.FilterDistrictId,
+            filterOblastId: dbHistory.FilterOblastId,
+            filterCityId: dbHistory.FilterCityId,
             filterDateStart: dbHistory.FilterDateStart,
             filterDateEnd: dbHistory.FilterDateEnd,
             filterTargetPercentile: dbHistory.FilterTargetPercentile,
             filterGranularity: dbHistory.FilterGranularity,
             filterPeriods: dbHistory.FilterPeriods,
+
             benchmarkResultJson: dbHistory.BenchmarkResultJson
         );
-
+        
         if (dbHistory.User != null)
         {
             domainHistory.User = UserConverter.ToDomain(dbHistory.User);

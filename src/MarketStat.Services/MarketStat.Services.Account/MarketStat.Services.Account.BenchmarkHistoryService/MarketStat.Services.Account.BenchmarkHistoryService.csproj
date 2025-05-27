@@ -3,6 +3,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
     <ProjectReference Include="..\..\..\MarketStat.Database\MarketStat.Database.Core\MarketStat.Database.Core.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimIndustryFieldService\MarketStat.Services.Dimensions.DimIndustryFieldService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimStandardJobRoleService\MarketStat.Services.Dimensions.DimStandardJobRoleService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimHierarchyLevelService\MarketStat.Services.Dimensions.DimHierarchyLevelService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimFederalDistrictService\MarketStat.Services.Dimensions.DimFederalDistrictService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimOblastService\MarketStat.Services.Dimensions.DimOblastService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimCityService\MarketStat.Services.Dimensions.DimCityService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
