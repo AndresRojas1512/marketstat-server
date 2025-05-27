@@ -20,7 +20,9 @@ TO marketstat_etl_user;
 
 GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLE fact_salaries TO marketstat_etl_user;
 GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA marketstat TO marketstat_etl_user;
-GRANT EXECUTE ON PROCEDURE bulk_load_salary_facts_from_staging(TEXT) TO marketstat_etl_user;
+GRANT SELECT, INSERT, DELETE, TRUNCATE ON TABLE marketstat.failed_salary_facts_load TO marketstat_etl_user;
+GRANT USAGE, SELECT ON SEQUENCE marketstat.failed_salary_facts_load_failed_load_id_seq TO marketstat_etl_user;
+GRANT EXECUTE ON PROCEDURE marketstat.bulk_load_salary_facts_from_staging(TEXT) TO marketstat_etl_user;
 \echo 'marketstat_etl_user privileges granted.'
 
 
@@ -75,7 +77,7 @@ ALTER FUNCTION fn_compute_benchmark_data(INT,INT,INT,INT,INT,INT,DATE,DATE,INT,T
 
 ALTER PROCEDURE sp_save_benchmark(OUT BIGINT,IN INT,IN JSONB,IN VARCHAR,IN INT,IN INT,IN INT,IN INT,IN INT,IN INT,IN DATE,IN DATE,IN INT,IN TEXT,IN INT) SECURITY DEFINER;
 
-ALTER PROCEDURE bulk_load_salary_facts_from_staging(TEXT) SECURITY DEFINER;
+ALTER PROCEDURE marketstat.bulk_load_salary_facts_from_staging(TEXT) OWNER TO marketstat_administrator;
 \echo 'Key routines security context set to DEFINER.'
 
 

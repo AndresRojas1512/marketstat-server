@@ -243,3 +243,23 @@ CREATE TABLE IF NOT EXISTS benchmark_history (
 
 CREATE INDEX IF NOT EXISTS idx_benchmark_history_user_id ON marketstat.benchmark_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_benchmark_history_saved_at ON marketstat.benchmark_history(saved_at DESC);
+
+
+CREATE TABLE marketstat.failed_salary_facts_load (
+    failed_load_id              SERIAL PRIMARY KEY,
+    run_timestamp               TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    recorded_date_text          TEXT,
+    city_name                   TEXT,
+    oblast_name                 TEXT,
+    employer_name               TEXT,
+    standard_job_role_title     TEXT,
+    job_role_title              TEXT,
+    hierarchy_level_name        TEXT,
+    employee_birth_date_text    TEXT,
+    employee_career_start_date_text TEXT,
+    salary_amount               NUMERIC(18,2),
+    bonus_amount                NUMERIC(18,2),
+    error_message               TEXT
+);
+
+\echo 'Table "marketstat.failed_salary_facts_load" created and privileges granted.'

@@ -8,7 +8,6 @@ CREATE OR REPLACE PROCEDURE marketstat.sp_save_benchmark(
     IN p_user_id                        INT,
     IN p_benchmark_result_json          JSONB,
 
-    -- Optional IN parameters for naming and filters (all default to NULL)
     IN p_benchmark_name                 VARCHAR(255) DEFAULT NULL,
     IN p_filter_industry_field_id       INT          DEFAULT NULL,
     IN p_filter_standard_job_role_id    INT          DEFAULT NULL,
