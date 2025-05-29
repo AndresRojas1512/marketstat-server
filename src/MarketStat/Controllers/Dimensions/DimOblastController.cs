@@ -39,7 +39,7 @@ public class DimOblastController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DimOblastDto>> GetById(int id)
     {
-        var oblast = await _dimOblastService.GetOblastsByFederalDistrictIdAsync(id);
+        var oblast = await _dimOblastService.GetOblastByIdAsync(id);
         var dto = _mapper.Map<DimOblastDto>(oblast);
         return Ok(dto);
     }

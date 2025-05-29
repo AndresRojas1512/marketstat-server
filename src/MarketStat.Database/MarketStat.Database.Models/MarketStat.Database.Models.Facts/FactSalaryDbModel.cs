@@ -53,6 +53,10 @@ public class FactSalaryDbModel
     [ForeignKey(nameof(EmployeeId))]
     public virtual DimEmployeeDbModel? DimEmployee { get; set; }
 
+    public FactSalaryDbModel() 
+    {
+    }
+
     public FactSalaryDbModel(
         int dateId,
         int cityId,

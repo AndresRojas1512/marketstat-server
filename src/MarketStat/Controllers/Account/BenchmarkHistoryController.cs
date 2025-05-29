@@ -3,6 +3,7 @@ using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.BenchmarkHistory;
 using MarketStat.Services.Account.BenchmarkHistoryService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace MarketStat.Controllers.Account;
 
@@ -22,14 +23,51 @@ public class BenchmarkHistoryController : ControllerBase
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    // private int GetCurrentUserId()
+    // {
+    //     var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    //     if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId) || userId <= 0)
+    //     {
+    //         _logger.LogError("User ID claim (NameIdentifier) is missing, invalid, or non-positive in the token.");
+    //         throw new UnauthorizedAccessException("User ID could not be determined or is invalid from the token.");
+    //     }
+    //     return userId;
+    // }
     private int GetCurrentUserId()
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId) || userId <= 0)
+        _logger.LogInformation("--- Attempting to retrieve User ID from claims. All Claims for Current User Principal ---");
+        foreach (var claim in User.Claims)
         {
-            _logger.LogError("User ID claim (NameIdentifier) is missing, invalid, or non-positive in the token.");
+            _logger.LogInformation("Claim Type: [{ClaimType}], Value: [{ClaimValue}], Issuer: [{ClaimIssuer}], ValueType: [{ClaimValueType}]", 
+                claim.Type, claim.Value, claim.Issuer, claim.ValueType);
+        }
+        _logger.LogInformation("--- End of Claims ---");
+
+        // Prioritize the direct "nameid" claim as seen in the JWT payload
+        string? userIdString = User.FindFirst("nameid")?.Value; 
+
+        // Fallback to ClaimTypes.NameIdentifier if "nameid" direct lookup fails
+        if (string.IsNullOrEmpty(userIdString))
+        {
+            _logger.LogInformation("Direct 'nameid' claim not found or empty. Trying ClaimTypes.NameIdentifier.");
+            userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+        
+        // As another fallback, try JwtRegisteredClaimNames.NameId (which is "nameid")
+        // This is redundant if the direct "nameid" string lookup works.
+        if (string.IsNullOrEmpty(userIdString))
+        {
+            _logger.LogInformation("ClaimTypes.NameIdentifier not found or empty. Trying JwtRegisteredClaimNames.NameId.");
+            userIdString = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+        }
+        
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+        {
+            _logger.LogInformation("User ID claim could not be resolved to a valid positive integer. Final userIdString attempt: '{UserIdString}'", userIdString);
             throw new UnauthorizedAccessException("User ID could not be determined or is invalid from the token.");
         }
+
+        _logger.LogInformation("Successfully resolved current UserId: {UserId} from claim string: '{UserIdString}'", userId, userIdString);
         return userId;
     }
 

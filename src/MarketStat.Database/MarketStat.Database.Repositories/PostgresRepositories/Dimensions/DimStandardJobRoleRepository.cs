@@ -99,4 +99,20 @@ public class DimStandardJobRoleRepository : BaseRepository, IDimStandardJobRoleR
         _context.DimStandardJobRoles.Remove(dbJobRole);
         await _context.SaveChangesAsync();
     }
+    
+    public async Task<IEnumerable<DimStandardJobRole>> GetStandardJobRolesByIndustryAsync(int industryFieldId)
+    {
+        if (industryFieldId <= 0)
+        {
+            throw new ArgumentException("IndustryFieldId must be a positive integer.");
+        }
+
+        var dbJobRoles = await _context.DimStandardJobRoles
+            .Where(sjr => sjr.IndustryFieldId == industryFieldId)
+            .AsNoTracking()
+            .OrderBy(sjr => sjr.StandardJobRoleTitle)
+            .ToListAsync();
+            
+        return dbJobRoles.Select(DimStandardJobRoleConverter.ToDomain);
+    }
 }

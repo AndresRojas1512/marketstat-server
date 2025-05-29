@@ -86,5 +86,4 @@ public class DimIndustryFieldController : ControllerBase
         await _dimIndustryFieldService.DeleteIndustryFieldAsync(id);
         return NoContent();
     }
-    
 }

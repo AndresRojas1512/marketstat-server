@@ -19,11 +19,11 @@ public record CreateFactSalaryDto
     [Required]
     public int EmployeeId { get; init; }
     
-    [Required]
-    [Range(0, double.MaxValue)]
+    [Required(ErrorMessage = "Salary amount is required.")]
+    [Range(0.0, (double)decimal.MaxValue, ErrorMessage = "Salary amount must be a non-negative value.")]
     public decimal SalaryAmount { get; init; }
 
-    [Required]
-    [Range(0, double.MaxValue)]
+    [Required(ErrorMessage = "Bonus amount is required.")]
+    [Range(0.0, (double)decimal.MaxValue, ErrorMessage = "Bonus amount must be a non-negative value.")]
     public decimal BonusAmount { get; init; } = 0m;
 }

@@ -97,4 +97,17 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
             throw;
         }
     }
+    
+    public async Task<IEnumerable<DimStandardJobRole>> GetStandardJobRolesByIndustryAsync(int industryFieldId)
+    {
+        _logger.LogInformation("Fetching standard job roles for IndustryFieldId: {IndustryFieldId}", industryFieldId);
+        if (industryFieldId <= 0)
+        {
+            _logger.LogWarning("Invalid IndustryFieldId provided for GetStandardJobRolesByIndustryAsync: {IndustryFieldId}", industryFieldId);
+            throw new ArgumentException("IndustryFieldId must be a positive integer.");
+        }
+        var roles = await _dimStandardJobRoleRepository.GetStandardJobRolesByIndustryAsync(industryFieldId);
+        _logger.LogInformation("Fetched {Count} standard job roles for IndustryFieldId: {IndustryFieldId}", roles.Count(), industryFieldId);
+        return roles;
+    }
 }

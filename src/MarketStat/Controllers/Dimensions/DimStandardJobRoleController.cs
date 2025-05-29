@@ -90,4 +90,18 @@ public class DimStandardJobRoleController : ControllerBase
         await _dimStandardJobRoleService.DeleteStandardJobRoleAsync(id);
         return NoContent();
     }
+    
+    [HttpGet("byindustry/{industryFieldId:int}")]
+    [ProducesResponseType(typeof(IEnumerable<DimStandardJobRoleDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IEnumerable<DimStandardJobRoleDto>>> GetByIndustryId(int industryFieldId)
+    {
+        if (industryFieldId <= 0)
+        {
+            return BadRequest(new { Message = "IndustryFieldId must be a positive integer." });
+        }
+        var roles = await _dimStandardJobRoleService.GetStandardJobRolesByIndustryAsync(industryFieldId);
+        var dtos = _mapper.Map<IEnumerable<DimStandardJobRoleDto>>(roles);
+        return Ok(dtos);
+    }
 }

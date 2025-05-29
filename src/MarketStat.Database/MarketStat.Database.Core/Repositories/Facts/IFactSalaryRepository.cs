@@ -20,4 +20,17 @@ public interface IFactSalaryRepository
     Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
     Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters,
         TimeGranularity granularity, int periods);
+    
+    // Public Analytical Methods
+    Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(
+        int industryFieldId, 
+        int? federalDistrictId, 
+        int? oblastId, 
+        int? cityId, 
+        int minSalaryRecordsForRole);
+
+    Task<IEnumerable<PublicDegreeByIndustryDto>> GetPublicTopDegreesByIndustryAsync(
+        int industryFieldId, 
+        int topNDegrees, 
+        int minEmployeeCountForDegree);
 }

@@ -9,4 +9,5 @@ public interface IDimStandardJobRoleRepository
     Task<IEnumerable<DimStandardJobRole>> GetAllStandardJobRolesAsync();
     Task UpdateStandardJobRoleAsync(DimStandardJobRole jobRole);
     Task DeleteStandardJobRoleAsync(int id);
+    Task<IEnumerable<DimStandardJobRole>> GetStandardJobRolesByIndustryAsync(int industryFieldId);
 }

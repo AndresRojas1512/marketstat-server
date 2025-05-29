@@ -10,6 +10,8 @@ public class FactSalary
     public int EmployeeId { get; set; }
     public decimal SalaryAmount { get; set; }
     public decimal BonusAmount { get; set; }
+    
+    public FactSalary() { }
 
     public FactSalary(long salaryFactId, int dateId, int cityId, int employerId, int jobRoleId, int employeeId,
         decimal salaryAmount, decimal bonusAmount)
