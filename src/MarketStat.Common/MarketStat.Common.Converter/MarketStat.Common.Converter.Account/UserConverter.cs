@@ -20,7 +20,8 @@ public static class UserConverter
             IsActive = domainUser.IsActive,
             CreatedAt = domainUser.CreatedAt,
             LastLoginAt = domainUser.LastLoginAt,
-            SavedBenchmarksCount = domainUser.SavedBenchmarksCount
+            SavedBenchmarksCount = domainUser.SavedBenchmarksCount,
+            IsEtlUser = domainUser.IsEtlUser
         };
         return dbModel;
     }
@@ -39,7 +40,8 @@ public static class UserConverter
             isActive: dbUser.IsActive,
             createdAt: dbUser.CreatedAt,
             lastLoginAt: dbUser.LastLoginAt,
-            savedBenchmarksCount: dbUser.SavedBenchmarksCount
+            savedBenchmarksCount: dbUser.SavedBenchmarksCount,
+            isEtlUser: dbUser.IsEtlUser
         );
 
         if (dbUser.BenchmarkHistories != null && dbUser.BenchmarkHistories.Any())

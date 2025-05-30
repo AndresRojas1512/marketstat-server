@@ -1,6 +1,5 @@
 using System.Data;
 using System.Text.Json;
-using AutoMapper;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Enums;
@@ -14,14 +13,12 @@ namespace MarketStat.Services.Facts.FactSalaryService;
 public class FactSalaryService : IFactSalaryService
 {
     private readonly IFactSalaryRepository _factSalaryRepository;
-    private readonly IMapper _mapper;
     private readonly ILogger<FactSalaryService> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
-    public FactSalaryService(IFactSalaryRepository factSalaryRepository, IMapper mapper, ILogger<FactSalaryService> logger)
+    public FactSalaryService(IFactSalaryRepository factSalaryRepository, ILogger<FactSalaryService> logger)
     {
         _factSalaryRepository = factSalaryRepository ?? throw new ArgumentNullException(nameof(factSalaryRepository));
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _jsonSerializerOptions = new JsonSerializerOptions
         {

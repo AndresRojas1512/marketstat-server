@@ -37,22 +37,33 @@ public class AuthService : IAuthService
 
     public async Task<UserDto> RegisterAsync(RegisterUserDto registerDto)
     {
-        UserValidator.ValidateRegistration(registerDto);
+        UserValidator.ValidateRegistration(registerDto); // Throws ArgumentException on validation failure
         _logger.LogInformation("Attempting to register user: {Username}", registerDto.Username);
 
         if (await _userRepository.UserExistsAsync(registerDto.Username, registerDto.Email))
         {
+            _logger.LogWarning("Registration failed for {Username}: Username or email already exists.", registerDto.Username);
             throw new ConflictException("User with the same username or email already exists.");
         }
+
         string passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
-        var newUserDomain = new User()
+            
+        var newUserDomain = new User() 
         {
-            Username = registerDto.Username, PasswordHash = passwordHash, Email = registerDto.Email,
-            FullName = registerDto.FullName, IsActive = true, CreatedAt = DateTimeOffset.UtcNow,
-            SavedBenchmarksCount = 0
+            Username = registerDto.Username,
+            PasswordHash = passwordHash,
+            Email = registerDto.Email,
+            FullName = registerDto.FullName,
+            IsActive = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            SavedBenchmarksCount = 0,
+            IsEtlUser = registerDto.IsEtlUser
         };
+
         var createdUserDomain = await _userRepository.AddUserAsync(newUserDomain);
-        _logger.LogInformation("User {Username} registered successfully with ID {UserId}", createdUserDomain.Username, createdUserDomain.UserId);
+        _logger.LogInformation("User {Username} registered successfully with ID {UserId} (IsEtlUser: {IsEtlUser})", 
+            createdUserDomain.Username, createdUserDomain.UserId, createdUserDomain.IsEtlUser);
+
         return _mapper.Map<UserDto>(createdUserDomain);
     }
 
@@ -69,7 +80,7 @@ public class AuthService : IAuthService
         catch (NotFoundException)
         {
             _logger.LogWarning("Login failed for user {Username}: User not found.", loginDto.Username);
-            throw new Common.Exceptions.AuthenticationException("Invalid username or password.");
+            throw new Common.Exceptions.AuthenticationException("Invalid username or password."); // Obscure actual reason
         }
 
         if (!userDomain.IsActive)
@@ -91,8 +102,7 @@ public class AuthService : IAuthService
         }
         catch(Exception ex) 
         {
-            _logger.LogError(ex, "Error updating LastLoginAt for user {Username}", userDomain.Username);
-            // Decide if this should halt login. For now, let login proceed.
+            _logger.LogError(ex, "Error updating LastLoginAt for user {Username}. Login will proceed.", userDomain.Username);
         }
 
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -103,22 +113,37 @@ public class AuthService : IAuthService
 
         if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
         {
-            _logger.LogCritical("JWT settings (Key, Issuer, Audience) are not configured properly in appsettings.json.");
+            _logger.LogCritical("JWT settings (Key, Issuer, Audience) are not configured properly in appsettings.json. Cannot generate token.");
             throw new ApplicationException("Authentication system configuration error. Please contact administrator.");
         }
         
         var key = Encoding.ASCII.GetBytes(jwtKey);
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, userDomain.Username),
+            new Claim(ClaimTypes.NameIdentifier, userDomain.UserId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, userDomain.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        string roleClaimValue;
+        if (userDomain.IsEtlUser)
+        {
+            roleClaimValue = "EtlUser";
+            claims.Add(new Claim(ClaimTypes.Role, roleClaimValue));
+            _logger.LogInformation("User {Username} (ID: {UserId}) assigned 'EtlUser' role in JWT.", userDomain.Username, userDomain.UserId);
+        }
+        else
+        {
+            roleClaimValue = "Analyst";
+            claims.Add(new Claim(ClaimTypes.Role, roleClaimValue));
+            _logger.LogInformation("User {Username} (ID: {UserId}) assigned 'Analyst' role in JWT.", userDomain.Username, userDomain.UserId);
+        }
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[]
-            {
-                // Use ClaimTypes.Name for the username, which is standard for User.Identity.Name
-                new Claim(ClaimTypes.Name, userDomain.Username), 
-                // Keep ClaimTypes.NameIdentifier specifically for the numeric User ID
-                new Claim(ClaimTypes.NameIdentifier, userDomain.UserId.ToString()), 
-                new Claim(JwtRegisteredClaimNames.Email, userDomain.Email), // Standard email claim
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // JWT ID
-            }),
+            Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddMinutes(jwtExpiresMinutes),
             Issuer = jwtIssuer,
             Audience = jwtAudience,
@@ -128,7 +153,8 @@ public class AuthService : IAuthService
         var token = tokenHandler.CreateToken(tokenDescriptor);
         var tokenString = tokenHandler.WriteToken(token);
 
-        _logger.LogInformation("User {Username} logged in successfully. Token generated.", userDomain.Username);
+        _logger.LogInformation("User {Username} (RoleClaim: {UserRoleClaim}) logged in successfully. Token generated.", 
+            userDomain.Username, roleClaimValue);
 
         return new AuthResponseDto
         {

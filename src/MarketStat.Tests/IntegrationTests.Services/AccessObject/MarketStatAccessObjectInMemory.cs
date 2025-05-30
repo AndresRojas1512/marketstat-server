@@ -123,7 +123,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
         DimStandardJobRoleService = new DimStandardJobRoleService(DimStandardJobRoleRepository,
             NullLogger<DimStandardJobRoleService>.Instance);
 
-        FactSalaryRepository = new FactSalaryRepository(Context);
+        FactSalaryRepository = new FactSalaryRepository(Context, NullLogger<FactSalaryRepository>.Instance);
         FactSalaryService = new FactSalaryService(FactSalaryRepository, NullLogger<FactSalaryService>.Instance);
     }
 

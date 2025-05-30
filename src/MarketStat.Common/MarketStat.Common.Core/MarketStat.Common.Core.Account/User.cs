@@ -11,23 +11,9 @@ public class User
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? LastLoginAt { get; set; }
     public int SavedBenchmarksCount { get; set; }
+    public bool IsEtlUser { get; set; }
 
     public virtual ICollection<BenchmarkHistory> BenchmarkHistories { get; set; }
-
-    public User(int userId, string username, string passwordHash, string email, string fullName,
-        bool isActive, DateTimeOffset createdAt, DateTimeOffset? lastLoginAt, int savedBenchmarksCount)
-    {
-        UserId = userId;
-        Username = username ?? throw new ArgumentNullException(nameof(username));
-        PasswordHash = passwordHash ?? throw new ArgumentNullException(nameof(passwordHash));
-        Email = email ?? throw new ArgumentNullException(nameof(email));
-        FullName = fullName ?? throw new ArgumentNullException(nameof(fullName));
-        IsActive = isActive;
-        CreatedAt = createdAt;
-        LastLoginAt = lastLoginAt;
-        SavedBenchmarksCount = savedBenchmarksCount;
-        BenchmarkHistories = new List<BenchmarkHistory>();
-    }
     
     public User()
     {
@@ -38,5 +24,22 @@ public class User
         BenchmarkHistories = new List<BenchmarkHistory>();
         CreatedAt = DateTimeOffset.UtcNow;
         IsActive = true;
+        IsEtlUser = false;
+    }
+
+    public User(int userId, string username, string passwordHash, string email, string fullName,
+        bool isActive, DateTimeOffset createdAt, DateTimeOffset? lastLoginAt, int savedBenchmarksCount, bool isEtlUser)
+    {
+        UserId = userId;
+        Username = username ?? throw new ArgumentNullException(nameof(username));
+        PasswordHash = passwordHash ?? throw new ArgumentNullException(nameof(passwordHash));
+        Email = email ?? throw new ArgumentNullException(nameof(email));
+        FullName = fullName ?? throw new ArgumentNullException(nameof(fullName));
+        IsActive = isActive;
+        CreatedAt = createdAt;
+        LastLoginAt = lastLoginAt;
+        SavedBenchmarksCount = savedBenchmarksCount;
+        IsEtlUser = isEtlUser;
+        BenchmarkHistories = new List<BenchmarkHistory>();
     }
 }

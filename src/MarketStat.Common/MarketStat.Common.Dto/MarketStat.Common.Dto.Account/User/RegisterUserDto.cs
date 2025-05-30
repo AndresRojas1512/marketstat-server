@@ -22,4 +22,6 @@ public class RegisterUserDto
     [Required(ErrorMessage = "Full name is required.")]
     [StringLength(255, ErrorMessage = "Full name cannot exceed 255 characters.")]
     public string FullName { get; set; } = string.Empty;
+
+    public bool IsEtlUser { get; set; } = false;
 }

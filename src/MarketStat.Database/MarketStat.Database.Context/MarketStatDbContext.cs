@@ -489,6 +489,11 @@ public class MarketStatDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValue(0);
 
+            b.Property(u => u.IsEtlUser)
+                .HasColumnName("is_etl_user")
+                .IsRequired()
+                .HasDefaultValue(false);
+
             b.HasMany(u => u.BenchmarkHistories)
                 .WithOne(bh => bh.User) 
                 .HasForeignKey(bh => bh.UserId)

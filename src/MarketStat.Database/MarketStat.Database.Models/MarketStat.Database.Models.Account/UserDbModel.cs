@@ -40,6 +40,10 @@ public class UserDbModel
 
     [Column("saved_benchmarks_count")]
     public int SavedBenchmarksCount { get; set; }
+    
+    [Required]
+    [Column("is_etl_user")]
+    public bool IsEtlUser { get; set; }
 
     public virtual ICollection<BenchmarkHistoryDbModel> BenchmarkHistories { get; set; }
 
@@ -48,5 +52,6 @@ public class UserDbModel
         BenchmarkHistories = new List<BenchmarkHistoryDbModel>();
         IsActive = true;
         CreatedAt = DateTimeOffset.UtcNow;
+        IsEtlUser = false;
     }
 }
