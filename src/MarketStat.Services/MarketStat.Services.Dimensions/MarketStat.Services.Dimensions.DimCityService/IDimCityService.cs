@@ -9,4 +9,5 @@ public interface IDimCityService
     Task<IEnumerable<DimCity>> GetAllCitiesAsync();
     Task<DimCity> UpdateCityAsync(int cityId, string cityName, int oblastId);
     Task DeleteCityAsync(int cityId);
+    Task<IEnumerable<DimCity>> GetCitiesByOblastIdAsync(int oblastId);
 }

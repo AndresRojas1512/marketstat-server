@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Security.Claims;
 using AutoMapper;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Enums;
@@ -11,8 +12,8 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace MarketStat.Controllers.Facts;
 
 [ApiController]
-[Route("api/salaries")]
-// [Authorize]
+[Route("api/factsalaries")]
+[Authorize]
 public class FactSalaryController : ControllerBase
 {
     private readonly IFactSalaryService _factSalaryService;
@@ -30,7 +31,11 @@ public class FactSalaryController : ControllerBase
     /// Gets all salary fact records.
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Analyst, EtlUser")]
     [ProducesResponseType(typeof(IEnumerable<FactSalaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<FactSalaryDto>>> GetAllSalaries()
     {
         _logger.LogInformation("Attempting to get all salary facts.");
@@ -45,13 +50,18 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the salary fact.</param>
     [HttpGet("{id:long}")]
+    [Authorize(Roles = "Analyst, EtlUser")]
     [ProducesResponseType(typeof(FactSalaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FactSalaryDto>> GetSalaryById(long id)
     {
         _logger.LogInformation("Attempting to get salary fact with ID: {SalaryFactId}", id);
         if (id <= 0)
         {
+            _logger.LogWarning("GetSalaryById called with invalid SalaryFactId: {SalaryFactId}", id);
             return BadRequest(new { Message = "Invalid SalaryFactId." });
         }
         var salaryFactDomain = await _factSalaryService.GetFactSalaryByIdAsync(id);
@@ -65,7 +75,11 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="filterDto">The filter criteria.</param>
     [HttpGet("query")]
+    [Authorize(Roles = "Analyst, EtlUser")]
     [ProducesResponseType(typeof(IEnumerable<FactSalaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<FactSalaryDto>>> GetSalariesByFilter([FromQuery] SalaryFilterDto filterDto)
     {
         _logger.LogInformation("Attempting to get salary facts by filter: {@FilterDto}", filterDto);
@@ -80,8 +94,11 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="createDto">The DTO containing data for the new salary fact.</param>
     [HttpPost]
+    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(typeof(FactSalaryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<FactSalaryDto>> CreateSalaryFact([FromBody] CreateFactSalaryDto createDto)
@@ -107,8 +124,11 @@ public class FactSalaryController : ControllerBase
     /// <param name="id">The ID of the salary fact to update.</param>
     /// <param name="updateDto">The DTO containing updated data.</param>
     [HttpPut("{id:long}")]
+    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateSalaryFact(long id, [FromBody] UpdateFactSalaryDto updateDto)
@@ -137,7 +157,11 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the salary fact to delete.</param>
     [HttpDelete("{id:long}")]
+    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteSalaryFact(long id)
     {
@@ -158,8 +182,11 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="filters">Filter criteria for the report (ID-based).</param>
     [HttpGet("benchmarking-report")]
+    [Authorize(Roles = "Analyst, EtlUser")] // Explicitly allow both roles
     [ProducesResponseType(typeof(BenchmarkDataDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BenchmarkDataDto>> GetBenchmarkingReport([FromQuery] BenchmarkQueryDto filters)
     {
@@ -167,7 +194,8 @@ public class FactSalaryController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        _logger.LogInformation("Received request for benchmarking report: {@Filters}", filters);
+        _logger.LogInformation("User ({UserRoles}) requesting benchmarking report: {@Filters}", 
+            string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters);
         BenchmarkDataDto? reportData = await _factSalaryService.GetBenchmarkingReportAsync(filters);
         return Ok(reportData); 
     }
@@ -177,15 +205,16 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="filters">ID-based filter criteria.</param>
     [HttpGet("distribution")]
+    [Authorize(Roles = "Analyst, EtlUser")]
     [ProducesResponseType(typeof(List<SalaryDistributionBucketDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<List<SalaryDistributionBucketDto>>> GetSalaryDistribution([FromQuery] SalaryFilterDto filters)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-        _logger.LogInformation("Fetching salary distribution for filters: {@Filters}", filters);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        _logger.LogInformation("User ({UserRoles}) fetching salary distribution for filters: {@Filters}", 
+            string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters);
         var distribution = await _factSalaryService.GetSalaryDistributionAsync(filters);
         return Ok(distribution); 
     }
@@ -196,20 +225,20 @@ public class FactSalaryController : ControllerBase
     /// <param name="filters">ID-based filter criteria.</param>
     /// <param name="targetPercentile">The target percentile to calculate.</param>
     [HttpGet("summary")]
+    [Authorize(Roles = "Analyst, EtlUser")]
     [ProducesResponseType(typeof(SalarySummaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)] 
     public async Task<ActionResult<SalarySummaryDto>> GetSalarySummary([FromQuery] SalaryFilterDto filters, [FromQuery] int targetPercentile = 90)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-        _logger.LogInformation("Fetching salary summary for filters: {@Filters}, target percentile: {TargetPercentile}", filters, targetPercentile);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        _logger.LogInformation("User ({UserRoles}) fetching salary summary for filters: {@Filters}, target percentile: {TargetPercentile}", 
+            string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters, targetPercentile);
         var summary = await _factSalaryService.GetSalarySummaryAsync(filters, targetPercentile);
-        if (summary == null) // Service returns null if no data for summary
+        if (summary == null)
         {
-            _logger.LogInformation("No salary summary data found for filters: {@Filters}, target percentile: {TargetPercentile}", filters, targetPercentile);
             return NotFound(new { Message = "No salary data found matching the specified criteria for summary." });
         }
         return Ok(summary);
@@ -222,15 +251,19 @@ public class FactSalaryController : ControllerBase
     /// <param name="granularity">Time granularity (Month, Quarter, Year).</param>
     /// <param name="periods">Number of periods to show.</param>
     [HttpGet("timeseries")]
+    [Authorize(Roles = "Analyst, EtlUser")]
     [ProducesResponseType(typeof(List<SalaryTimeSeriesPointDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<List<SalaryTimeSeriesPointDto>>> GetSalaryTimeSeries(
         [FromQuery] SalaryFilterDto filters,
         [FromQuery] TimeGranularity granularity = TimeGranularity.Month,
         [FromQuery] int periods = 12)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-        _logger.LogInformation("Fetching salary time series for filters: {@Filters}, granularity: {Granularity}, periods: {Periods}", filters, granularity, periods);
+        _logger.LogInformation("User ({UserRoles}) fetching salary time series for filters: {@Filters}, granularity: {Granularity}, periods: {Periods}", 
+            string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters, granularity, periods);
         var timeSeries = await _factSalaryService.GetSalaryTimeSeriesAsync(filters, granularity, periods);
         return Ok(timeSeries);
     }
@@ -255,7 +288,6 @@ public class FactSalaryController : ControllerBase
         [FromQuery] int minSalaryRecordsForRole = 3)
     {
         _logger.LogInformation("Public request for roles by location/industry: IndustryId={IndustryId}", industryFieldId);
-        // Service method will do more detailed validation if needed
         var result = await _factSalaryService.GetPublicRolesByLocationIndustryAsync(industryFieldId, federalDistrictId, oblastId, cityId, minSalaryRecordsForRole);
         return Ok(result);
     }

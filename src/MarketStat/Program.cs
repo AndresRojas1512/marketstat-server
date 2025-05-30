@@ -194,7 +194,7 @@ try
         })
         .AddJwtBearer(options =>
         {
-            options.MapInboundClaims = false; // Recommended to prevent default claim type mapping
+            options.MapInboundClaims = false;
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -206,7 +206,7 @@ try
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                 ClockSkew = TimeSpan.Zero,
                 NameClaimType = ClaimTypes.Name,
-                RoleClaimType = ClaimTypes.Role
+                RoleClaimType = "role"
             };
         });
     }

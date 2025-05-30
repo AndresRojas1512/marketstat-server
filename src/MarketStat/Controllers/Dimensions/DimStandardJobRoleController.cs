@@ -1,6 +1,7 @@
 using AutoMapper;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimStandardJobRole;
 using MarketStat.Services.Dimensions.DimStandardJobRoleService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketStat.Controllers.Dimensions;
@@ -22,7 +23,11 @@ public class DimStandardJobRoleController : ControllerBase
     /// Return all standard job roles.
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<DimStandardJobRoleDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DimStandardJobRoleDto>>> GetAll()
     {
         var list = await _dimStandardJobRoleService.GetAllStandardJobRolesAsync();
@@ -35,10 +40,19 @@ public class DimStandardJobRoleController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(DimStandardJobRoleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)] 
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<DimStandardJobRoleDto>> GetById(int id)
     {
+        if (id <= 0)
+        {
+            return BadRequest(new { Message = "Invalid StandardJobRoleId." });
+        }
         var job = await _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(id);
         var dto = _mapper.Map<DimStandardJobRoleDto>(job);
         return Ok(dto);
@@ -49,12 +63,22 @@ public class DimStandardJobRoleController : ControllerBase
     /// </summary>
     /// <param name="createDto"></param>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    [Authorize(Roles = "EtlUser")]
+    [ProducesResponseType(typeof(DimStandardJobRoleDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<DimStandardJobRoleDto>> PostStandardJobRole([FromBody] CreateDimStandardJobRoleDto createDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var created =
-            await _dimStandardJobRoleService.CreateStandardJobRoleAsync(createDto.StandardJobRoleTitle,
+            await _dimStandardJobRoleService.CreateStandardJobRoleAsync(
+                createDto.StandardJobRoleTitle,
                 createDto.IndustryFieldId);
         var dto = _mapper.Map<DimStandardJobRoleDto>(created);
         return CreatedAtAction(nameof(GetById), new { id = dto.StandardJobRoleId }, dto);
@@ -67,12 +91,26 @@ public class DimStandardJobRoleController : ControllerBase
     /// <param name="updateDto"></param>
     /// <returns></returns>
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> PutStandardJobRole(int id, [FromBody] UpdateDimStandardJobRoleDto updateDto)
     {
-        await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(id, updateDto.StandardJobRoleTitle,
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        if (id <= 0) 
+        {
+            return BadRequest(new { Message = "Invalid StandardJobRoleId." });
+        }
+        await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(
+            id,
+            updateDto.StandardJobRoleTitle,
             updateDto.IndustryFieldId);
         return NoContent();
     }
@@ -83,17 +121,30 @@ public class DimStandardJobRoleController : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> DeleteStandardJobRole(int id)
     {
+        if (id <= 0)
+        {
+            return BadRequest(new { Message = "Invalid StandardJobRoleId." });
+        }
         await _dimStandardJobRoleService.DeleteStandardJobRoleAsync(id);
         return NoContent();
     }
     
     [HttpGet("byindustry/{industryFieldId:int}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<DimStandardJobRoleDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DimStandardJobRoleDto>>> GetByIndustryId(int industryFieldId)
     {
         if (industryFieldId <= 0)

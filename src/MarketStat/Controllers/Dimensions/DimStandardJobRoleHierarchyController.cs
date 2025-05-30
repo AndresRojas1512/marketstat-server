@@ -1,6 +1,7 @@
 using AutoMapper;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimStandardJobRoleHierarchy;
 using MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,7 +25,11 @@ public class DimStandardJobRoleHierarchyController : ControllerBase
     /// Returns all StandardJobRole-HierarchyLevel links.
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<DimStandardJobRoleHierarchyDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DimStandardJobRoleHierarchyDto>>> GetAll()
     {
         var list = await _dimStandardJobRoleHierarchyService.GetAllStandardJobRoleHierarchiesAsync();
@@ -38,20 +43,22 @@ public class DimStandardJobRoleHierarchyController : ControllerBase
     /// <param name="jobRoleId"></param>
     /// <param name="levelId"></param>
     [HttpGet("{jobRoleId:int}/{levelId:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(DimStandardJobRoleHierarchyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<DimStandardJobRoleHierarchyDto>> GetByJobRoleIdLevelId(int jobRoleId, int levelId)
     {
-        try
+        if (jobRoleId <= 0 || levelId <= 0)
         {
-            var link = await _dimStandardJobRoleHierarchyService.GetStandardJobRoleHierarchyAsync(jobRoleId, levelId);
-            var dto = _mapper.Map<DimStandardJobRoleHierarchyDto>(link);
-            return Ok(dto);
+            return BadRequest(new { Message = "Invalid JobRoleId or LevelId." });
         }
-        catch (Exception ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
+        var linkDomain = await _dimStandardJobRoleHierarchyService.GetStandardJobRoleHierarchyAsync(jobRoleId, levelId);
+        var dto = _mapper.Map<DimStandardJobRoleHierarchyDto>(linkDomain);
+        return Ok(dto);
     }
     
     /// <summary>
@@ -59,9 +66,18 @@ public class DimStandardJobRoleHierarchyController : ControllerBase
     /// </summary>
     /// <param name="jobRoleId"></param>
     [HttpGet("byjobrole/{jobRoleId:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<DimStandardJobRoleHierarchyDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DimStandardJobRoleHierarchyDto>>> GetLevelsByJobRole(int jobRoleId)
     {
+        if (jobRoleId <= 0)
+        {
+            return BadRequest(new { Message = "Invalid JobRoleId." });
+        }
         var list = await _dimStandardJobRoleHierarchyService.GetLevelsByJobRoleIdAsync(jobRoleId);
         var dtos = _mapper.Map<IEnumerable<DimStandardJobRoleHierarchyDto>>(list);
         return Ok(dtos);
@@ -72,9 +88,18 @@ public class DimStandardJobRoleHierarchyController : ControllerBase
     /// </summary>
     /// <param name="levelId"></param>
     [HttpGet("bylevel/{levelId:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<DimStandardJobRoleHierarchyDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DimStandardJobRoleHierarchyDto>>> GetJobRolesByLevel(int levelId)
     {
+        if (levelId <= 0)
+        {
+            return BadRequest(new { Message = "Invalid LevelId." });
+        }
         var list = await _dimStandardJobRoleHierarchyService.GetJobRolesByLevelIdAsync(levelId);
         var dtos = _mapper.Map<IEnumerable<DimStandardJobRoleHierarchyDto>>(list);
         return Ok(dtos);
@@ -85,11 +110,20 @@ public class DimStandardJobRoleHierarchyController : ControllerBase
     /// </summary>
     /// <param name="createDto"></param>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    [Authorize(Roles = "EtlUser")]
+    [ProducesResponseType(typeof(DimStandardJobRoleHierarchyDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<DimStandardJobRoleHierarchyDto>> PostStandardJobRoleHierarchy(
         [FromBody] CreateDimStandardJobRoleHierarchyDto createDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var created =
             await _dimStandardJobRoleHierarchyService.CreateStandardJobRoleHierarchy(createDto.StandardJobRoleId,
                 createDto.HierarchyLevelId);
@@ -104,10 +138,18 @@ public class DimStandardJobRoleHierarchyController : ControllerBase
     /// <param name="jobRoleId"></param>
     /// <param name="levelId"></param>
     [HttpDelete("{jobRoleId:int}/{levelId:int}")]
+    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteStandardJobRoleHierarchy(int jobRoleId, int levelId)
     {
+        if (jobRoleId <= 0 || levelId <= 0)
+        {
+            return BadRequest(new { Message = "Invalid JobRoleId or LevelId." });
+        }
         await _dimStandardJobRoleHierarchyService.DeleteStandardJobRoleHierarchyAsync(jobRoleId, levelId);
         return NoContent();
     }

@@ -37,7 +37,7 @@ public class AuthService : IAuthService
 
     public async Task<UserDto> RegisterAsync(RegisterUserDto registerDto)
     {
-        UserValidator.ValidateRegistration(registerDto); // Throws ArgumentException on validation failure
+        UserValidator.ValidateRegistration(registerDto);
         _logger.LogInformation("Attempting to register user: {Username}", registerDto.Username);
 
         if (await _userRepository.UserExistsAsync(registerDto.Username, registerDto.Email))
@@ -80,7 +80,7 @@ public class AuthService : IAuthService
         catch (NotFoundException)
         {
             _logger.LogWarning("Login failed for user {Username}: User not found.", loginDto.Username);
-            throw new Common.Exceptions.AuthenticationException("Invalid username or password."); // Obscure actual reason
+            throw new Common.Exceptions.AuthenticationException("Invalid username or password.");
         }
 
         if (!userDomain.IsActive)

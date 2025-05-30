@@ -20,11 +20,8 @@ public class DimCityRepository : BaseRepository, IDimCityRepository
     
     public async Task AddCityAsync(DimCity city)
     {
-        var dbModel = new DimCityDbModel(
-            cityId: 0,
-            cityName: city.CityName,
-            oblastId: city.OblastId
-        );
+        var dbModel = DimCityConverter.ToDbModel(city);
+        
         await _dbContext.AddAsync(dbModel);
         try
         {
@@ -47,22 +44,38 @@ public class DimCityRepository : BaseRepository, IDimCityRepository
 
     public async Task<DimCity> GetCityByIdAsync(int cityId)
     {
-        var dbModel = await _dbContext.DimCities.FindAsync(cityId);
-        if (dbModel is null)
+        var dbModel = await _dbContext.DimCities
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.CityId == cityId);
+        if (dbModel == null)
             throw new NotFoundException($"City with ID {cityId} not found");
         return DimCityConverter.ToDomain(dbModel);
     }
 
     public async Task<IEnumerable<DimCity>> GetAllCitiesAsync()
     {
-        var all = await _dbContext.DimCities.ToListAsync();
-        return all.Select(DimCityConverter.ToDomain);
+        var allDbModels = await _dbContext.DimCities
+            .AsNoTracking()
+            .OrderBy(c => c.CityName)
+            .ToListAsync();
+        return allDbModels.Select(DimCityConverter.ToDomain);
+    }
+    
+    public async Task<IEnumerable<DimCity>> GetCitiesByOblastIdAsync(int oblastId)
+    {
+        var dbCities = await _dbContext.DimCities
+            .Where(c => c.OblastId == oblastId)
+            .AsNoTracking()
+            .OrderBy(c => c.CityName) // Order for consistent dropdown display
+            .ToListAsync();
+        
+        return dbCities.Select(DimCityConverter.ToDomain);
     }
 
     public async Task UpdateCityAsync(DimCity city)
     {
         var dbCity = await _dbContext.DimCities.FindAsync(city.CityId);
-        if (dbCity is null)
+        if (dbCity == null)
             throw new NotFoundException($"City with ID {city.CityId} not found");
         
         dbCity.CityName = city.CityName;

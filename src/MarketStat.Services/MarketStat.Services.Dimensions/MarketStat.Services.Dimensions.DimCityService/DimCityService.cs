@@ -60,6 +60,19 @@ public class DimCityService : IDimCityService
         return cities;
     }
     
+    public async Task<IEnumerable<DimCity>> GetCitiesByOblastIdAsync(int oblastId)
+    {
+        _logger.LogInformation("Fetching cities for OblastId: {OblastId}", oblastId);
+        if (oblastId <= 0)
+        {
+            _logger.LogWarning("Invalid OblastId provided for GetCitiesByOblastIdAsync: {OblastId}. Returning empty list.", oblastId);
+            throw new ArgumentException("OblastId must be a positive integer.");
+        }
+        var cities = await _dimCityRepository.GetCitiesByOblastIdAsync(oblastId);
+        _logger.LogInformation("Fetched {Count} cities for OblastId: {OblastId}", cities.Count(), oblastId);
+        return cities;
+    }
+    
     public async Task<DimCity> UpdateCityAsync(int cityId, string cityName, int oblastId)
     {
         DimCityValidator.ValidateForUpdate(cityId, cityName, oblastId);
