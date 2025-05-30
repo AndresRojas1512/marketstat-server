@@ -9,11 +9,12 @@ namespace MarketStat.Controllers.Account;
 
 [ApiController]
 [Route("api/benchmarkhistory")]
-[Authorize]
+[Authorize] // All actions in this controller require authentication
 public class BenchmarkHistoryController : ControllerBase
 {
     private readonly IBenchmarkHistoryService _benchmarkHistoryService;
     private readonly ILogger<BenchmarkHistoryController> _logger;
+    // IMapper is not used in this controller as the service returns DTOs directly.
 
     public BenchmarkHistoryController(
         IBenchmarkHistoryService benchmarkHistoryService,
@@ -23,45 +24,59 @@ public class BenchmarkHistoryController : ControllerBase
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    // private int GetCurrentUserId()
-    // {
-    //     var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-    //     if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId) || userId <= 0)
-    //     {
-    //         _logger.LogError("User ID claim (NameIdentifier) is missing, invalid, or non-positive in the token.");
-    //         throw new UnauthorizedAccessException("User ID could not be determined or is invalid from the token.");
-    //     }
-    //     return userId;
-    // }
     private int GetCurrentUserId()
     {
         _logger.LogInformation("--- Attempting to retrieve User ID from claims. All Claims for Current User Principal ---");
-        foreach (var claim in User.Claims)
+        var allClaims = User.Claims.ToList(); // Materialize for easier iteration
+        foreach (var claim in allClaims)
         {
-            _logger.LogInformation("Claim Type: [{ClaimType}], Value: [{ClaimValue}], Issuer: [{ClaimIssuer}], ValueType: [{ClaimValueType}]", 
-                claim.Type, claim.Value, claim.Issuer, claim.ValueType);
+            _logger.LogInformation("Claim Type: [{ClaimType}], Value: [{ClaimValue}]", claim.Type, claim.Value);
         }
         _logger.LogInformation("--- End of Claims ---");
 
-        // Prioritize the direct "nameid" claim as seen in the JWT payload
-        string? userIdString = User.FindFirst("nameid")?.Value; 
+        // Find all claims of type NameIdentifier
+        var nameIdClaims = allClaims.Where(c => c.Type == ClaimTypes.NameIdentifier).ToList();
 
-        // Fallback to ClaimTypes.NameIdentifier if "nameid" direct lookup fails
-        if (string.IsNullOrEmpty(userIdString))
+        string? userIdString = null;
+        int userId = 0;
+
+        if (nameIdClaims.Count == 1)
         {
-            _logger.LogInformation("Direct 'nameid' claim not found or empty. Trying ClaimTypes.NameIdentifier.");
-            userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // If only one, use it
+            userIdString = nameIdClaims[0].Value;
+            _logger.LogInformation("Found single ClaimTypes.NameIdentifier: {UserIdString}", userIdString);
+        }
+        else if (nameIdClaims.Count > 1)
+        {
+            _logger.LogInformation("Multiple ClaimTypes.NameIdentifier claims found. Attempting to find the numeric one.");
+            // Prefer the one that is a parsable integer
+            userIdString = nameIdClaims.FirstOrDefault(c => int.TryParse(c.Value, out int _))?.Value;
+            if (!string.IsNullOrEmpty(userIdString))
+            {
+                 _logger.LogInformation("Found numeric ClaimTypes.NameIdentifier among multiple: {UserIdString}", userIdString);
+            }
+            else
+            {
+                // Fallback if none of the NameIdentifier claims are numeric (should not happen with your setup)
+                _logger.LogInformation("None of the multiple ClaimTypes.NameIdentifier claims were numeric. This is unexpected.");
+                // As a last resort, if the direct "nameid" claim from JWT is different and numeric
+                var directNameIdClaim = allClaims.FirstOrDefault(c => c.Type == "nameid" && int.TryParse(c.Value, out int _));
+                if(directNameIdClaim != null) {
+                    userIdString = directNameIdClaim.Value;
+                    _logger.LogInformation("Using direct 'nameid' claim as fallback: {UserIdString}", userIdString);
+                }
+            }
+        } else {
+             _logger.LogInformation("No ClaimTypes.NameIdentifier claim found. Checking direct 'nameid'.");
+             // Fallback: Check for "nameid" directly if ClaimTypes.NameIdentifier isn't found at all
+             var directNameIdClaim = allClaims.FirstOrDefault(c => c.Type == "nameid" && int.TryParse(c.Value, out int _));
+             if(directNameIdClaim != null) {
+                userIdString = directNameIdClaim.Value;
+                _logger.LogInformation("Using direct 'nameid' claim: {UserIdString}", userIdString);
+             }
         }
         
-        // As another fallback, try JwtRegisteredClaimNames.NameId (which is "nameid")
-        // This is redundant if the direct "nameid" string lookup works.
-        if (string.IsNullOrEmpty(userIdString))
-        {
-            _logger.LogInformation("ClaimTypes.NameIdentifier not found or empty. Trying JwtRegisteredClaimNames.NameId.");
-            userIdString = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
-        }
-        
-        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out userId) || userId <= 0)
         {
             _logger.LogInformation("User ID claim could not be resolved to a valid positive integer. Final userIdString attempt: '{UserIdString}'", userIdString);
             throw new UnauthorizedAccessException("User ID could not be determined or is invalid from the token.");
@@ -74,12 +89,13 @@ public class BenchmarkHistoryController : ControllerBase
     /// <summary>
     /// Saves a new benchmark analysis for the authenticated user.
     /// </summary>
-    /// <param name="saveRequestDto">The benchmark details to save.</param>
+    /// <param name="saveRequestDto">The benchmark details and filters (using IDs) to save.</param>
     /// <returns>The ID of the newly saved benchmark history record.</returns>
     [HttpPost]
-    [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status201Created)] // Returns an object like { benchmarkHistoryId: newId }
+    [ProducesResponseType(StatusCodes.Status400BadRequest)] 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]   
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SaveBenchmark([FromBody] SaveBenchmarkRequestDto saveRequestDto)
     {
@@ -88,32 +104,31 @@ public class BenchmarkHistoryController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        int currentUserId = GetCurrentUserId();
+        int currentUserId = GetCurrentUserId(); // Can throw UnauthorizedAccessException
         _logger.LogInformation("User {UserId} attempting to save benchmark with name: {BenchmarkName}", currentUserId, saveRequestDto.BenchmarkName);
 
         long newBenchmarkHistoryId = await _benchmarkHistoryService.SaveCurrentUserBenchmarkAsync(saveRequestDto, currentUserId);
 
         _logger.LogInformation("Benchmark saved successfully with ID {BenchmarkHistoryId} for User {UserId}", newBenchmarkHistoryId, currentUserId);
-            
-        // Return 201 Created with a location header and the ID of the new resource.
+        
         return CreatedAtAction(nameof(GetBenchmarkHistoryById), new { id = newBenchmarkHistoryId }, new { benchmarkHistoryId = newBenchmarkHistoryId });
     }
 
     /// <summary>
     /// Retrieves all saved benchmarks for the authenticated user.
     /// </summary>
-    /// <returns>A list of the user's saved benchmarks.</returns>
+    /// <returns>A list of the user's saved benchmarks with resolved filter names.</returns>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<BenchmarkHistoryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)] 
     public async Task<ActionResult<IEnumerable<BenchmarkHistoryDto>>> GetCurrentUserBenchmarks()
     {
-        int currentUserId = GetCurrentUserId();
+        int currentUserId = GetCurrentUserId(); // Can throw UnauthorizedAccessException
         _logger.LogInformation("Fetching benchmark history for User {UserId}", currentUserId);
 
         var benchmarks = await _benchmarkHistoryService.GetCurrentUserBenchmarksAsync(currentUserId);
-            
+        
         _logger.LogInformation("Retrieved {Count} benchmark history records for User {UserId}", benchmarks.Count(), currentUserId);
         return Ok(benchmarks);
     }
@@ -122,17 +137,18 @@ public class BenchmarkHistoryController : ControllerBase
     /// Retrieves a specific saved benchmark by its ID for the authenticated user.
     /// </summary>
     /// <param name="id">The ID of the benchmark history record.</param>
-    /// <returns>The requested benchmark history details.</returns>
+    /// <returns>The requested benchmark history details with resolved filter names.</returns>
     [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(BenchmarkHistoryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)] 
+    [ProducesResponseType(StatusCodes.Status404NotFound)] 
     public async Task<ActionResult<BenchmarkHistoryDto>> GetBenchmarkHistoryById(long id)
     {
-        int currentUserId = GetCurrentUserId();
+        int currentUserId = GetCurrentUserId(); // Can throw UnauthorizedAccessException
         _logger.LogInformation("User {UserId} attempting to fetch benchmark history ID {BenchmarkHistoryId}", currentUserId, id);
 
+        // Service method GetBenchmarkDetailsAsync throws NotFoundException if not found or not owned by user.
         var benchmarkDetails = await _benchmarkHistoryService.GetBenchmarkDetailsAsync(id, currentUserId);
 
         _logger.LogInformation("Successfully retrieved benchmark history ID {BenchmarkHistoryId} for User {UserId}", id, currentUserId);
@@ -146,13 +162,14 @@ public class BenchmarkHistoryController : ControllerBase
     [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)] 
+    [ProducesResponseType(StatusCodes.Status404NotFound)] 
     public async Task<IActionResult> DeleteBenchmarkHistory(long id)
     {
-        int currentUserId = GetCurrentUserId();
+        int currentUserId = GetCurrentUserId(); // Can throw UnauthorizedAccessException
         _logger.LogInformation("User {UserId} attempting to delete benchmark history ID {BenchmarkHistoryId}", currentUserId, id);
 
+        // Service method DeleteCurrentUserBenchmarkAsync throws NotFoundException if not found or not owned by user.
         await _benchmarkHistoryService.DeleteCurrentUserBenchmarkAsync(id, currentUserId);
 
         _logger.LogInformation("Successfully deleted benchmark history ID {BenchmarkHistoryId} for User {UserId}", id, currentUserId);

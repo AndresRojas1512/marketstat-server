@@ -38,37 +38,27 @@ public class AuthService : IAuthService
     public async Task<UserDto> RegisterAsync(RegisterUserDto registerDto)
     {
         UserValidator.ValidateRegistration(registerDto);
-
         _logger.LogInformation("Attempting to register user: {Username}", registerDto.Username);
 
         if (await _userRepository.UserExistsAsync(registerDto.Username, registerDto.Email))
         {
             throw new ConflictException("User with the same username or email already exists.");
         }
-
         string passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
-
         var newUserDomain = new User()
         {
-            Username = registerDto.Username,
-            PasswordHash = passwordHash,
-            Email = registerDto.Email,
-            FullName = registerDto.FullName,
-            IsActive = true,
-            CreatedAt = DateTimeOffset.UtcNow,
+            Username = registerDto.Username, PasswordHash = passwordHash, Email = registerDto.Email,
+            FullName = registerDto.FullName, IsActive = true, CreatedAt = DateTimeOffset.UtcNow,
             SavedBenchmarksCount = 0
         };
-
         var createdUserDomain = await _userRepository.AddUserAsync(newUserDomain);
         _logger.LogInformation("User {Username} registered successfully with ID {UserId}", createdUserDomain.Username, createdUserDomain.UserId);
-
         return _mapper.Map<UserDto>(createdUserDomain);
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginDto)
     {
         UserValidator.ValidateLogin(loginDto);
-
         _logger.LogInformation("Attempting login for user: {Username}", loginDto.Username);
 
         User userDomain;
@@ -79,7 +69,7 @@ public class AuthService : IAuthService
         catch (NotFoundException)
         {
             _logger.LogWarning("Login failed for user {Username}: User not found.", loginDto.Username);
-            throw new Common.Exceptions.AuthenticationException("Invalid username or password."); // Obscure reason
+            throw new Common.Exceptions.AuthenticationException("Invalid username or password.");
         }
 
         if (!userDomain.IsActive)
@@ -99,15 +89,11 @@ public class AuthService : IAuthService
         {
             await _userRepository.UpdateUserAsync(userDomain);
         }
-        catch(NotFoundException ex)
+        catch(Exception ex) 
         {
-            _logger.LogError(ex, "Error updating LastLoginAt for user {Username}: User suddenly not found.", userDomain.Username);
+            _logger.LogError(ex, "Error updating LastLoginAt for user {Username}", userDomain.Username);
+            // Decide if this should halt login. For now, let login proceed.
         }
-        catch(ConflictException ex)
-        {
-             _logger.LogError(ex, "Conflict error updating LastLoginAt for user {Username}.", userDomain.Username);
-        }
-
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwtKey = _configuration["JwtSettings:Key"];
@@ -126,10 +112,12 @@ public class AuthService : IAuthService
         {
             Subject = new ClaimsIdentity(new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, userDomain.Username),
-                new Claim(ClaimTypes.NameIdentifier, userDomain.UserId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, userDomain.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                // Use ClaimTypes.Name for the username, which is standard for User.Identity.Name
+                new Claim(ClaimTypes.Name, userDomain.Username), 
+                // Keep ClaimTypes.NameIdentifier specifically for the numeric User ID
+                new Claim(ClaimTypes.NameIdentifier, userDomain.UserId.ToString()), 
+                new Claim(JwtRegisteredClaimNames.Email, userDomain.Email), // Standard email claim
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // JWT ID
             }),
             Expires = DateTime.UtcNow.AddMinutes(jwtExpiresMinutes),
             Issuer = jwtIssuer,
