@@ -10,9 +10,9 @@ using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using NpgsqlTypes;
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using NpgsqlTypes;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 
@@ -31,15 +31,14 @@ public class FactSalaryRepository : IFactSalaryRepository
     public async Task AddFactSalaryAsync(FactSalary salary)
     {
         var dbModel = FactSalaryConverter.ToDbModel(salary);
-        
         await _dbContext.FactSalaries.AddAsync(dbModel);
         try
         {
             await _dbContext.SaveChangesAsync();
         }
         catch (DbUpdateException dbEx)
-            when (dbEx.InnerException is PostgresException pg &&
-                  pg.SqlState == PostgresErrorCodes.ForeignKeyViolation)
+            when (dbEx.InnerException is PostgresException pgEx &&
+                  pgEx.SqlState == PostgresErrorCodes.ForeignKeyViolation)
         {
             throw new NotFoundException(
                 "One or more referenced entities (date, city, employer, job role or employee) were not found when adding salary fact.");
@@ -68,26 +67,61 @@ public class FactSalaryRepository : IFactSalaryRepository
 
     public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto filterDto)
     {
-        var sql = $"SELECT " +
-                  $"    salary_fact_id AS \"SalaryFactId\", " +
-                  $"    date_id AS \"DateId\", " +
-                  $"    city_id_from_fact AS \"CityId\", " +
-                  $"    employer_id AS \"EmployerId\", " +
-                  $"    job_role_id_from_fact AS \"JobRoleId\", " +
-                  $"    employee_id AS \"EmployeeId\", " +
-                  $"    salary_amount AS \"SalaryAmount\", " +
-                  $"    bonus_amount AS \"BonusAmount\" " +
-                  $"FROM marketstat.fn_filtered_salaries(" +
-                  $"{filterDto.IndustryFieldId}, {filterDto.StandardJobRoleId}, {filterDto.HierarchyLevelId}, " +
-                  $"{filterDto.DistrictId}, {filterDto.OblastId}, {filterDto.CityId}, " +
-                  $"{filterDto.DateStart}, {filterDto.DateEnd})";
+        _logger.LogInformation("Repository: GetFactSalariesByFilterAsync called with filter: {@FilterDto}", filterDto);
         
-        var results = await _dbContext.Set<FactSalary>()
-            .FromSqlInterpolated($"SELECT salary_fact_id, date_id, city_id_from_fact AS CityId, employer_id, job_role_id_from_fact AS JobRoleId, employee_id, salary_amount, bonus_amount FROM marketstat.fn_filtered_salaries({filterDto.IndustryFieldId}, {filterDto.StandardJobRoleId}, {filterDto.HierarchyLevelId}, {filterDto.DistrictId}, {filterDto.OblastId}, {filterDto.CityId}, {filterDto.DateStart}, {filterDto.DateEnd})")
-            .AsNoTracking()
-            .ToListAsync();
-        
-        return results;
+        _logger.LogDebug(
+            "Repository: Parameters for fn_filtered_salaries - IndustryFieldId: {IndustryFieldId}, " +
+            "StandardJobRoleId: {StandardJobRoleId}, HierarchyLevelId: {HierarchyLevelId}, DistrictId: {DistrictId}, " +
+            "OblastId: {OblastId}, CityId: {CityId}, DateStart: {DateStart}, DateEnd: {DateEnd}",
+            filterDto.IndustryFieldId, filterDto.StandardJobRoleId, filterDto.HierarchyLevelId,
+            filterDto.DistrictId, filterDto.OblastId, filterDto.CityId,
+            filterDto.DateStart, filterDto.DateEnd);
+
+        try
+        {
+            var results = await _dbContext.Set<FactSalary>()
+                .FromSqlInterpolated(
+                    @$"SELECT 
+                          f.salary_fact_id, 
+                          f.date_id, 
+                          f.city_id_from_fact         AS city_id, 
+                          f.employer_id, 
+                          f.job_role_id_from_fact     AS job_role_id, 
+                          f.employee_id, 
+                          f.salary_amount, 
+                          f.bonus_amount 
+                      FROM marketstat.fn_filtered_salaries(
+                          {filterDto.IndustryFieldId}, {filterDto.StandardJobRoleId}, {filterDto.HierarchyLevelId}, 
+                          {filterDto.DistrictId}, {filterDto.OblastId}, {filterDto.CityId}, 
+                          {filterDto.DateStart}, {filterDto.DateEnd}) AS f"
+                )
+                .AsNoTracking()
+                .ToListAsync();
+            
+            _logger.LogInformation("Repository: Successfully retrieved {Count} salary facts from fn_filtered_salaries.", results.Count);
+            return results;
+        }
+        catch (NpgsqlException npgEx) 
+        {
+            if (npgEx is PostgresException pgEx_specific)
+            {
+                _logger.LogError(pgEx_specific, 
+                    "Repository: PostgresException while executing fn_filtered_salaries for filter: {@FilterDto}. SQLSTATE: {SqlState}, Message: {MessageText}, Detail: {Detail}, Hint: {Hint}, Position: {Position}, Routine: {Routine}", 
+                    filterDto, pgEx_specific.SqlState, pgEx_specific.MessageText, pgEx_specific.Detail, pgEx_specific.Hint, pgEx_specific.Position, pgEx_specific.Routine);
+            }
+            else
+            {
+                _logger.LogError(npgEx, 
+                    "Repository: NpgsqlException (not Postgres-specific) while executing fn_filtered_salaries for filter: {@FilterDto}. Message: {Message}", 
+                    filterDto, npgEx.Message);
+            }
+            throw new ApplicationException("A database error occurred while fetching filtered salaries.", npgEx);
+        }
+        catch (Exception ex) 
+        {
+            _logger.LogError(ex, "Repository: Generic error executing fn_filtered_salaries or materializing FactSalary results for filter: {@FilterDto}", filterDto);
+            throw new ApplicationException("An error occurred while processing filtered salaries.", ex);
+        }
     }
 
     public async Task UpdateFactSalaryAsync(FactSalary salaryFact)

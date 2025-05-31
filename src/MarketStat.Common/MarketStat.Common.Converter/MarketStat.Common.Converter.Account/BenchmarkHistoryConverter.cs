@@ -31,9 +31,6 @@ public static class BenchmarkHistoryConverter
 
             BenchmarkResultJson = domainHistory.BenchmarkResultJson
         };
-        if (domainHistory.User != null && domainHistory.User.UserId == domainHistory.UserId) {
-            dbModel.User = UserConverter.ToDbModel(domainHistory.User);
-        }
         return dbModel;
     }
     

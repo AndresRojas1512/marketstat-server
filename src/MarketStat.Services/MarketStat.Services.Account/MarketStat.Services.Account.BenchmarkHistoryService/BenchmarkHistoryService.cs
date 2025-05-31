@@ -72,13 +72,15 @@ public class BenchmarkHistoryService : IBenchmarkHistoryService
     public async Task<IEnumerable<BenchmarkHistoryDto>> GetCurrentUserBenchmarksAsync(int currentUserId)
     {
         _logger.LogInformation("Fetching benchmark history for User {UserId}", currentUserId);
+        _logger.LogInformation("Before repository call");
         var domainHistories = await _benchmarkHistoryRepository.GetBenchmarksByUserIdAsync(currentUserId);
-
+        _logger.LogInformation("After repository call");
         var dtoList = new List<BenchmarkHistoryDto>();
         User? user = null;
 
         if (domainHistories.Any())
         {
+            _logger.LogInformation("User {UserId} has saved {BenchmarkHistoriesCount} benchmarks", domainHistories.Count(), currentUserId);
             try
             {
                 user = await _userRepository.GetUserByIdAsync(currentUserId);
@@ -92,18 +94,23 @@ public class BenchmarkHistoryService : IBenchmarkHistoryService
 
         foreach (var domainHistory in domainHistories)
         {
+            _logger.LogInformation("Processing domainHistory.BenchmarkHistoryId: {BenchmarkHistoryId}", domainHistory.BenchmarkHistoryId);
             var dto = _mapper.Map<BenchmarkHistoryDto>(domainHistory);
+            _logger.LogInformation("Mapped domainHistory to DTO for HistoryId: {BenchmarkHistoryId}", domainHistory.BenchmarkHistoryId);
+
+            // Temporarily, let's see if it crashes before or after PopulateFilterNamesInDtoAsync
+            _logger.LogInformation("Calling PopulateFilterNamesInDtoAsync for HistoryId: {BenchmarkHistoryId}", domainHistory.BenchmarkHistoryId);
             await PopulateFilterNamesInDtoAsync(dto, domainHistory);
+            _logger.LogInformation("Completed PopulateFilterNamesInDtoAsync for HistoryId: {BenchmarkHistoryId}", domainHistory.BenchmarkHistoryId);
 
             if (user != null)
             {
                 dto.Username = user.Username;
             }
-            else if (domainHistory.User != null)
-            {
-                dto.Username = domainHistory.User.Username;
-            }
+            _logger.LogInformation("Username set for DTO for HistoryId: {BenchmarkHistoryId}", domainHistory.BenchmarkHistoryId);
+
             dtoList.Add(dto);
+            _logger.LogInformation("DTO added to list for HistoryId: {BenchmarkHistoryId}", domainHistory.BenchmarkHistoryId);
         }
 
         _logger.LogInformation("Retrieved {Count} benchmark history records for User {UserId}", dtoList.Count,
@@ -154,96 +161,159 @@ public class BenchmarkHistoryService : IBenchmarkHistoryService
 
     private async Task PopulateFilterNamesInDtoAsync(BenchmarkHistoryDto dto, BenchmarkHistory domainHistory)
     {
+        _logger.LogDebug("Populate: START for HistoryId: {HistoryId})", domainHistory.BenchmarkHistoryId);
+        
         if (domainHistory.FilterIndustryFieldId.HasValue)
         {
+            _logger.LogDebug("Populate: Getting IndustryFieldName for ID {Id} of HistoryId {HistoryId}", 
+                domainHistory.FilterIndustryFieldId.Value, domainHistory.BenchmarkHistoryId);
             try
             {
-                var item = await _dimIndustryFieldService.GetIndustryFieldByIdAsync(domainHistory.FilterIndustryFieldId
-                    .Value);
+                var item = await _dimIndustryFieldService.GetIndustryFieldByIdAsync(domainHistory.FilterIndustryFieldId.Value);
                 dto.FilterIndustryFieldName = item?.IndustryFieldName;
+                _logger.LogDebug("Populate: Set IndustryFieldName to '{Name}' for HistoryId {HistoryId}", 
+                    dto.FilterIndustryFieldName, domainHistory.BenchmarkHistoryId);
             }
             catch (NotFoundException)
             {
-                _logger.LogWarning("IndustryField ID {Id} from benchmark history not found in dimension table.",
-                    domainHistory.FilterIndustryFieldId.Value);
+                _logger.LogWarning("Populate: IndustryField ID {Id} from HistoryId {HistoryId} not found. Setting placeholder.",
+                    domainHistory.FilterIndustryFieldId.Value, domainHistory.BenchmarkHistoryId);
                 dto.FilterIndustryFieldName = $"<ID: {domainHistory.FilterIndustryFieldId} Not Found>";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Populate: Error getting IndustryFieldName for ID {Id} of HistoryId {HistoryId}",
+                    domainHistory.FilterIndustryFieldId.Value, domainHistory.BenchmarkHistoryId);
+                dto.FilterIndustryFieldName = $"<Error Fetching ID: {domainHistory.FilterIndustryFieldId}>";
             }
         }
 
         if (domainHistory.FilterStandardJobRoleId.HasValue)
         {
+            _logger.LogDebug("Populate: Getting StandardJobRoleTitle for ID {Id} of HistoryId {HistoryId}", 
+                domainHistory.FilterStandardJobRoleId.Value, domainHistory.BenchmarkHistoryId);
             try
             {
-                var item = await _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(domainHistory
-                    .FilterStandardJobRoleId.Value);
+                var item = await _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(domainHistory.FilterStandardJobRoleId.Value);
                 dto.FilterStandardJobRoleTitle = item?.StandardJobRoleTitle;
+                _logger.LogDebug("Populate: Set StandardJobRoleTitle to '{Name}' for HistoryId {HistoryId}", 
+                    dto.FilterStandardJobRoleTitle, domainHistory.BenchmarkHistoryId);
             }
             catch (NotFoundException)
             {
-                _logger.LogWarning("StandardJobRole ID {Id} from benchmark history not found.",
-                    domainHistory.FilterStandardJobRoleId.Value);
+                _logger.LogWarning("Populate: StandardJobRole ID {Id} from HistoryId {HistoryId} not found. Setting placeholder.",
+                    domainHistory.FilterStandardJobRoleId.Value, domainHistory.BenchmarkHistoryId);
                 dto.FilterStandardJobRoleTitle = $"<ID: {domainHistory.FilterStandardJobRoleId} Not Found>";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Populate: Error getting StandardJobRoleTitle for ID {Id} of HistoryId {HistoryId}",
+                    domainHistory.FilterStandardJobRoleId.Value, domainHistory.BenchmarkHistoryId);
+                dto.FilterStandardJobRoleTitle = $"<Error Fetching ID: {domainHistory.FilterStandardJobRoleId}>";
             }
         }
 
         if (domainHistory.FilterHierarchyLevelId.HasValue)
         {
+            _logger.LogDebug("Populate: Getting HierarchyLevelName for ID {Id} of HistoryId {HistoryId}", 
+                domainHistory.FilterHierarchyLevelId.Value, domainHistory.BenchmarkHistoryId);
             try
             {
-                var item = await _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(domainHistory
-                    .FilterHierarchyLevelId.Value);
+                var item = await _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(domainHistory.FilterHierarchyLevelId.Value);
                 dto.FilterHierarchyLevelName = item?.HierarchyLevelName;
+                _logger.LogDebug("Populate: Set HierarchyLevelName to '{Name}' for HistoryId {HistoryId}", 
+                    dto.FilterHierarchyLevelName, domainHistory.BenchmarkHistoryId);
             }
             catch (NotFoundException)
             {
-                _logger.LogWarning("HierarchyLevel ID {Id} from benchmark history not found.",
-                    domainHistory.FilterHierarchyLevelId.Value);
+                _logger.LogWarning("Populate: HierarchyLevel ID {Id} from HistoryId {HistoryId} not found. Setting placeholder.",
+                    domainHistory.FilterHierarchyLevelId.Value, domainHistory.BenchmarkHistoryId);
                 dto.FilterHierarchyLevelName = $"<ID: {domainHistory.FilterHierarchyLevelId} Not Found>";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Populate: Error getting HierarchyLevelName for ID {Id} of HistoryId {HistoryId}",
+                    domainHistory.FilterHierarchyLevelId.Value, domainHistory.BenchmarkHistoryId);
+                dto.FilterHierarchyLevelName = $"<Error Fetching ID: {domainHistory.FilterHierarchyLevelId}>";
             }
         }
 
         if (domainHistory.FilterDistrictId.HasValue)
         {
+            _logger.LogDebug("Populate: Getting DistrictName for ID {Id} of HistoryId {HistoryId}", 
+                domainHistory.FilterDistrictId.Value, domainHistory.BenchmarkHistoryId);
             try
             {
                 var item = await _dimFederalDistrictService.GetDistrictByIdAsync(domainHistory.FilterDistrictId.Value);
                 dto.FilterDistrictName = item?.DistrictName;
+                _logger.LogDebug("Populate: Set DistrictName to '{Name}' for HistoryId {HistoryId}", 
+                    dto.FilterDistrictName, domainHistory.BenchmarkHistoryId);
             }
             catch (NotFoundException)
             {
-                _logger.LogWarning("FederalDistrict ID {Id} from benchmark history not found.",
-                    domainHistory.FilterDistrictId.Value);
+                _logger.LogWarning("Populate: DistrictName ID {Id} from HistoryId {HistoryId} not found. Setting placeholder.",
+                    domainHistory.FilterDistrictId.Value, domainHistory.BenchmarkHistoryId);
                 dto.FilterDistrictName = $"<ID: {domainHistory.FilterDistrictId} Not Found>";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Populate: Error getting DistrictName for ID {Id} of HistoryId {HistoryId}",
+                    domainHistory.FilterDistrictId.Value, domainHistory.BenchmarkHistoryId);
+                dto.FilterDistrictName = $"<Error Fetching ID: {domainHistory.FilterDistrictId}>";
             }
         }
 
         if (domainHistory.FilterOblastId.HasValue)
         {
+            _logger.LogDebug("Populate: Getting OblastName for ID {Id} of HistoryId {HistoryId}", 
+                domainHistory.FilterOblastId.Value, domainHistory.BenchmarkHistoryId);
             try
             {
                 var item = await _dimOblastService.GetOblastByIdAsync(domainHistory.FilterOblastId.Value);
                 dto.FilterOblastName = item?.OblastName;
+                _logger.LogDebug("Populate: Set OblastName to '{Name}' for HistoryId {HistoryId}", 
+                    dto.FilterOblastName, domainHistory.BenchmarkHistoryId);
             }
             catch (NotFoundException)
             {
-                _logger.LogWarning("Oblast ID {Id} from benchmark history not found.",
-                    domainHistory.FilterOblastId.Value);
+                _logger.LogWarning("Populate: OblastName ID {Id} from HistoryId {HistoryId} not found. Setting placeholder.",
+                    domainHistory.FilterOblastId.Value, domainHistory.BenchmarkHistoryId);
                 dto.FilterOblastName = $"<ID: {domainHistory.FilterOblastId} Not Found>";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Populate: Error getting OblastName for ID {Id} of HistoryId {HistoryId}",
+                    domainHistory.FilterOblastId.Value, domainHistory.BenchmarkHistoryId);
+                dto.FilterOblastName = $"<Error Fetching ID: {domainHistory.FilterOblastId}>";
             }
         }
 
         if (domainHistory.FilterCityId.HasValue)
         {
+            _logger.LogDebug("Populate: Getting CityName for ID {Id} of HistoryId {HistoryId}", 
+                domainHistory.FilterCityId.Value, domainHistory.BenchmarkHistoryId);
             try
             {
                 var item = await _dimCityService.GetCityByIdAsync(domainHistory.FilterCityId.Value);
                 dto.FilterCityName = item?.CityName;
+                _logger.LogDebug("Populate: Set CityName to '{Name}' for HistoryId {HistoryId}", 
+                    dto.FilterCityName, domainHistory.BenchmarkHistoryId);
             }
             catch (NotFoundException)
             {
-                _logger.LogWarning("City ID {Id} from benchmark history not found.", domainHistory.FilterCityId.Value);
+                _logger.LogWarning("Populate: CityName ID {Id} from HistoryId {HistoryId} not found. Setting placeholder.",
+                    domainHistory.FilterCityId.Value, domainHistory.BenchmarkHistoryId);
                 dto.FilterCityName = $"<ID: {domainHistory.FilterCityId} Not Found>";
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Populate: Error getting CityName for ID {Id} of HistoryId {HistoryId}",
+                    domainHistory.FilterCityId.Value, domainHistory.BenchmarkHistoryId);
+                dto.FilterCityName = $"<Error Fetching ID: {domainHistory.FilterCityId}>";
+            }
         }
+
+        await Task.CompletedTask;
+        _logger.LogDebug("Finished Populating filter names for DTO (HistoryId: {HistoryId})", domainHistory.BenchmarkHistoryId);
     }
 }

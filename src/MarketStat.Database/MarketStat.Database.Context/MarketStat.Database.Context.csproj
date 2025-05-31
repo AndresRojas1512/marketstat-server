@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MarketStat.Database.Models\MarketStat.Database.Models.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

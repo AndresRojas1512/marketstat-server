@@ -29,7 +29,6 @@ public class BenchmarkHistoryRepository : IBenchmarkHistoryRepository
 
         var parameters = new List<NpgsqlParameter>
         {
-            // Parameter names MUST match the formal parameter names in the PG procedure definition
             new NpgsqlParameter("p_new_benchmark_history_id", NpgsqlDbType.Bigint) { Direction = ParameterDirection.Output },
             new NpgsqlParameter("p_user_id", NpgsqlDbType.Integer) { Value = userId },
             new NpgsqlParameter("p_benchmark_result_json", NpgsqlDbType.Jsonb) { Value = saveRequest.BenchmarkResultJson },
@@ -67,7 +66,6 @@ public class BenchmarkHistoryRepository : IBenchmarkHistoryRepository
                 
                 await command.ExecuteNonQueryAsync();
 
-                // Retrieve the OUT parameter by its NpgsqlParameter name (which matches formal PG name)
                 var outParam = command.Parameters["p_new_benchmark_history_id"] as NpgsqlParameter; 
                 if (outParam?.Value != null && outParam.Value != DBNull.Value)
                 {
@@ -102,22 +100,25 @@ public class BenchmarkHistoryRepository : IBenchmarkHistoryRepository
         return newBenchmarkHistoryId;
     }
 
-    // ... (GetBenchmarksByUserIdAsync, GetBenchmarkHistoryByIdAndUserIdAsync, DeleteBenchmarkHistoryAsync remain the same) ...
     public async Task<IEnumerable<BenchmarkHistory>> GetBenchmarksByUserIdAsync(int userId)
     {
+        _logger.LogInformation("Repository: GetBenchmarksByUserIdAsync for UserId {UserId}", userId);
         var dbHistories = await _dbContext.BenchmarkHistories
             .Where(bh => bh.UserId == userId)
-            .Include(bh => bh.User) 
             .OrderByDescending(bh => bh.SavedAt)
             .AsNoTracking()
             .ToListAsync();
-        return dbHistories.Select(BenchmarkHistoryConverter.ToDomain).ToList();
+
+        _logger.LogInformation("Repository: Fetched {Count} dbHistories. Converting to domain.", dbHistories.Count);
+        var domainList = dbHistories.Select(BenchmarkHistoryConverter.ToDomain).ToList();
+        _logger.LogInformation("Repository: Converted to {Count} domain objects.", domainList.Count);
+        return domainList;
     }
 
     public async Task<BenchmarkHistory> GetBenchmarkHistoryByIdAndUserIdAsync(long benchmarkHistoryId, int userId) 
     {
+        _logger.LogInformation("Repository: GetBenchmarkHistoryByIdAndUserIdAsync for HistoryId {BenchmarkHistoryId}, UserId {UserId}", benchmarkHistoryId, userId);
         var dbHistory = await _dbContext.BenchmarkHistories
-            .Include(bh => bh.User) 
             .AsNoTracking()
             .FirstOrDefaultAsync(bh => bh.BenchmarkHistoryId == benchmarkHistoryId && bh.UserId == userId);
         if (dbHistory == null)

@@ -1,3 +1,4 @@
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Database.Models;
 using MarketStat.Database.Models.MarketStat.Database.Models.Account;
@@ -582,6 +583,12 @@ public class MarketStatDbContext : DbContext
         modelBuilder.Entity<SalaryTimeSeriesPointDto>(dto =>
         {
             dto.HasNoKey();
+        });
+        
+        modelBuilder.Entity<FactSalary>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToTable((string?)null);
         });
     }
 }
