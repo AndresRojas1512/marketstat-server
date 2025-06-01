@@ -1,8 +1,11 @@
+using AutoMapper;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Exceptions;
+using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Services.Facts.FactSalaryService;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -12,14 +15,27 @@ namespace UnitTests.Services.UnitTests.Services.Facts;
 public class FactSalaryServiceUnitTests
 {
     private readonly Mock<IFactSalaryRepository> _factSalaryRepositoryMock;
+    private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<ILogger<FactSalaryService>> _loggerMock;
+    private readonly Mock<MarketStatDbContext> _dbContextMock;
+    
     private readonly FactSalaryService _factSalaryService;
 
     public FactSalaryServiceUnitTests()
     {
         _factSalaryRepositoryMock = new Mock<IFactSalaryRepository>();
+        _mapperMock = new Mock<IMapper>();
         _loggerMock = new Mock<ILogger<FactSalaryService>>();
-        _factSalaryService = new FactSalaryService(_factSalaryRepositoryMock.Object, _loggerMock.Object);
+        
+        var mockDbContextOptions = new DbContextOptions<MarketStatDbContext>();
+        _dbContextMock = new Mock<MarketStatDbContext>(mockDbContextOptions);
+
+        _factSalaryService = new FactSalaryService(
+            _factSalaryRepositoryMock.Object,
+            _mapperMock.Object,
+            _loggerMock.Object,
+            _dbContextMock.Object
+        );
     }
     
     [Fact]

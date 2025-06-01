@@ -1,25 +1,48 @@
 using System.Data;
 using System.Text.Json;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Etl;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Enums;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Services.Facts.FactSalaryService.Validators;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
+using CsvHelper;
+using CsvHelper.Configuration;
+using MarketStat.Database.Context;
+using Npgsql;
+
 
 namespace MarketStat.Services.Facts.FactSalaryService;
 
 public class FactSalaryService : IFactSalaryService
 {
     private readonly IFactSalaryRepository _factSalaryRepository;
+    private readonly IMapper _mapper;
     private readonly ILogger<FactSalaryService> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
+    private readonly MarketStatDbContext _dbContext;
 
-    public FactSalaryService(IFactSalaryRepository factSalaryRepository, ILogger<FactSalaryService> logger)
+    private const string PermanentStagingTableName = "marketstat.api_fact_uploads_staging";
+
+    public FactSalaryService(
+        IFactSalaryRepository factSalaryRepository,
+        IMapper mapper,
+        ILogger<FactSalaryService> logger,
+        MarketStatDbContext dbContext)
     {
         _factSalaryRepository = factSalaryRepository ?? throw new ArgumentNullException(nameof(factSalaryRepository));
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _jsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -141,13 +164,12 @@ public class FactSalaryService : IFactSalaryService
         _logger.LogInformation("Service: Fetching benchmark report with filters: {@Filters}", filters);
         string? jsonResult = await _factSalaryRepository.GetBenchmarkingReportJsonAsync(filters);
 
-        // Log the raw JSON received from the repository (which comes from the DB function)
         _logger.LogInformation("Service: Raw JSON result from repository: {JsonResult}", jsonResult);
 
         if (string.IsNullOrEmpty(jsonResult) || jsonResult.Trim() == "{}" || jsonResult.Trim() == "null")
         {
             _logger.LogWarning("Service: Benchmark data function returned null or effectively empty JSON for filters: {@Filters}. Raw JSON: {RawJson}", filters, jsonResult);
-            return new BenchmarkDataDto(); // Constructor initializes lists
+            return new BenchmarkDataDto();
         }
         try
         {
@@ -155,20 +177,15 @@ public class FactSalaryService : IFactSalaryService
             
             if (benchmarkData != null) 
             {
-                // Ensure collections are initialized (good practice, though DTO constructor should handle it)
                 benchmarkData.SalaryDistribution ??= new List<SalaryDistributionBucketDto>();
                 benchmarkData.SalaryTimeSeries ??= new List<SalaryTimeSeriesPointDto>();
             }
             else
             {
                 _logger.LogWarning("Service: Deserialized C# BenchmarkDataDto is null from JSON: {RawJson}. Filters: {@Filters}", jsonResult, filters);
-                // This case (valid JSON string but deserializes to null DTO) is rare if DTO is simple class/record.
-                return new BenchmarkDataDto(); // Return empty DTO
+                return new BenchmarkDataDto();
             }
 
-            // Log the C# DTO object *before* it's returned and re-serialized by ASP.NET Core
-            // Using LogDebug as this can be verbose. Ensure your logging level allows Debug.
-            // You might want to serialize it to JSON here for a comparable log format to the raw string.
             var optionsForLogging = new JsonSerializerOptions { WriteIndented = true, PropertyNameCaseInsensitive = true };
             _logger.LogInformation("Service: Deserialized C# BenchmarkDataDto object: {BenchmarkDataObject}", JsonSerializer.Serialize(benchmarkData, optionsForLogging));
             
@@ -264,5 +281,99 @@ public class FactSalaryService : IFactSalaryService
         var result = await _factSalaryRepository.GetPublicTopDegreesByIndustryAsync(industryFieldId, topNDegrees, minEmployeeCountForDegree);
         _logger.LogInformation("Retrieved {Count} public top degrees for industry query.", result.Count());
         return result;
+    }
+
+    public async Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile)
+    {
+        _logger.LogInformation("Service: Starting CSV upload processing for file: {FileName}, Size: {FileSize} bytes", csvFile.FileName, csvFile.Length);
+
+        // 1. File Validation
+        if (csvFile == null || csvFile.Length == 0)
+        {
+            _logger.LogWarning("Service: No file uploaded or file is empty.");
+            return new EtlProcessingResultDto(false, "No file uploaded or file is empty.");
+        }
+        if (csvFile.Length > 10 * 1024 * 1024)
+        {
+            _logger.LogWarning("Service: File {FileName} exceeds size limit of 10MB.", csvFile.FileName);
+            return new EtlProcessingResultDto(false, "File exceeds maximum allowed size (10MB).");
+        }
+        if (Path.GetExtension(csvFile.FileName).ToLowerInvariant() != ".csv")
+        {
+            _logger.LogWarning("Service: Invalid file type for {FileName}. Only CSV files are allowed.", csvFile.FileName);
+            return new EtlProcessingResultDto(false, "Invalid file type. Only CSV files are allowed.");
+        }
+
+        var recordsToStage = new List<StagedSalaryRecordDto>();
+        int csvRowsRead = 0;
+
+        // 2. Parse CSV
+        try
+        {
+            _logger.LogInformation("Service: Parsing CSV file {FileName}", csvFile.FileName);
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                MissingFieldFound = null, 
+                HeaderValidated = null,   
+                TrimOptions = TrimOptions.Trim,
+                BadDataFound = context => _logger.LogWarning("Bad data found in CSV at row number {RowNumber} (approx): {RawRecord}. Field: {Field}", 
+                                                              context.Context.Parser.RawRow, context.RawRecord, context.Field)
+            };
+
+            using (var reader = new StreamReader(csvFile.OpenReadStream(), Encoding.UTF8))
+            using (var csv = new CsvReader(reader, config))
+            {
+                csv.Context.RegisterClassMap<StagedSalaryRecordDtoMap>();
+                await foreach (var record in csv.GetRecordsAsync<StagedSalaryRecordDto>())
+                {
+                    recordsToStage.Add(record);
+                    csvRowsRead++;
+                }
+            }
+            _logger.LogInformation("Service: Parsed {CsvRowsRead} records from CSV file {FileName}.", csvRowsRead, csvFile.FileName);
+
+            if (csvRowsRead == 0)
+            {
+                return new EtlProcessingResultDto(false, "CSV file is empty or contains no valid records.") { CsvRowsRead = 0 };
+            }
+        }
+        catch (HeaderValidationException hvex)
+        {
+             _logger.LogError(hvex, "Service: CSV header validation error for file {FileName}.", csvFile.FileName);
+            return new EtlProcessingResultDto(false, $"CSV header error: {hvex.Message}") { CsvRowsRead = csvRowsRead };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Service: Error parsing CSV file {FileName}.", csvFile.FileName);
+            return new EtlProcessingResultDto(false, $"Error parsing CSV: {ex.Message}") { CsvRowsRead = csvRowsRead };
+        }
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            _logger.LogInformation("Service: Starting database transaction for staging and bulk load.");
+            await _factSalaryRepository.TruncateStagingTableAsync(PermanentStagingTableName);
+            await _factSalaryRepository.BatchInsertToStagingTableAsync(PermanentStagingTableName, recordsToStage);
+            await _factSalaryRepository.CallBulkLoadFromStagingProcedureAsync(PermanentStagingTableName);
+            await transaction.CommitAsync();
+            _logger.LogInformation("Service: CSV processing and bulk load completed successfully for {FileName}. {CsvRowsRead} records read, {StagedCount} records staged.", 
+                csvFile.FileName, csvRowsRead, recordsToStage.Count);
+            return new EtlProcessingResultDto(true, "Salary facts CSV processed successfully.") 
+            { 
+                CsvRowsRead = csvRowsRead, 
+                RowsStaged = recordsToStage.Count 
+            };
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Service: Error during database staging or bulk load procedure for {FileName}. Transaction rolled back.", csvFile.FileName);
+            return new EtlProcessingResultDto(false, $"Database operation failed: {ex.Message}") 
+            { 
+                CsvRowsRead = csvRowsRead, 
+                RowsStaged = (ex is ApplicationException && ex.InnerException is NpgsqlException) ? 0 : recordsToStage.Count
+            };
+        }
     }
 }

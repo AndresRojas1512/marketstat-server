@@ -1,4 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Etl;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Enums;
 
@@ -33,4 +34,8 @@ public interface IFactSalaryRepository
         int industryFieldId, 
         int topNDegrees, 
         int minEmployeeCountForDegree);
+
+    Task TruncateStagingTableAsync(string stagingTableName);
+    Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records);
+    Task CallBulkLoadFromStagingProcedureAsync(string stagingTableName);
 }

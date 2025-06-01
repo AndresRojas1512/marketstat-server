@@ -12,7 +12,11 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
 using System.Linq;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Etl;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 
@@ -280,5 +284,119 @@ public class FactSalaryRepository : IFactSalaryRepository
             .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_top_degrees_by_industry({industryFieldId}, {topNDegrees}, {minEmployeeCountForDegree})")
             .AsNoTracking()
             .ToListAsync();
+    }
+
+    public async Task TruncateStagingTableAsync(string stagingTableName)
+    {
+        _logger.LogInformation("Repository: Truncating staging table: {StagingTable}", stagingTableName);
+        await _dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {stagingTableName};");
+        _logger.LogInformation("Repository: Staging table {StagingTable} truncated", stagingTableName);
+    }
+
+    public async Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records)
+    {
+        if (records == null || !records.Any())
+        {
+            _logger.LogInformation("Repository: No records provided for batch insert into {StagingTable}.", stagingTableName);
+            return;
+        }
+
+        _logger.LogInformation("Repository: Starting batch insert of {RecordCount} records into {StagingTable}.", records.Count(), stagingTableName);
+
+        var connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection(); 
+        
+        if (connection.State != ConnectionState.Open)
+        {
+            _logger.LogWarning("[REPO BatchInsert] Connection was not open despite expecting an active transaction. Opening now.");
+            await connection.OpenAsync(); 
+        }
+
+        var copyCommand = $"COPY {stagingTableName} (recorded_date_text, city_name, oblast_name, employer_name, standard_job_role_title, job_role_title, hierarchy_level_name, employee_birth_date_text, employee_career_start_date_text, salary_amount, bonus_amount) FROM STDIN (FORMAT BINARY)";
+
+        NpgsqlBinaryImporter? writer = null;
+        try
+        {
+            writer = await connection.BeginBinaryImportAsync(copyCommand);
+            foreach (var record in records)
+            {
+                await writer.StartRowAsync();
+                await writer.WriteAsync(record.RecordedDateText, NpgsqlDbType.Text);
+                await writer.WriteAsync(record.CityName, NpgsqlDbType.Text);
+                await writer.WriteAsync(record.OblastName, NpgsqlDbType.Text);
+                await writer.WriteAsync(record.EmployerName, NpgsqlDbType.Text);
+                await writer.WriteAsync(record.StandardJobRoleTitle, NpgsqlDbType.Text);
+                await writer.WriteAsync(record.JobRoleTitle, NpgsqlDbType.Text);
+                await writer.WriteAsync(record.HierarchyLevelName, NpgsqlDbType.Text);
+                await writer.WriteAsync(record.EmployeeBirthDateText, NpgsqlDbType.Text);
+                await writer.WriteAsync(record.EmployeeCareerStartDateText, NpgsqlDbType.Text);
+                
+                if (record.SalaryAmount.HasValue) await writer.WriteAsync(record.SalaryAmount.Value, NpgsqlDbType.Numeric);
+                else await writer.WriteNullAsync();
+                
+                if (record.BonusAmount.HasValue) await writer.WriteAsync(record.BonusAmount.Value, NpgsqlDbType.Numeric);
+                else await writer.WriteNullAsync();
+            }
+            await writer.CompleteAsync();
+            _logger.LogInformation("Repository: Batch insert of {RecordCount} records into {StagingTable} completed.", records.Count(), stagingTableName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Repository: Error during binary import to {StagingTable}.", stagingTableName);
+            if (writer != null)
+            {
+                try { await writer.DisposeAsync(); }
+                catch (Exception disposeEx) { _logger.LogError(disposeEx, "Repository: Error disposing NpgsqlBinaryImporter after an error."); }
+            }
+            throw;
+        }
+        finally
+        {
+            if (writer != null)
+            {
+                await writer.DisposeAsync();
+            }
+        }
+    }
+
+    public async Task CallBulkLoadFromStagingProcedureAsync(string stagingTableNameFromService)
+    {
+        string procedureParameterTableName = stagingTableNameFromService;
+        if (procedureParameterTableName.StartsWith("marketstat.", StringComparison.OrdinalIgnoreCase))
+        {
+            procedureParameterTableName = procedureParameterTableName.Substring("marketstat.".Length);
+             _logger.LogInformation("[REPO] Using non-schema-qualified table name for SP parameter: {TableName}", procedureParameterTableName);
+        }
+        else
+        {
+             _logger.LogInformation("[REPO] Using provided table name for SP parameter as is: {TableName}", procedureParameterTableName);
+        }
+
+        _logger.LogInformation("[REPO] Calling SP: {SPName} with parameter table name: {ParameterTableName}", 
+            "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName);
+        
+        try
+        {
+            var stagingTableParam = new NpgsqlParameter("p_source_staging_table_name_param", NpgsqlDbType.Text) { Value = procedureParameterTableName };
+
+            _logger.LogInformation("[REPO] BEFORE ExecuteSqlRawAsync for SP call. Parameter value: {StagingTableParamValue}", stagingTableParam.Value);
+            
+            await _dbContext.Database.ExecuteSqlRawAsync(
+                "CALL marketstat.bulk_load_salary_facts_from_staging(@p_source_staging_table_name_param)", 
+                stagingTableParam
+            );
+            _logger.LogInformation("[REPO] AFTER ExecuteSqlRawAsync for SP call - SUCCESS for staging table originally named: {OriginalStagingTableName}.", stagingTableNameFromService);
+        }
+        catch(PostgresException pgEx)
+        {
+            _logger.LogError(pgEx, "[REPO] POSTGRES EXCEPTION executing SP {SPName} with input table {InputTable}. SQLState: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
+                "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName, pgEx.SqlState, pgEx.MessageText, pgEx.Detail);
+            throw new ApplicationException($"Database error during bulk load procedure execution: {pgEx.MessageText}", pgEx);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[REPO] GENERIC EXCEPTION executing SP {SPName} with input table {InputTable}.", 
+                "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName);
+            throw new ApplicationException("An unexpected error occurred while executing the bulk load procedure.", ex);
+        }
     }
 }

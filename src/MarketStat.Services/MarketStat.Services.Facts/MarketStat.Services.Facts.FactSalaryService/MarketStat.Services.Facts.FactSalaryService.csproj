@@ -4,10 +4,13 @@
     <ProjectReference Include="..\..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
     <ProjectReference Include="..\..\..\MarketStat.Database\MarketStat.Database.Core\MarketStat.Database.Core.csproj" />
     <ProjectReference Include="..\..\..\MarketStat.Common\MarketStat.Common.Exceptions\MarketStat.Common.Exceptions.csproj" />
+    <ProjectReference Include="..\..\..\MarketStat.Database\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="CsvHelper" Version="33.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.4" />
   </ItemGroup>
 

@@ -1,3 +1,4 @@
+using AutoMapper;
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
@@ -25,12 +26,14 @@ using MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService;
 using MarketStat.Services.Dimensions.DimStandardJobRoleService;
 using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace IntegrationTests.Services.AccessObject;
 
 public class MarketStatAccessObjectInMemory : IDisposable
 {
     public MarketStatDbContext Context { get; }
+    public IMapper MockMapper { get; }
     public IDimEmployerRepository EmployerRepository { get; }
     public IDimIndustryFieldRepository IndustryFieldRepository { get; }
     public IDimJobRoleRepository JobRoleRepository { get; }
@@ -70,6 +73,8 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public MarketStatAccessObjectInMemory()
     {
         Context = new InMemoryDbContextFactory().GetDbContext();
+        var mockMapper = new Mock<IMapper>();
+        MockMapper = mockMapper.Object;
         
         EmployerRepository = new DimEmployerRepository(Context);
         EmployerService = new DimEmployerService(EmployerRepository, NullLogger<DimEmployerService>.Instance);
@@ -122,9 +127,9 @@ public class MarketStatAccessObjectInMemory : IDisposable
         DimStandardJobRoleRepository = new DimStandardJobRoleRepository(Context);
         DimStandardJobRoleService = new DimStandardJobRoleService(DimStandardJobRoleRepository,
             NullLogger<DimStandardJobRoleService>.Instance);
-
+        
         FactSalaryRepository = new FactSalaryRepository(Context, NullLogger<FactSalaryRepository>.Instance);
-        FactSalaryService = new FactSalaryService(FactSalaryRepository, NullLogger<FactSalaryService>.Instance);
+        FactSalaryService = new FactSalaryService(FactSalaryRepository, MockMapper, NullLogger<FactSalaryService>.Instance, Context);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)

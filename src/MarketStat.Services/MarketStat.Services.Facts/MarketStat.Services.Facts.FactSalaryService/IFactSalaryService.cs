@@ -1,6 +1,8 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Etl;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace MarketStat.Services.Facts.FactSalaryService;
 
@@ -35,4 +37,6 @@ public interface IFactSalaryService
         int industryFieldId, 
         int topNDegrees, 
         int minEmployeeCountForDegree);
+
+    Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile);
 }
