@@ -215,7 +215,8 @@ CREATE TABLE IF NOT EXISTS users (
     is_active               BOOLEAN NOT NULL DEFAULT TRUE,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at           TIMESTAMPTZ NULL,
-    saved_benchmarks_count  INT NOT NULL DEFAULT 0
+    saved_benchmarks_count  INT NOT NULL DEFAULT 0,
+    is_etl_user             BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS benchmark_history (
