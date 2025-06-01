@@ -349,20 +349,28 @@ public class FactSalaryService : IFactSalaryService
             return new EtlProcessingResultDto(false, $"Error parsing CSV: {ex.Message}") { CsvRowsRead = csvRowsRead };
         }
 
+        int insertedCount = 0;
+        int skippedCount = 0;
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
         {
             _logger.LogInformation("Service: Starting database transaction for staging and bulk load.");
             await _factSalaryRepository.TruncateStagingTableAsync(PermanentStagingTableName);
             await _factSalaryRepository.BatchInsertToStagingTableAsync(PermanentStagingTableName, recordsToStage);
-            await _factSalaryRepository.CallBulkLoadFromStagingProcedureAsync(PermanentStagingTableName);
+            var procedureResult = await _factSalaryRepository.CallBulkLoadFromStagingProcedureAsync(PermanentStagingTableName);
+            insertedCount = procedureResult.insertedCount;
+            skippedCount = procedureResult.skippedCount;
+            
             await transaction.CommitAsync();
             _logger.LogInformation("Service: CSV processing and bulk load completed successfully for {FileName}. {CsvRowsRead} records read, {StagedCount} records staged.", 
                 csvFile.FileName, csvRowsRead, recordsToStage.Count);
             return new EtlProcessingResultDto(true, "Salary facts CSV processed successfully.") 
             { 
                 CsvRowsRead = csvRowsRead, 
-                RowsStaged = recordsToStage.Count 
+                RowsStaged = recordsToStage.Count,
+                FactsInserted = insertedCount,
+                RowsSkippedOrFailedInProcedure = skippedCount
             };
         }
         catch (Exception ex)
@@ -372,7 +380,9 @@ public class FactSalaryService : IFactSalaryService
             return new EtlProcessingResultDto(false, $"Database operation failed: {ex.Message}") 
             { 
                 CsvRowsRead = csvRowsRead, 
-                RowsStaged = (ex is ApplicationException && ex.InnerException is NpgsqlException) ? 0 : recordsToStage.Count
+                RowsStaged = (ex is ApplicationException && ex.InnerException is NpgsqlException) ? 0 : recordsToStage.Count,
+                FactsInserted = -1,
+                RowsSkippedOrFailedInProcedure = -1
             };
         }
     }

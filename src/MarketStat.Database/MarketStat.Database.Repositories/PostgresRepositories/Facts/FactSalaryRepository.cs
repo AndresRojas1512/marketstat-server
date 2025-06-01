@@ -358,33 +358,71 @@ public class FactSalaryRepository : IFactSalaryRepository
         }
     }
 
-    public async Task CallBulkLoadFromStagingProcedureAsync(string stagingTableNameFromService)
+    public async Task<(int insertedCount, int skippedCount)> CallBulkLoadFromStagingProcedureAsync(string stagingTableNameFromService)
     {
         string procedureParameterTableName = stagingTableNameFromService;
         if (procedureParameterTableName.StartsWith("marketstat.", StringComparison.OrdinalIgnoreCase))
         {
             procedureParameterTableName = procedureParameterTableName.Substring("marketstat.".Length);
-             _logger.LogInformation("[REPO] Using non-schema-qualified table name for SP parameter: {TableName}", procedureParameterTableName);
+            _logger.LogInformation("[REPO] Using non-schema-qualified table name for SP parameter: {TableName}", procedureParameterTableName);
         }
         else
         {
-             _logger.LogInformation("[REPO] Using provided table name for SP parameter as is: {TableName}", procedureParameterTableName);
+            _logger.LogInformation("[REPO] Using provided table name for SP parameter as is: {TableName}", procedureParameterTableName);
         }
 
         _logger.LogInformation("[REPO] Calling SP: {SPName} with parameter table name: {ParameterTableName}", 
             "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName);
         
+        int insertedCount = 0;
+        int skippedCount = 0;
+
+        NpgsqlConnection? connection = null;
+        bool wasConnectionOpenedByThisMethod = false;
+        
         try
         {
-            var stagingTableParam = new NpgsqlParameter("p_source_staging_table_name_param", NpgsqlDbType.Text) { Value = procedureParameterTableName };
-
-            _logger.LogInformation("[REPO] BEFORE ExecuteSqlRawAsync for SP call. Parameter value: {StagingTableParamValue}", stagingTableParam.Value);
+            connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open)
+            {
+                await connection.OpenAsync();
+                wasConnectionOpenedByThisMethod = true;
+                _logger.LogDebug("[REPO] Connection was closed, opened it for SP call.");
+            } else {
+                _logger.LogDebug("[REPO] Connection was already open for SP call.");
+            }
             
-            await _dbContext.Database.ExecuteSqlRawAsync(
-                "CALL marketstat.bulk_load_salary_facts_from_staging(@p_source_staging_table_name_param)", 
-                stagingTableParam
-            );
-            _logger.LogInformation("[REPO] AFTER ExecuteSqlRawAsync for SP call - SUCCESS for staging table originally named: {OriginalStagingTableName}.", stagingTableNameFromService);
+            IDbContextTransaction? efCoreTransaction = _dbContext.Database.CurrentTransaction;
+            NpgsqlTransaction? npgsqlTransaction = (NpgsqlTransaction?)efCoreTransaction?.GetDbTransaction();
+
+            _logger.LogDebug("[REPO] Using EF Core Transaction ID: {TransactionId}, NpgsqlTransaction HashCode: {NpgsqlTransactionHashCode}", 
+                efCoreTransaction?.TransactionId.ToString() ?? "None", 
+                npgsqlTransaction?.GetHashCode().ToString() ?? "None (or not NpgsqlTransaction)");
+
+            await using var command = new NpgsqlCommand("marketstat.bulk_load_salary_facts_from_staging", connection)
+            {
+                CommandType = CommandType.StoredProcedure,
+                Transaction = npgsqlTransaction 
+            };
+            
+            // Add IN parameter
+            command.Parameters.Add(new NpgsqlParameter("p_source_staging_table_name", NpgsqlDbType.Text) { Value = procedureParameterTableName });
+            
+            // Add OUT parameters - their names here must match the formal parameter names in the PG procedure
+            var pInserted = new NpgsqlParameter("p_inserted_count", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
+            var pSkipped = new NpgsqlParameter("p_skipped_count", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
+            command.Parameters.Add(pInserted);
+            command.Parameters.Add(pSkipped);
+                
+            _logger.LogInformation("[REPO] BEFORE ExecuteNonQueryAsync for SP call. Transaction assigned: {IsTransactionAssigned}", npgsqlTransaction != null);
+            await command.ExecuteNonQueryAsync();
+            _logger.LogInformation("[REPO] AFTER ExecuteNonQueryAsync for SP call - SUCCESS for staging table originally named: {OriginalStagingTableName}.", stagingTableNameFromService);
+
+            // Retrieve OUT parameter values
+            insertedCount = (pInserted.Value != DBNull.Value && pInserted.Value != null) ? Convert.ToInt32(pInserted.Value) : 0;
+            skippedCount = (pSkipped.Value != DBNull.Value && pSkipped.Value != null) ? Convert.ToInt32(pSkipped.Value) : 0;
+
+            _logger.LogInformation("[REPO] SP OUT Params - Inserted: {InsertedCount}, Skipped: {SkippedCount}", insertedCount, skippedCount);
         }
         catch(PostgresException pgEx)
         {
@@ -398,5 +436,19 @@ public class FactSalaryRepository : IFactSalaryRepository
                 "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName);
             throw new ApplicationException("An unexpected error occurred while executing the bulk load procedure.", ex);
         }
+        finally
+        {
+            if (wasConnectionOpenedByThisMethod && 
+                _dbContext.Database.CurrentTransaction == null && // Only close if no encompassing EF transaction
+                connection != null && 
+                connection.State == ConnectionState.Open)
+            {
+                _logger.LogDebug("[REPO] Closing connection that was opened by this method as no EF transaction is active.");
+                await connection.CloseAsync();
+            } else if (connection != null) {
+                _logger.LogDebug("[REPO] Leaving connection in state: {ConnectionState} as it's managed by EF transaction or was already open.", connection.State);
+            }
+        }
+        return (insertedCount, skippedCount);
     }
 }

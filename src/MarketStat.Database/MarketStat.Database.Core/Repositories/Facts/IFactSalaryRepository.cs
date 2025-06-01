@@ -37,5 +37,5 @@ public interface IFactSalaryRepository
 
     Task TruncateStagingTableAsync(string stagingTableName);
     Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records);
-    Task CallBulkLoadFromStagingProcedureAsync(string stagingTableName);
+    Task<(int insertedCount, int skippedCount)> CallBulkLoadFromStagingProcedureAsync(string stagingTableName);
 }
