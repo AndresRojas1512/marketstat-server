@@ -281,36 +281,91 @@ public class FactSalaryController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<PublicRoleByLocationIndustryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<PublicRoleByLocationIndustryDto>>> GetPublicRolesByLocationIndustry(
-        [FromQuery, BindRequired] int industryFieldId,
-        [FromQuery] int? federalDistrictId,
-        [FromQuery] int? oblastId,
-        [FromQuery] int? cityId,
-        [FromQuery] int minSalaryRecordsForRole = 3)
+        [FromQuery] PublicRolesQueryDto queryDto)
     {
-        _logger.LogInformation("Public request for roles by location/industry: IndustryId={IndustryId}", industryFieldId);
-        var result = await _factSalaryService.GetPublicRolesByLocationIndustryAsync(industryFieldId, federalDistrictId, oblastId, cityId, minSalaryRecordsForRole);
-        return Ok(result);
+        _logger.LogInformation("Public request for roles by location/industry: {@QueryDto}", queryDto);
+                
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        try
+        {
+            var result = await _factSalaryService.GetPublicRolesByLocationIndustryAsync(queryDto);
+            return Ok(result);
+        }
+        catch (ArgumentException argEx)
+        {
+            _logger.LogWarning(argEx, "Invalid arguments for GetPublicRolesByLocationIndustryAsync: {@QueryDto}", queryDto);
+            return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
+        }
     }
-
+    
     /// <summary>
-    /// Gets a public view of top N education degrees for employees in jobs related to a specific industry.
+    /// Gets a public view of average salaries by education specialty and level within a given industry.
     /// </summary>
-    /// <param name="industryFieldId">Mandatory: The ID of the industry field.</param>
-    /// <param name="topNDegrees">Optional: Number of top degrees to return (default 5).</param>
-    /// <param name="minEmployeeCountForDegree">Optional: Minimum employees with a degree to include it (default 3).</param>
-    [HttpGet("public/top-degrees-by-industry")]
+    /// <param name="queryDto">Query parameters including industry and optional thresholds.</param>
+    [HttpGet("public/salary-by-education-in-industry")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(IEnumerable<PublicDegreeByIndustryDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IEnumerable<PublicDegreeByIndustryDto>>> GetPublicTopDegreesByIndustry(
-        [FromQuery, BindRequired] int industryFieldId,
-        [FromQuery] int topNDegrees = 5,
-        [FromQuery] int minEmployeeCountForDegree = 3)
+    [ProducesResponseType(typeof(IEnumerable<PublicSalaryByEducationInIndustryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)] // For model validation or ArgumentException from service
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<PublicSalaryByEducationInIndustryDto>>> GetPublicSalaryByEducationInIndustry(
+        [FromQuery] PublicSalaryByEducationQueryDto queryDto)
     {
-        _logger.LogInformation("Public request for top degrees by industry: IndustryId={IndustryId}", industryFieldId);
-        var result = await _factSalaryService.GetPublicTopDegreesByIndustryAsync(industryFieldId, topNDegrees, minEmployeeCountForDegree);
-        return Ok(result);
+        _logger.LogInformation("Public request for salary by education in industry: {@QueryDto}", queryDto);
+        
+        if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("GetPublicSalaryByEducationInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var result = await _factSalaryService.GetPublicSalaryByEducationInIndustryAsync(queryDto);
+            return Ok(result);
+        }
+        catch (ArgumentException argEx)
+        {
+            _logger.LogWarning(argEx, "Invalid arguments for GetPublicSalaryByEducationInIndustryAsync: {@QueryDto}", queryDto);
+            return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
+        }
+    }
+    
+    /// <summary>
+    /// Gets a public view of top employers and their common roles with average salaries within a given industry.
+    /// </summary>
+    /// <param name="queryDto">Query parameters including industry and optional thresholds.</param>
+    [HttpGet("public/top-employer-role-salaries")] // Route for this new endpoint
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)] // For model validation or ArgumentException from service
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>>> GetPublicTopEmployerRoleSalariesInIndustry(
+        [FromQuery] PublicTopEmployerRoleSalariesQueryDto queryDto)
+    {
+        _logger.LogInformation("Public request for top employer role salaries in industry: {@QueryDto}", queryDto);
+            
+        if (!ModelState.IsValid)
+        {
+            _logger.LogWarning("GetPublicTopEmployerRoleSalariesInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var result = await _factSalaryService.GetPublicTopEmployerRoleSalariesInIndustryAsync(queryDto);
+            return Ok(result);
+        }
+        catch (ArgumentException argEx) // Catch validation errors from service
+        {
+            _logger.LogWarning(argEx, "Invalid arguments for GetPublicTopEmployerRoleSalariesInIndustryAsync: {@QueryDto}", queryDto);
+            return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
+        }
+        // Other exceptions will be handled by ExceptionHandlingMiddleware
     }
     
     /// <summary>

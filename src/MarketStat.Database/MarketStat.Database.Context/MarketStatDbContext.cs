@@ -570,22 +570,37 @@ public class MarketStatDbContext : DbContext
             b.HasIndex(bh => bh.SavedAt).HasDatabaseName("idx_benchmark_history_saved_at");
         });
         
+        modelBuilder.Entity<FactSalary>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToTable((string?)null);
+        });
+        
         modelBuilder.Entity<SalaryDistributionBucketDto>(dto =>
         {
             dto.HasNoKey();
-        });
-        
-        modelBuilder.Entity<SalarySummaryDto>(dto =>
-        {
-            dto.HasNoKey();
+            dto.ToTable((string?)null);
         });
 
         modelBuilder.Entity<SalaryTimeSeriesPointDto>(dto =>
         {
             dto.HasNoKey();
+            dto.ToTable((string?)null);
         });
-        
-        modelBuilder.Entity<FactSalary>(entity =>
+
+        modelBuilder.Entity<PublicRoleByLocationIndustryDto>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToTable((string?)null);
+        });
+
+        modelBuilder.Entity<PublicSalaryByEducationInIndustryDto>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToTable((string?)null);
+        });
+
+        modelBuilder.Entity<PublicTopEmployerRoleSalariesInIndustryDto>(entity =>
         {
             entity.HasNoKey();
             entity.ToTable((string?)null);

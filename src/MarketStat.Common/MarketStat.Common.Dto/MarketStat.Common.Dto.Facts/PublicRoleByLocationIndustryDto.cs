@@ -4,12 +4,7 @@ namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 
 public class PublicRoleByLocationIndustryDto
 {
-    [JsonPropertyName("standardJobRoleTitle")]
-    public string? StandardJobRoleTitle { get; set; }
-
-    [JsonPropertyName("averageSalary")]
-    public decimal? AverageSalary { get; set; }
-
-    [JsonPropertyName("salaryRecordCount")]
+    public string StandardJobRoleTitle { get; set; } = string.Empty;
+    public decimal AverageSalary { get; set; }
     public long SalaryRecordCount { get; set; }
 }

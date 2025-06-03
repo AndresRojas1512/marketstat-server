@@ -202,7 +202,6 @@ public class FactSalaryRepository : IFactSalaryRepository
         _logger.LogDebug("Executing SQL for benchmark report: {Sql}", sql);
         foreach (var p in parameters)
         {
-            // For DBNull.Value, log "<DBNull>" or similar to avoid issues with logging DBNull itself
             var paramValueForLog = (p.Value == DBNull.Value) ? "<DBNull>" : p.Value;
             _logger.LogDebug("Parameter: {ParameterName} = {ParameterValue} (NpgsqlDbType: {NpgsqlDbType})", p.ParameterName, paramValueForLog, p.NpgsqlDbType);
         }
@@ -227,7 +226,7 @@ public class FactSalaryRepository : IFactSalaryRepository
         catch(Exception ex)
         {
             _logger.LogError(ex, "Error executing GetBenchmarkingReportJsonAsync SQL call.");
-            throw; // Re-throw the exception to be handled by the service/middleware
+            throw;
         }
         finally
         {
@@ -262,29 +261,116 @@ public class FactSalaryRepository : IFactSalaryRepository
             .ToListAsync();
     }
     
-    public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(
-        int industryFieldId, 
-        int? federalDistrictId, 
-        int? oblastId, 
-        int? cityId, 
-        int minSalaryRecordsForRole)
+    // Public analytical methods
+    
+    public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto)
     {
-        return await _dbContext.Set<PublicRoleByLocationIndustryDto>()
-            .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_get_roles_by_location_industry({industryFieldId}, {federalDistrictId}, {oblastId}, {cityId}, {minSalaryRecordsForRole})")
-            .AsNoTracking()
-            .ToListAsync();
+        _logger.LogInformation(
+            "Repository: Calling fn_public_get_roles_by_location_industry with DTO: {@QueryDto}", queryDto);
+
+        try
+        {
+            var results = await _dbContext.Set<PublicRoleByLocationIndustryDto>()
+                .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_get_roles_by_location_industry({queryDto.IndustryFieldId}, {queryDto.FederalDistrictId}, {queryDto.OblastId}, {queryDto.CityId}, {queryDto.MinSalaryRecordsForRole})")
+                .AsNoTracking()
+                .ToListAsync();
+                
+            _logger.LogInformation("Repository: fn_public_get_roles_by_location_industry returned {Count} records.", results.Count);
+            return results;
+        }
+        catch (NpgsqlException npgEx)
+        {
+            if (npgEx is PostgresException pgEx_specific)
+            {
+                _logger.LogError(pgEx_specific, "Repository: PostgresException executing fn_public_get_roles_by_location_industry with DTO {@QueryDto}. SQLSTATE: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
+                    queryDto, pgEx_specific.SqlState, pgEx_specific.MessageText, pgEx_specific.Detail);
+            }
+            else
+            {
+                _logger.LogError(npgEx, "Repository: NpgsqlException executing fn_public_get_roles_by_location_industry with DTO {@QueryDto}.", queryDto);
+            }
+            throw new ApplicationException("A database error occurred while fetching public roles by location/industry.", npgEx);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Repository: Generic error executing fn_public_get_roles_by_location_industry with DTO {@QueryDto}.", queryDto);
+            throw new ApplicationException("An unexpected error occurred while fetching public roles by location/industry.", ex);
+        }
     }
     
-    public async Task<IEnumerable<PublicDegreeByIndustryDto>> GetPublicTopDegreesByIndustryAsync(
-        int industryFieldId, 
-        int topNDegrees, 
-        int minEmployeeCountForDegree)
+    public async Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(PublicSalaryByEducationQueryDto queryDto)
     {
-        return await _dbContext.Set<PublicDegreeByIndustryDto>()
-            .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_top_degrees_by_industry({industryFieldId}, {topNDegrees}, {minEmployeeCountForDegree})")
-            .AsNoTracking()
-            .ToListAsync();
+        _logger.LogInformation(
+            "Repository: Calling fn_public_salary_by_education_in_industry with DTO: {@QueryDto}", queryDto);
+
+        try
+        {
+            var results = await _dbContext.Set<PublicSalaryByEducationInIndustryDto>()
+                .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_salary_by_education_in_industry({queryDto.IndustryFieldId}, {queryDto.TopNSpecialties}, {queryDto.MinEmployeesPerSpecialty}, {queryDto.MinEmployeesPerLevelInSpecialty})")
+                .AsNoTracking()
+                .ToListAsync();
+            
+            _logger.LogInformation("Repository: fn_public_salary_by_education_in_industry returned {Count} records.", results.Count);
+            return results;
+        }
+        catch (NpgsqlException npgEx)
+        {
+            if (npgEx is PostgresException pgEx_specific)
+            {
+                _logger.LogError(pgEx_specific, "Repository: PostgresException executing fn_public_salary_by_education_in_industry with DTO {@QueryDto}. SQLSTATE: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
+                    queryDto, pgEx_specific.SqlState, pgEx_specific.MessageText, pgEx_specific.Detail);
+            }
+            else
+            {
+                _logger.LogError(npgEx, "Repository: NpgsqlException executing fn_public_salary_by_education_in_industry with DTO {@QueryDto}.", queryDto);
+            }
+            throw new ApplicationException("A database error occurred while fetching public salary by education data.", npgEx);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Repository: Generic error executing fn_public_salary_by_education_in_industry with DTO {@QueryDto}.", queryDto);
+            throw new ApplicationException("An unexpected error occurred while fetching public salary by education data.", ex);
+        }
     }
+
+    public async Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+            PublicTopEmployerRoleSalariesQueryDto queryDto)
+    {
+        _logger.LogInformation(
+            "Repository: Calling fn_public_top_employer_role_salaries_in_industry with DTO: {@QueryDto}", queryDto);
+
+        try
+        {
+            var results = await _dbContext.Set<PublicTopEmployerRoleSalariesInIndustryDto>()
+                .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_top_employer_role_salaries_in_industry({queryDto.IndustryFieldId}, {queryDto.TopNEmployers}, {queryDto.TopMRolesPerEmployer}, {queryDto.MinSalaryRecordsForRoleAtEmployer})")
+                .AsNoTracking()
+                .ToListAsync();
+            
+            _logger.LogInformation("Repository: fn_public_top_employer_role_salaries_in_industry returned {Count} records.", results.Count);
+            return results;
+        }
+        catch (NpgsqlException npgEx)
+        {
+            if (npgEx is PostgresException pgEx_specific)
+            {
+                _logger.LogError(pgEx_specific, "Repository: PostgresException executing fn_public_top_employer_role_salaries_in_industry with DTO {@QueryDto}. SQLSTATE: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
+                    queryDto, pgEx_specific.SqlState, pgEx_specific.MessageText, pgEx_specific.Detail);
+            }
+            else
+            {
+                _logger.LogError(npgEx, "Repository: NpgsqlException executing fn_public_top_employer_role_salaries_in_industry with DTO {@QueryDto}.", queryDto);
+            }
+            throw new ApplicationException("A database error occurred while fetching top employer role salaries.", npgEx);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Repository: Generic error executing fn_public_top_employer_role_salaries_in_industry with DTO {@QueryDto}.", queryDto);
+            throw new ApplicationException("An unexpected error occurred while fetching top employer role salaries.", ex);
+        }
+    }
+    
+    
+    // ETL methods
 
     public async Task TruncateStagingTableAsync(string stagingTableName)
     {

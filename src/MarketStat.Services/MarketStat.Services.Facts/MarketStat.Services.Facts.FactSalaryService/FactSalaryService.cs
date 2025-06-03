@@ -233,55 +233,112 @@ public class FactSalaryService : IFactSalaryService
         return result;
     }
     
-    public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(
-        int industryFieldId, 
-        int? federalDistrictId, 
-        int? oblastId, 
-        int? cityId, 
-        int minSalaryRecordsForRole)
+    // Public analytical methods
+    
+    public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto)
     {
-        _logger.LogInformation("Fetching public roles by location and industry: IndustryFieldId={IndustryFieldId}, DistrictId={DistrictId}, OblastId={OblastId}, CityId={CityId}, MinRecords={MinRecords}", 
-            industryFieldId, federalDistrictId, oblastId, cityId, minSalaryRecordsForRole);
-            
-        if (industryFieldId <= 0)
+        _logger.LogInformation(
+            "Service: Getting public roles by location/industry with DTO: {@QueryDto}", queryDto);
+
+        if (queryDto.IndustryFieldId <= 0)
         {
-            throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(industryFieldId));
+            _logger.LogWarning("GetPublicRolesByLocationIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
+            throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
         }
-        if (minSalaryRecordsForRole < 0)
+        if (queryDto.MinSalaryRecordsForRole < 0) 
         {
-            throw new ArgumentException("MinSalaryRecordsForRole must be non-negative.", nameof(minSalaryRecordsForRole));
+            _logger.LogWarning("GetPublicRolesByLocationIndustryAsync called with invalid minSalaryRecordsForRole in DTO: {MinRecs}", queryDto.MinSalaryRecordsForRole);
+            throw new ArgumentException("minSalaryRecordsForRole cannot be negative.", nameof(queryDto.MinSalaryRecordsForRole));
         }
 
-        var result = await _factSalaryRepository.GetPublicRolesByLocationIndustryAsync(industryFieldId, federalDistrictId, oblastId, cityId, minSalaryRecordsForRole);
-        _logger.LogInformation("Retrieved {Count} public roles for location/industry query.", result.Count());
-        return result;
+        try
+        {
+            var result = await _factSalaryRepository.GetPublicRolesByLocationIndustryAsync(queryDto);
+            _logger.LogInformation("Service: Successfully retrieved {Count} records for public roles by location/industry.", result.Count());
+            return result;
+        }
+        catch (Exception ex) 
+        {
+            _logger.LogError(ex, "Service: Error retrieving public roles by location/industry for DTO: {@QueryDto}", queryDto);
+            throw; 
+        }
     }
     
-    public async Task<IEnumerable<PublicDegreeByIndustryDto>> GetPublicTopDegreesByIndustryAsync(
-        int industryFieldId, 
-        int topNDegrees, 
-        int minEmployeeCountForDegree)
+    public async Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
+            PublicSalaryByEducationQueryDto queryDto)
     {
-        _logger.LogInformation("Fetching public top degrees by industry: IndustryFieldId={IndustryFieldId}, TopN={TopN}, MinEmployees={MinEmployees}", 
-            industryFieldId, topNDegrees, minEmployeeCountForDegree);
+        _logger.LogInformation(
+            "Service: Getting public salary by education in industry with DTO: {@QueryDto}", queryDto);
+        
+        if (queryDto.IndustryFieldId <= 0)
+        {
+            _logger.LogWarning("GetPublicSalaryByEducationInIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
+            throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
+        }
+        if (queryDto.TopNSpecialties <= 0)
+        {
+             throw new ArgumentException("TopNSpecialties must be a positive integer.", nameof(queryDto.TopNSpecialties));
+        }
+        if (queryDto.MinEmployeesPerSpecialty < 0)
+        {
+             throw new ArgumentException("MinEmployeesPerSpecialty cannot be negative.", nameof(queryDto.MinEmployeesPerSpecialty));
+        }
+        if (queryDto.MinEmployeesPerLevelInSpecialty < 0)
+        {
+             throw new ArgumentException("MinEmployeesPerLevelInSpecialty cannot be negative.", nameof(queryDto.MinEmployeesPerLevelInSpecialty));
+        }
 
-        if (industryFieldId <= 0)
+        try
         {
-            throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(industryFieldId));
+            var result = await _factSalaryRepository.GetPublicSalaryByEducationInIndustryAsync(queryDto);
+            _logger.LogInformation("Service: Successfully retrieved {Count} records for public salary by education in industry.", result.Count());
+            return result;
         }
-        if (topNDegrees <= 0)
+        catch (Exception ex)
         {
-            throw new ArgumentException("TopNDegrees must be a positive integer.", nameof(topNDegrees));
+            _logger.LogError(ex, "Service: Error retrieving public salary by education in industry for DTO: {@QueryDto}", queryDto);
+            throw;
         }
-        if (minEmployeeCountForDegree < 0)
-        {
-            throw new ArgumentException("MinEmployeeCountForDegree must be non-negative.", nameof(minEmployeeCountForDegree));
-        }
-
-        var result = await _factSalaryRepository.GetPublicTopDegreesByIndustryAsync(industryFieldId, topNDegrees, minEmployeeCountForDegree);
-        _logger.LogInformation("Retrieved {Count} public top degrees for industry query.", result.Count());
-        return result;
     }
+    
+    public async Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+            PublicTopEmployerRoleSalariesQueryDto queryDto)
+    {
+        _logger.LogInformation(
+            "Service: Getting public top employer role salaries in industry with DTO: {@QueryDto}", queryDto);
+
+        if (queryDto.IndustryFieldId <= 0)
+        {
+            _logger.LogWarning("GetPublicTopEmployerRoleSalariesInIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
+            throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
+        }
+        if (queryDto.TopNEmployers <= 0)
+        {
+             throw new ArgumentException("TopNEmployers must be a positive integer.", nameof(queryDto.TopNEmployers));
+        }
+        if (queryDto.TopMRolesPerEmployer <= 0)
+        {
+             throw new ArgumentException("TopMRolesPerEmployer must be a positive integer.", nameof(queryDto.TopMRolesPerEmployer));
+        }
+        if (queryDto.MinSalaryRecordsForRoleAtEmployer < 0)
+        {
+             throw new ArgumentException("MinSalaryRecordsForRoleAtEmployer cannot be negative.", nameof(queryDto.MinSalaryRecordsForRoleAtEmployer));
+        }
+
+        try
+        {
+            var result = await _factSalaryRepository.GetPublicTopEmployerRoleSalariesInIndustryAsync(queryDto);
+            _logger.LogInformation("Service: Successfully retrieved {Count} records for public top employer role salaries.", result.Count());
+            return result;
+        }
+        catch (Exception ex) // Catch exceptions from repository (which should be ApplicationException wrapping DB errors)
+        {
+            _logger.LogError(ex, "Service: Error retrieving public top employer role salaries for DTO: {@QueryDto}", queryDto);
+            throw;
+        }
+    }
+    
+    // ETL tool
 
     public async Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile)
     {

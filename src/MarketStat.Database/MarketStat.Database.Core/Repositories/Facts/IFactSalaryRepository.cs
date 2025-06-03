@@ -23,17 +23,15 @@ public interface IFactSalaryRepository
         TimeGranularity granularity, int periods);
     
     // Public Analytical Methods
-    Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(
-        int industryFieldId, 
-        int? federalDistrictId, 
-        int? oblastId, 
-        int? cityId, 
-        int minSalaryRecordsForRole);
+    Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto);
 
-    Task<IEnumerable<PublicDegreeByIndustryDto>> GetPublicTopDegreesByIndustryAsync(
-        int industryFieldId, 
-        int topNDegrees, 
-        int minEmployeeCountForDegree);
+    Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
+        PublicSalaryByEducationQueryDto queryDto);
+
+    Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+        PublicTopEmployerRoleSalariesQueryDto queryDto);
+    
+    // placeholder for next public method
 
     Task TruncateStagingTableAsync(string stagingTableName);
     Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records);
