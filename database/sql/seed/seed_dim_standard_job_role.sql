@@ -10,7 +10,7 @@ CREATE TEMP TABLE staging_standard_job_roles (
 );
 
 
-\copy staging_standard_job_roles(csv_code, standard_job_role_name, industry_field_name) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/standard_job_roles_industry_fields.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',');
+\copy staging_standard_job_roles(csv_code, standard_job_role_name, industry_field_name) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/dim_standard_job_role_industry_field.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',');
 
 SELECT COUNT(*) AS staged_job_roles_count
   FROM staging_standard_job_roles;
@@ -26,7 +26,7 @@ FROM
 JOIN
     marketstat.dim_industry_field dif ON sjr.industry_field_name = dif.industry_field_name
 WHERE
-    sjr.standard_job_role_name IS NOT NULL AND sjr.standard_job_role_name <> '' -- Ensure title is not null or empty
+    sjr.standard_job_role_name IS NOT NULL AND sjr.standard_job_role_name <> ''
 ON CONFLICT (standard_job_role_title) DO NOTHING;
 
 COMMIT;

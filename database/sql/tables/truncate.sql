@@ -14,7 +14,7 @@ TRUNCATE TABLE
     marketstat.dim_education,
     marketstat.dim_education_level,
     marketstat.dim_date,
-    marketstat.users,
-    marketstat.benchmark_history
+    marketstat.api_fact_uploads_staging,
+    marketstat.dim_employee
 RESTART IDENTITY
 CASCADE;

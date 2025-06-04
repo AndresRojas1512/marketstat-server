@@ -10,7 +10,7 @@ CREATE TEMP TABLE staging_education_levels (
     education_level TEXT
 );
 
-\copy staging_education_levels(code,specialty,field,general_field,education_level) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/education_dataset.csv' WITH (FORMAT csv, HEADER true);
+\copy staging_education_levels(code,specialty,field,general_field,education_level) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/dim_education_dataset.csv' WITH (FORMAT csv, HEADER true);
 
 SELECT COUNT(DISTINCT education_level) AS staged_levels
   FROM staging_education_levels;

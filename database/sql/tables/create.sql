@@ -52,13 +52,21 @@ CREATE INDEX IF NOT EXISTS idx_dim_city_oblast_id
     ON dim_city (oblast_id);
 
 
-
-CREATE TABLE IF NOT EXISTS dim_employer (
-    employer_id     INT GENERATED ALWAYS AS IDENTITY
-                        CONSTRAINT pk_dim_employer PRIMARY KEY,
-    employer_name   VARCHAR(255) NOT NULL,
-    is_public       BOOLEAN NOT NULL DEFAULT FALSE,
-    CONSTRAINT uq_dim_employer_name UNIQUE (employer_name)
+CREATE TABLE IF NOT EXISTS marketstat.dim_employer (
+    employer_id         INT GENERATED ALWAYS AS IDENTITY
+                            CONSTRAINT pk_dim_employer PRIMARY KEY,
+    employer_name       VARCHAR(255) NOT NULL
+                            CONSTRAINT uq_dim_employer_name UNIQUE,
+    inn                 VARCHAR(12) NOT NULL
+                            CONSTRAINT uq_dim_employer_inn UNIQUE,
+    ogrn                VARCHAR(13) NOT NULL
+                            CONSTRAINT uq_dim_employer_ogrn UNIQUE,
+    kpp                 VARCHAR(9) NOT NULL,
+    registration_date   DATE NOT NULL,
+    legal_address       TEXT NOT NULL,
+    website             VARCHAR(255) NOT NULL,
+    contact_email       VARCHAR(255) NOT NULL,
+    contact_phone       VARCHAR(50) NOT NULL
 );
 
 
@@ -260,6 +268,20 @@ CREATE TABLE IF NOT EXISTS failed_salary_facts_load (
     salary_amount               NUMERIC(18,2),
     bonus_amount                NUMERIC(18,2),
     error_message               TEXT
+);
+
+CREATE TABLE IF NOT EXISTS api_fact_uploads_staging (
+    recorded_date_text              TEXT,
+    city_name                       TEXT,
+    oblast_name                     TEXT,
+    employer_name                   TEXT,
+    standard_job_role_title         TEXT,
+    job_role_title                  TEXT,
+    hierarchy_level_name            TEXT,
+    employee_birth_date_text        TEXT,
+    employee_career_start_date_text TEXT,
+    salary_amount                   NUMERIC(18,2),
+    bonus_amount                    NUMERIC(18,2)
 );
 
 \echo 'Table "marketstat.failed_salary_facts_load" created and privileges granted.'

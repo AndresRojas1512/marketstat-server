@@ -39,8 +39,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Common.Converter
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests.Services", "MarketStat.Tests\IntegrationTests.Services\IntegrationTests.Services.csproj", "{5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.TechUI", "MarketStat.TechUI\MarketStat.TechUI.csproj", "{159E141B-2351-404E-B481-9E5E68B64523}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimIndustryFieldService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimIndustryFieldService\MarketStat.Services.Dimensions.DimIndustryFieldService.csproj", "{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimJobRoleService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobRoleService\MarketStat.Services.Dimensions.DimJobRoleService.csproj", "{D696F367-B640-48F9-94D2-77617277D56A}"
@@ -138,10 +136,6 @@ Global
 		{5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{159E141B-2351-404E-B481-9E5E68B64523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{159E141B-2351-404E-B481-9E5E68B64523}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{159E141B-2351-404E-B481-9E5E68B64523}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{159E141B-2351-404E-B481-9E5E68B64523}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEB1B8D0-E96B-49E0-BE49-45F94DACCA15}.Release|Any CPU.ActiveCfg = Release|Any CPU

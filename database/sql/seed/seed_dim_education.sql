@@ -12,13 +12,10 @@ CREATE TEMP TABLE staging_education (
     education_level TEXT
 );
 
-\echo === Loading CSV into staging ===
-\copy staging_education(code,specialty,field,general_field,education_level) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/education_dataset.csv' WITH (FORMAT csv, HEADER true);
+\copy staging_education(code,specialty,field,general_field,education_level) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/dim_education_dataset.csv' WITH (FORMAT csv, HEADER true);
 
-\echo === How many rows staged? ===
 SELECT COUNT(*) AS staged_rows FROM staging_education;
 
-\echo === Inserting into dim_education ===
 BEGIN;
 INSERT INTO marketstat.dim_education (
     specialty_code,
@@ -40,5 +37,4 @@ WHERE NOT EXISTS (
 );
 COMMIT;
 
-\echo === Dropping staging table ===
 DROP TABLE staging_education;

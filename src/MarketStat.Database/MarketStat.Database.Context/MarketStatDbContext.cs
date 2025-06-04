@@ -47,6 +47,7 @@ public class MarketStatDbContext : DbContext
             b.Property(e => e.EmployerId)
                 .HasColumnName("employer_id")
                 .UseIdentityByDefaultColumn();
+
             b.Property(e => e.EmployerName)
                 .HasColumnName("employer_name")
                 .HasMaxLength(255)
@@ -54,10 +55,52 @@ public class MarketStatDbContext : DbContext
             b.HasIndex(e => e.EmployerName)
                 .IsUnique()
                 .HasDatabaseName("uq_dim_employer_name");
-            b.Property(e => e.IsPublic)
-                .HasColumnName("is_public")
-                .IsRequired()
-                .HasDefaultValue(false);
+            
+            b.Property(e => e.Inn)
+                .HasColumnName("inn")
+                .HasMaxLength(12)
+                .IsRequired();
+            b.HasIndex(e => e.Inn)
+                .IsUnique()
+                .HasDatabaseName("uq_dim_employer_inn");
+
+            b.Property(e => e.Ogrn)
+                .HasColumnName("ogrn")
+                .HasMaxLength(13)
+                .IsRequired();
+            b.HasIndex(e => e.Ogrn)
+                .IsUnique()
+                .HasDatabaseName("uq_dim_employer_ogrn");
+
+            b.Property(e => e.Kpp)
+                .HasColumnName("kpp")
+                .HasMaxLength(9)
+                .IsRequired();
+
+            b.Property(e => e.RegistrationDate)
+                .HasColumnName("registration_date")
+                .HasColumnType("date")
+                .IsRequired();
+
+            b.Property(e => e.LegalAddress)
+                .HasColumnName("legal_address")
+                .HasColumnType("text")
+                .IsRequired();
+
+            b.Property(e => e.Website)
+                .HasColumnName("website")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            b.Property(e => e.ContactEmail)
+                .HasColumnName("contact_email")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            b.Property(e => e.ContactPhone)
+                .HasColumnName("contact_phone")
+                .HasMaxLength(50)
+                .IsRequired();
         });
 
         modelBuilder.Entity<DimIndustryFieldDbModel>(b =>

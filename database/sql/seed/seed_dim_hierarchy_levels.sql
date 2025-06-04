@@ -4,11 +4,11 @@ SET search_path = marketstat, public;
 DROP TABLE IF EXISTS staging_hierarchy_levels;
 
 CREATE TEMP TABLE staging_hierarchy_levels (
-    level_code          TEXT, -- Corresponds to 'level_code' in CSV
-    hierarchy_level     TEXT  -- Corresponds to 'hierarchy_level' in CSV
+    level_code          TEXT,
+    hierarchy_level     TEXT
 );
 
-\copy staging_hierarchy_levels(level_code, hierarchy_level) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/hierarchy_levels_dataset.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',');
+\copy staging_hierarchy_levels(level_code, hierarchy_level) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/dim_hierarchy_level_dataset.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',');
 
 SELECT COUNT(DISTINCT hierarchy_level) AS staged_hierarchy_levels_count
   FROM staging_hierarchy_levels;

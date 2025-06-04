@@ -7,21 +7,8 @@ CREATE TEMP TABLE staging_employers (
     industry_field  TEXT
 );
 
-\copy staging_employers(employer_name, industry_field) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/employers_dataset.csv' WITH (FORMAT csv, HEADER true);
+\copy staging_employers(employer_name, industry_field) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/dim_employer_industry_field_dataset.csv' WITH (FORMAT csv, HEADER true);
 
-BEGIN;
-INSERT INTO marketstat.dim_industry_field (industry_field_name)
-SELECT DISTINCT industry_field
-    FROM staging_employers
-ON CONFLICT (industry_field_name) DO NOTHING;
-COMMIT;
-
-BEGIN;
-INSERT INTO marketstat.dim_employer (employer_name)
-SELECT DISTINCT employer_name
-  FROM staging_employers
-ON CONFLICT (employer_name) DO NOTHING;
-COMMIT;
 
 BEGIN;
 INSERT INTO marketstat.dim_employer_industry_field (employer_id, industry_field_id)

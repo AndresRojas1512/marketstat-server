@@ -20,11 +20,18 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
     
     public async Task AddEmployerAsync(DimEmployer employer)
     {
-        var dbModel = new DimEmployerDbModel(
-            employerId: 0,
-            employerName: employer.EmployerName,
-            isPublic: employer.IsPublic
-        );
+        var dbModel = new DimEmployerDbModel
+        {
+            EmployerName = employer.EmployerName,
+            Inn = employer.Inn,
+            Ogrn = employer.Ogrn,
+            Kpp = employer.Kpp,
+            RegistrationDate = employer.RegistrationDate,
+            LegalAddress = employer.LegalAddress,
+            Website = employer.Website,
+            ContactEmail = employer.ContactEmail,
+            ContactPhone = employer.ContactPhone
+        };
         await _dbContext.DimEmployers.AddAsync(dbModel);
         try
         {
@@ -41,43 +48,57 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
 
     public async Task<DimEmployer> GetEmployerByIdAsync(int employerId)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId);
-        if (dbEmployer is null)
+        var dbEmployer = await _dbContext.DimEmployers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.EmployerId == employerId);
+        if (dbEmployer == null)
             throw new NotFoundException($"Employer with ID {employerId} not found.");
         return DimEmployerConverter.ToDomain(dbEmployer);
     }
 
     public async Task<IEnumerable<DimEmployer>> GetAllEmployersAsync()
     {
-        var allDbEmployers = await _dbContext.DimEmployers.ToListAsync();
+        var allDbEmployers = await _dbContext.DimEmployers
+            .AsNoTracking()
+            .OrderBy(e => e.EmployerName)
+            .ToListAsync();
         return allDbEmployers.Select(DimEmployerConverter.ToDomain);
     }
 
     public async Task UpdateEmployerAsync(DimEmployer employer)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employer.EmployerId);
-        if (dbEmployer is null)
+        var dbEmployer = await _dbContext.DimEmployers
+            .FirstOrDefaultAsync(e => e.EmployerId == employer.EmployerId);
+        
+        if (dbEmployer == null)
             throw new NotFoundException($"Employer with ID {employer.EmployerId} not found.");
         
         dbEmployer.EmployerName = employer.EmployerName;
-        dbEmployer.IsPublic = employer.IsPublic;
+        dbEmployer.Inn = employer.Inn;
+        dbEmployer.Ogrn = employer.Ogrn;
+        dbEmployer.Kpp = employer.Kpp;
+        dbEmployer.RegistrationDate = employer.RegistrationDate;
+        dbEmployer.LegalAddress = employer.LegalAddress;
+        dbEmployer.Website = employer.Website;
+        dbEmployer.ContactEmail = employer.ContactEmail;
+        dbEmployer.ContactPhone = employer.ContactPhone;
         
         try
         {
             await _dbContext.SaveChangesAsync();
         }
         catch (DbUpdateException dbEx)
-            when (dbEx.InnerException is PostgresException pg
-                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+            when (dbEx.InnerException is PostgresException pgEx &&
+                  pgEx.SqlState == PostgresErrorCodes.UniqueViolation)
         {
-            throw new ConflictException($"An employer named '{employer.EmployerName}' already exists.");
+            throw new ConflictException($"Updating employer resulted in a conflict (name, INN, or OGRN already exists for another record)");
         }
     }
 
     public async Task DeleteEmployerAsync(int employerId)
     {
         var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId);
-        if (dbEmployer is null)
+        if (dbEmployer == null)
             throw new NotFoundException($"Employer with ID {employerId} not found.");
         _dbContext.DimEmployers.Remove(dbEmployer);
         await _dbContext.SaveChangesAsync();

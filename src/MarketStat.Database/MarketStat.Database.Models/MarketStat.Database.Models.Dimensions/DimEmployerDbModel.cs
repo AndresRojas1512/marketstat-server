@@ -5,7 +5,7 @@ using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
 
 namespace MarketStat.Database.Models;
 
-[Table("dim_employer")]
+[Table("dim_employer", Schema = "marketstat")]
 public class DimEmployerDbModel
 {
     [Key]
@@ -17,22 +17,67 @@ public class DimEmployerDbModel
     [StringLength(255)]
     public string EmployerName { get; set; } = string.Empty;
     
-    [Column("is_public")]
-    public bool IsPublic { get; set; }
+    [Required]
+    [Column("inn")]
+    [StringLength(12)]
+    public string Inn { get; set; } = string.Empty;
+    
+    [Required]
+    [Column("ogrn")]
+    [StringLength(13)]
+    public string Ogrn { get; set; } = string.Empty;
+    
+    [Required]
+    [Column("kpp")]
+    [StringLength(9)]
+    public string Kpp { get; set; } = string.Empty;
+    
+    [Required]
+    [Column("registration_date", TypeName = "date")]
+    public DateOnly RegistrationDate { get; set; }
+    
+    [Required]
+    [Column("legal_address", TypeName = "text")]
+    public string LegalAddress { get; set; } = string.Empty;
+    
+    [Required]
+    [Column("website")]
+    [StringLength(255)]
+    public string Website { get; set; } = string.Empty;
+    
+    [Required]
+    [Column("contact_email")]
+    [StringLength(255)]
+    public string ContactEmail { get; set; } = string.Empty;
+    
+    [Required]
+    [Column("contact_phone")]
+    [StringLength(50)]
+    public string ContactPhone { get; set; } = string.Empty;
     
     public virtual ICollection<DimEmployerIndustryFieldDbModel> EmployerIndustryFields { get; set; } = new List<DimEmployerIndustryFieldDbModel>();
     public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; } = new List<FactSalaryDbModel>();
 
     public DimEmployerDbModel()
     {
+        EmployerIndustryFields = new List<DimEmployerIndustryFieldDbModel>();
         FactSalaries = new List<FactSalaryDbModel>();
     }
 
-    public DimEmployerDbModel(int employerId, string employerName, bool isPublic)
+    public DimEmployerDbModel(int employerId, string employerName, string inn, string ogrn, string kpp,
+        DateOnly registrationDate, string legalAddress, string website, string contactEmail, string contactPhone)
     {
         EmployerId = employerId;
         EmployerName = employerName;
-        IsPublic = isPublic;
+        Inn = inn;
+        Ogrn = ogrn;
+        Kpp = kpp;
+        RegistrationDate = registrationDate;
+        LegalAddress = legalAddress;
+        Website = website;
+        ContactEmail = contactEmail;
+        ContactPhone = contactPhone;
+        EmployerIndustryFields = new List<DimEmployerIndustryFieldDbModel>();
         FactSalaries = new List<FactSalaryDbModel>();
     }
 }

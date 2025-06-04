@@ -5,21 +5,43 @@ namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 
 public static class DimEmployerConverter
 {
-    public static DimEmployerDbModel ToDbModel(DimEmployer dimEmployer)
+    public static DimEmployerDbModel ToDbModel(DimEmployer domainEmployer)
     {
-        return new DimEmployerDbModel(
-            dimEmployer.EmployerId,
-            dimEmployer.EmployerName,
-            dimEmployer.IsPublic
-        );
+        if (domainEmployer == null)
+            throw new ArgumentNullException(nameof(domainEmployer));
+
+        return new DimEmployerDbModel
+        {
+            EmployerId = domainEmployer.EmployerId,
+            EmployerName = domainEmployer.EmployerName,
+            Inn = domainEmployer.Inn,
+            Ogrn = domainEmployer.Ogrn,
+            Kpp = domainEmployer.Kpp,
+            RegistrationDate = domainEmployer.RegistrationDate,
+            LegalAddress = domainEmployer.LegalAddress,
+            Website = domainEmployer.Website,
+            ContactEmail = domainEmployer.ContactEmail,
+            ContactPhone = domainEmployer.ContactPhone
+        };
     }
 
-    public static DimEmployer ToDomain(DimEmployerDbModel dbDimEmployer)
+    public static DimEmployer ToDomain(DimEmployerDbModel dbEmployer)
     {
-        return new DimEmployer(
-            dbDimEmployer.EmployerId,
-            dbDimEmployer.EmployerName,
-            dbDimEmployer.IsPublic
-        );
+        if (dbEmployer == null)
+            throw new ArgumentNullException(nameof(dbEmployer));
+        
+        return new DimEmployer
+        {
+            EmployerId = dbEmployer.EmployerId,
+            EmployerName = dbEmployer.EmployerName,
+            Inn = dbEmployer.Inn,
+            Ogrn = dbEmployer.Ogrn,
+            Kpp = dbEmployer.Kpp,
+            RegistrationDate = dbEmployer.RegistrationDate,
+            LegalAddress = dbEmployer.LegalAddress,
+            Website = dbEmployer.Website,
+            ContactEmail = dbEmployer.ContactEmail,
+            ContactPhone = dbEmployer.ContactPhone
+        };
     }
 }

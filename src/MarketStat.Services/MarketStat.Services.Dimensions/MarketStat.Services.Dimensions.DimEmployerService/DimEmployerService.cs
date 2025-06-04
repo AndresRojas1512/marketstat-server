@@ -13,24 +13,47 @@ public class DimEmployerService : IDimEmployerService
 
     public DimEmployerService(IDimEmployerRepository dimEmployerRepository, ILogger<DimEmployerService> logger)
     {
-        _dimEmployerRepository = dimEmployerRepository;
-        _logger = logger;
+        _dimEmployerRepository = dimEmployerRepository ?? throw new ArgumentNullException(nameof(dimEmployerRepository));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<DimEmployer> CreateEmployerAsync(string employerName, bool isPublic)
+    public async Task<DimEmployer> CreateEmployerAsync(
+        string employerName, 
+        string inn, 
+        string ogrn, 
+        string kpp,
+        DateOnly registrationDate, 
+        string legalAddress, 
+        string website, 
+        string contactEmail, 
+        string contactPhone)
     {
-        DimEmployerValidator.ValidateForCreate(employerName, isPublic);
-        var employer = new DimEmployer(0, employerName, isPublic);
-        
+        DimEmployerValidator.ValidateForCreate(employerName, inn, ogrn, kpp, registrationDate, legalAddress, website,
+            contactEmail, contactPhone); 
+        _logger.LogInformation("Attempting to create employer: {EmployerName}", employerName);
+
+        var employerDomain = new DimEmployer(
+            employerId: 0,
+            employerName: employerName,
+            inn: inn,
+            ogrn: ogrn,
+            kpp: kpp,
+            registrationDate: registrationDate,
+            legalAddress: legalAddress,
+            website: website,
+            contactEmail: contactEmail,
+            contactPhone: contactPhone
+        );
+            
         try
         {
-            await _dimEmployerRepository.AddEmployerAsync(employer);
-            _logger.LogInformation("Created DimEmployer {EmployerId}", employer.EmployerId);
-            return employer;
+            await _dimEmployerRepository.AddEmployerAsync(employerDomain);
+            _logger.LogInformation("Created DimEmployer {EmployerId} ('{EmployerName}')", employerDomain.EmployerId, employerDomain.EmployerName);
+            return employerDomain;
         }
         catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create DimEmployer {EmployerId}.", employer.EmployerId);
+            _logger.LogError(ex, "Conflict creating employer '{EmployerName}'. It might already exist.", employerName);
             throw;
         }
     }
@@ -55,26 +78,47 @@ public class DimEmployerService : IDimEmployerService
         return employers;
     }
 
-    public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, bool isPublic)
+    public async Task<DimEmployer> UpdateEmployerAsync(
+        int employerId, 
+        string employerName, 
+        string inn, 
+        string ogrn, 
+        string kpp,
+        DateOnly registrationDate, 
+        string legalAddress, 
+        string website, 
+        string contactEmail, 
+        string contactPhone)
     {
-        DimEmployerValidator.ValidateForUpdate(employerId, employerName, isPublic);
+        DimEmployerValidator.ValidateForUpdate(employerId, employerName, inn, ogrn, kpp, registrationDate, legalAddress,
+            website, contactEmail, contactPhone);
+        _logger.LogInformation("Attempting to update DimEmployer {EmployerId}", employerId);
+
         try
         {
             var existingEmployer = await _dimEmployerRepository.GetEmployerByIdAsync(employerId);
             existingEmployer.EmployerName = employerName;
-            existingEmployer.IsPublic = isPublic;
+            existingEmployer.Inn = inn;
+            existingEmployer.Ogrn = ogrn;
+            existingEmployer.Kpp = kpp;
+            existingEmployer.RegistrationDate = registrationDate;
+            existingEmployer.LegalAddress = legalAddress;
+            existingEmployer.Website = website;
+            existingEmployer.ContactEmail = contactEmail;
+            existingEmployer.ContactPhone = contactPhone;
+
             await _dimEmployerRepository.UpdateEmployerAsync(existingEmployer);
             _logger.LogInformation("Updated DimEmployer {EmployerId}", employerId);
             return existingEmployer;
         }
-        catch (NotFoundException ex)
+        catch (NotFoundException ex) 
         {
-            _logger.LogWarning(ex, "Cannot update: employer {EmployerId} not found", employerId);
+            _logger.LogWarning(ex, "Cannot update: employer {EmployerId} not found.", employerId);
             throw;
         }
         catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Conflict when updating employer {EmployerId}", employerId);
+            _logger.LogError(ex, "Conflict when updating employer {EmployerId}.", employerId);
             throw;
         }
     }

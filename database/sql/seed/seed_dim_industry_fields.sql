@@ -6,7 +6,7 @@ CREATE TEMP TABLE staging_industry_fields (
     industry_field TEXT
 );
 
-\copy staging_industry_fields(industry_field) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/industry_fields_dataset.csv' CSV HEADER;
+\copy staging_industry_fields(industry_field) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/dim_industry_fields_dataset.csv' CSV HEADER;
 
 SELECT count(*) AS staged_rows FROM staging_industry_fields;
 

@@ -72,7 +72,17 @@ public class DimEmployerController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        var created = await _dimEmployerService.CreateEmployerAsync(createDto.EmployerName, createDto.IsPublic);
+        var created = await _dimEmployerService.CreateEmployerAsync(
+            createDto.EmployerName,
+            createDto.Inn,
+            createDto.Ogrn,
+            createDto.Kpp,
+            createDto.RegistrationDate,
+            createDto.LegalAddress,
+            createDto.Website,
+            createDto.ContactEmail,
+            createDto.ContactPhone
+        );
         var dto = _mapper.Map<DimEmployerDto>(created);
         return CreatedAtAction(nameof(GetById), new { id = dto.EmployerId }, dto);
     }
@@ -100,7 +110,18 @@ public class DimEmployerController : ControllerBase
         {
             return BadRequest(new { Message = "Invalid EmployerId." });
         }
-        await _dimEmployerService.UpdateEmployerAsync(id, updateDto.EmployerName, updateDto.IsPublic);
+        await _dimEmployerService.UpdateEmployerAsync(
+            id,
+            updateDto.EmployerName,
+            updateDto.Inn,
+            updateDto.Ogrn,
+            updateDto.Kpp,
+            updateDto.RegistrationDate,
+            updateDto.LegalAddress,
+            updateDto.Website,
+            updateDto.ContactEmail,
+            updateDto.ContactPhone
+        );
         return NoContent();
     }
     

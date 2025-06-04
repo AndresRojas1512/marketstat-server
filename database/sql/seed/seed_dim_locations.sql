@@ -9,7 +9,7 @@ CREATE TEMP TABLE staging_locations (
     district_name TEXT
 );
 
-\copy staging_locations(location_id, city_name, oblast_name, district_name) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/locations_dataset.csv' WITH (FORMAT csv, HEADER);
+\copy staging_locations(location_id, city_name, oblast_name, district_name) FROM '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/dim_locations_dataset.csv' WITH (FORMAT csv, HEADER);
 
 BEGIN;
 
