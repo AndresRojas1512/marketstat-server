@@ -4,7 +4,7 @@ namespace MarketStat.Database.Core.Repositories.Dimensions;
 
 public interface IDimDateRepository
 {
-    Task AddDateAsync(DimDate employer);
+    Task AddDateAsync(DimDate date);
     Task<DimDate> GetDateByIdAsync(int dateId);
     Task<IEnumerable<DimDate>> GetAllDatesAsync();
     Task UpdateDateAsync(DimDate date);

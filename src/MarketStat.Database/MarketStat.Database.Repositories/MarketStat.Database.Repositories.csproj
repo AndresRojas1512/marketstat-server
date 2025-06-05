@@ -7,10 +7,12 @@
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Converter\MarketStat.Common.Converter.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Exceptions\MarketStat.Common.Exceptions.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Enums\MarketStat.Common.Enums.csproj" />
+    <ProjectReference Include="..\MarketStat.Database.MongoModels\MarketStat.Database.MongoModels.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.4" />
+    <PackageReference Include="MongoDB.Driver" Version="3.4.0" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
   </ItemGroup>

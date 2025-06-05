@@ -4,6 +4,7 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Database.Context;
+using MarketStat.Database.Core.Repositories.Account;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Database.Models;
@@ -52,6 +53,10 @@ public class MarketStatAccessObjectInMemory : IDisposable
     
     public IFactSalaryRepository FactSalaryRepository { get; }
     
+    public IUserRepository UserRepository { get;  }
+    
+    public IBenchmarkHistoryRepository BenchmarkHistoryRepository { get; }
+    
     public IDimEmployerService EmployerService { get; }
     public IDimIndustryFieldService IndustryFieldService { get; }
     public IDimJobRoleService JobRoleService { get; }
@@ -69,6 +74,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
     public IDimStandardJobRoleService DimStandardJobRoleService { get; }
     
     public IFactSalaryService FactSalaryService { get; }
+    
 
     public MarketStatAccessObjectInMemory()
     {
@@ -129,7 +135,7 @@ public class MarketStatAccessObjectInMemory : IDisposable
             NullLogger<DimStandardJobRoleService>.Instance);
         
         FactSalaryRepository = new FactSalaryRepository(Context, NullLogger<FactSalaryRepository>.Instance);
-        FactSalaryService = new FactSalaryService(FactSalaryRepository, MockMapper, NullLogger<FactSalaryService>.Instance, Context);
+        FactSalaryService = new FactSalaryService(FactSalaryRepository, MockMapper, NullLogger<FactSalaryService>.Instance);
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)

@@ -19,8 +19,7 @@ public class FactSalaryServiceIntegrationTests : IDisposable
         _factSalaryService = new FactSalaryService(
             _accessObject.FactSalaryRepository,
             _accessObject.MockMapper,
-            NullLogger<FactSalaryService>.Instance,
-            _accessObject.Context);
+            NullLogger<FactSalaryService>.Instance);
     }
     
     public void Dispose() => _accessObject.Dispose();

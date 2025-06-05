@@ -6,6 +6,11 @@ public class DimStandardJobRole
     public string StandardJobRoleTitle { get; set; }
     public int IndustryFieldId { get; set; }
 
+    public DimStandardJobRole()
+    {
+        
+    }
+
     public DimStandardJobRole(int standardJobRoleId, string standardJobRoleTitle, int industryFieldId)
     {
         StandardJobRoleId = standardJobRoleId;

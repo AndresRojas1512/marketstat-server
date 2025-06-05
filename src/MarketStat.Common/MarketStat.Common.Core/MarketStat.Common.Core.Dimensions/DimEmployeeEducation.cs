@@ -6,6 +6,10 @@ public class DimEmployeeEducation
     public int EducationId { get; set; }
     public short GraduationYear { get; set; }
 
+    public DimEmployeeEducation()
+    {
+    }
+
     public DimEmployeeEducation(int employeeId, int educationId, short graduationYear)
     {
         EmployeeId = employeeId;

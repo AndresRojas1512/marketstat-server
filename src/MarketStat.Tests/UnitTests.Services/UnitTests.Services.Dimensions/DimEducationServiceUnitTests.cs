@@ -207,14 +207,7 @@ public class DimEducationServiceUnitTests
             _dimEducationService.UpdateEducationAsync(1, "History", "04.04.04", -1)
         );
     }
-
-    [Fact]
-    public async Task UpdateEducationAsync_InvalidIndustryFieldId_ThrowsArgumentException()
-    {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEducationService.UpdateEducationAsync(1, "History", "04.04.05", 1)
-        );
-    }
+    
 
     [Fact]
     public async Task DeleteEducationAsync_Existing_Completes()

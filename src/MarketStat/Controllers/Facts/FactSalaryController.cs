@@ -307,66 +307,66 @@ public class FactSalaryController : ControllerBase
     /// Gets a public view of average salaries by education specialty and level within a given industry.
     /// </summary>
     /// <param name="queryDto">Query parameters including industry and optional thresholds.</param>
-    [HttpGet("public/salary-by-education-in-industry")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(IEnumerable<PublicSalaryByEducationInIndustryDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)] // For model validation or ArgumentException from service
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<PublicSalaryByEducationInIndustryDto>>> GetPublicSalaryByEducationInIndustry(
-        [FromQuery] PublicSalaryByEducationQueryDto queryDto)
-    {
-        _logger.LogInformation("Public request for salary by education in industry: {@QueryDto}", queryDto);
-        
-        if (!ModelState.IsValid)
-        {
-            _logger.LogWarning("GetPublicSalaryByEducationInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
-            return BadRequest(ModelState);
-        }
-
-        try
-        {
-            var result = await _factSalaryService.GetPublicSalaryByEducationInIndustryAsync(queryDto);
-            return Ok(result);
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "Invalid arguments for GetPublicSalaryByEducationInIndustryAsync: {@QueryDto}", queryDto);
-            return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
-        }
-    }
+    // [HttpGet("public/salary-by-education-in-industry")]
+    // [AllowAnonymous]
+    // [ProducesResponseType(typeof(IEnumerable<PublicSalaryByEducationInIndustryDto>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status400BadRequest)] // For model validation or ArgumentException from service
+    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    // public async Task<ActionResult<IEnumerable<PublicSalaryByEducationInIndustryDto>>> GetPublicSalaryByEducationInIndustry(
+    //     [FromQuery] PublicSalaryByEducationQueryDto queryDto)
+    // {
+    //     _logger.LogInformation("Public request for salary by education in industry: {@QueryDto}", queryDto);
+    //     
+    //     if (!ModelState.IsValid)
+    //     {
+    //         _logger.LogWarning("GetPublicSalaryByEducationInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
+    //         return BadRequest(ModelState);
+    //     }
+    //
+    //     try
+    //     {
+    //         var result = await _factSalaryService.GetPublicSalaryByEducationInIndustryAsync(queryDto);
+    //         return Ok(result);
+    //     }
+    //     catch (ArgumentException argEx)
+    //     {
+    //         _logger.LogWarning(argEx, "Invalid arguments for GetPublicSalaryByEducationInIndustryAsync: {@QueryDto}", queryDto);
+    //         return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
+    //     }
+    // }
     
     /// <summary>
     /// Gets a public view of top employers and their common roles with average salaries within a given industry.
     /// </summary>
     /// <param name="queryDto">Query parameters including industry and optional thresholds.</param>
-    [HttpGet("public/top-employer-role-salaries")] // Route for this new endpoint
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)] // For model validation or ArgumentException from service
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>>> GetPublicTopEmployerRoleSalariesInIndustry(
-        [FromQuery] PublicTopEmployerRoleSalariesQueryDto queryDto)
-    {
-        _logger.LogInformation("Public request for top employer role salaries in industry: {@QueryDto}", queryDto);
-            
-        if (!ModelState.IsValid)
-        {
-            _logger.LogWarning("GetPublicTopEmployerRoleSalariesInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
-            return BadRequest(ModelState);
-        }
-
-        try
-        {
-            var result = await _factSalaryService.GetPublicTopEmployerRoleSalariesInIndustryAsync(queryDto);
-            return Ok(result);
-        }
-        catch (ArgumentException argEx) // Catch validation errors from service
-        {
-            _logger.LogWarning(argEx, "Invalid arguments for GetPublicTopEmployerRoleSalariesInIndustryAsync: {@QueryDto}", queryDto);
-            return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
-        }
-        // Other exceptions will be handled by ExceptionHandlingMiddleware
-    }
+    // [HttpGet("public/top-employer-role-salaries")] // Route for this new endpoint
+    // [AllowAnonymous]
+    // [ProducesResponseType(typeof(IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status400BadRequest)] // For model validation or ArgumentException from service
+    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    // public async Task<ActionResult<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>>> GetPublicTopEmployerRoleSalariesInIndustry(
+    //     [FromQuery] PublicTopEmployerRoleSalariesQueryDto queryDto)
+    // {
+    //     _logger.LogInformation("Public request for top employer role salaries in industry: {@QueryDto}", queryDto);
+    //         
+    //     if (!ModelState.IsValid)
+    //     {
+    //         _logger.LogWarning("GetPublicTopEmployerRoleSalariesInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
+    //         return BadRequest(ModelState);
+    //     }
+    //
+    //     try
+    //     {
+    //         var result = await _factSalaryService.GetPublicTopEmployerRoleSalariesInIndustryAsync(queryDto);
+    //         return Ok(result);
+    //     }
+    //     catch (ArgumentException argEx) // Catch validation errors from service
+    //     {
+    //         _logger.LogWarning(argEx, "Invalid arguments for GetPublicTopEmployerRoleSalariesInIndustryAsync: {@QueryDto}", queryDto);
+    //         return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
+    //     }
+    //     // Other exceptions will be handled by ExceptionHandlingMiddleware
+    // }
     
     /// <summary>
     /// Uploads a CSV file containing salary facts for bulk processing.
@@ -374,47 +374,47 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="file">The CSV file to upload.</param>
     /// <returns>A summary of the processing result.</returns>
-    [HttpPost("etl/upload-salary-csv")]
-    [Authorize(Roles = "EtlUser")]
-    [Consumes("multipart/form-data")]
-    [ProducesResponseType(typeof(EtlProcessingResultDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<EtlProcessingResultDto>> UploadSalaryFactsCsv(IFormFile file)
-    {
-        _logger.LogInformation("User (EtlUser) attempting to upload salary facts CSV: {FileName}", file?.FileName ?? "No file provided");
-
-        if (file == null || file.Length == 0)
-        {
-            _logger.LogWarning("UploadSalaryFactsCsv: No file uploaded or file is empty.");
-            return BadRequest(new { Message = "No file uploaded or file is empty." });
-        }
-
-        try
-        {
-            var result = await _factSalaryService.ProcessSalaryFactsCsvUploadAsync(file);
-            if (result.Success)
-            {
-                _logger.LogInformation("UploadSalaryFactsCsv: File {FileName} processed successfully. Message: {Message}", file.FileName, result.Message);
-                return Ok(result);
-            }
-            else
-            {
-                _logger.LogWarning("UploadSalaryFactsCsv: File {FileName} processing failed. Message: {Message}, Errors: {Errors}", file.FileName, result.Message, string.Join("; ", result.Errors));
-                return BadRequest(result); 
-            }
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "UploadSalaryFactsCsv: Invalid argument during processing for file {FileName}.", file.FileName);
-            return BadRequest(new { Message = argEx.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "UploadSalaryFactsCsv: Unexpected error processing file {FileName}.", file.FileName);
-            throw; 
-        }
-    }
+    // [HttpPost("etl/upload-salary-csv")]
+    // [Authorize(Roles = "EtlUser")]
+    // [Consumes("multipart/form-data")]
+    // [ProducesResponseType(typeof(EtlProcessingResultDto), StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    // [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    // public async Task<ActionResult<EtlProcessingResultDto>> UploadSalaryFactsCsv(IFormFile file)
+    // {
+    //     _logger.LogInformation("User (EtlUser) attempting to upload salary facts CSV: {FileName}", file?.FileName ?? "No file provided");
+    //
+    //     if (file == null || file.Length == 0)
+    //     {
+    //         _logger.LogWarning("UploadSalaryFactsCsv: No file uploaded or file is empty.");
+    //         return BadRequest(new { Message = "No file uploaded or file is empty." });
+    //     }
+    //
+    //     try
+    //     {
+    //         var result = await _factSalaryService.ProcessSalaryFactsCsvUploadAsync(file);
+    //         if (result.Success)
+    //         {
+    //             _logger.LogInformation("UploadSalaryFactsCsv: File {FileName} processed successfully. Message: {Message}", file.FileName, result.Message);
+    //             return Ok(result);
+    //         }
+    //         else
+    //         {
+    //             _logger.LogWarning("UploadSalaryFactsCsv: File {FileName} processing failed. Message: {Message}, Errors: {Errors}", file.FileName, result.Message, string.Join("; ", result.Errors));
+    //             return BadRequest(result); 
+    //         }
+    //     }
+    //     catch (ArgumentException argEx)
+    //     {
+    //         _logger.LogWarning(argEx, "UploadSalaryFactsCsv: Invalid argument during processing for file {FileName}.", file.FileName);
+    //         return BadRequest(new { Message = argEx.Message });
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError(ex, "UploadSalaryFactsCsv: Unexpected error processing file {FileName}.", file.FileName);
+    //         throw; 
+    //     }
+    // }
 }

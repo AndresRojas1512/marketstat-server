@@ -8,6 +8,10 @@ public class DimDate
     public int Quarter { get; set; }
     public int Month { get; set; }
 
+    public DimDate()
+    {
+    }
+
     public DimDate(int dateId, DateOnly fullDate, int year, int quarter, int month)
     {
         DateId = dateId;

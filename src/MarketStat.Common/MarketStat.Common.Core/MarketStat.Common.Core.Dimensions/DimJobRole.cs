@@ -6,6 +6,10 @@ public class DimJobRole
     public string JobRoleTitle { get; set; }
     public int StandardJobRoleId { get; set; }
     public int HierarchyLevelId { get; set; }
+
+    public DimJobRole()
+    {
+    }
     
     public DimJobRole(int jobRoleId, string jobRoleTitle, int standardJobRoleId, int hierarchyLevelId)
     {

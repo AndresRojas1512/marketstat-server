@@ -11,7 +11,7 @@ public interface IFactSalaryRepository
     Task AddFactSalaryAsync(FactSalary salary);
     Task<FactSalary> GetFactSalaryByIdAsync(long salaryId);
     Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync();
-    public Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto salaryFilterDto);
+    Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto salaryFilterDto);
     Task UpdateFactSalaryAsync(FactSalary salaryFact);
     Task DeleteFactSalaryByIdAsync(long salaryFactId);
     
@@ -25,15 +25,13 @@ public interface IFactSalaryRepository
     // Public Analytical Methods
     Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto);
 
-    Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
-        PublicSalaryByEducationQueryDto queryDto);
-
-    Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-        PublicTopEmployerRoleSalariesQueryDto queryDto);
+    // Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
+    //     PublicSalaryByEducationQueryDto queryDto);
+    //
+    // Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+    //     PublicTopEmployerRoleSalariesQueryDto queryDto);
     
-    // placeholder for next public method
-
-    Task TruncateStagingTableAsync(string stagingTableName);
-    Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records);
-    Task<(int insertedCount, int skippedCount)> CallBulkLoadFromStagingProcedureAsync(string stagingTableName);
+    //Task TruncateStagingTableAsync(string stagingTableName);
+    // Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records);
+    // Task<(int insertedCount, int skippedCount)> CallBulkLoadFromStagingProcedureAsync(string stagingTableName);
 }

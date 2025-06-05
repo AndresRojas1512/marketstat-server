@@ -5,6 +5,10 @@ public class DimFederalDistrict
     public int DistrictId { get; set; }
     public string DistrictName { get; set; }
 
+    public DimFederalDistrict()
+    {
+    }
+
     public DimFederalDistrict(int districtId, string districtName)
     {
         DistrictId = districtId;

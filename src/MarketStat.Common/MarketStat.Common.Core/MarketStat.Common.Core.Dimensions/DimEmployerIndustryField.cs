@@ -5,6 +5,10 @@ public class DimEmployerIndustryField
     public int EmployerId { get; set; }
     public int IndustryFieldId { get; set; }
 
+    public DimEmployerIndustryField()
+    {
+    }
+
     public DimEmployerIndustryField(int employerId, int industryFieldId)
     {
         EmployerId = employerId;

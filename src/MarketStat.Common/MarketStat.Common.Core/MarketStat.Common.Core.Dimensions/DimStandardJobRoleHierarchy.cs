@@ -5,6 +5,10 @@ public class DimStandardJobRoleHierarchy
     public int StandardJobRoleId { get; set; }
     public int HierarchyLevelId { get; set; }
 
+    public DimStandardJobRoleHierarchy()
+    {
+    }
+
     public DimStandardJobRoleHierarchy(int standardJobRoleId, int hierarchyLevelId)
     {
         StandardJobRoleId = standardJobRoleId;

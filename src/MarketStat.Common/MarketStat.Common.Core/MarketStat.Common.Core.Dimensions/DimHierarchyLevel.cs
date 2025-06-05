@@ -5,6 +5,10 @@ public class DimHierarchyLevel
     public int HierarchyLevelId { get; set; }
     public string HierarchyLevelName { get; set; }
 
+    public DimHierarchyLevel()
+    {
+    }
+
     public DimHierarchyLevel(int hierarchyLevelId, string hierarchyLevelName)
     {
         HierarchyLevelId = hierarchyLevelId;

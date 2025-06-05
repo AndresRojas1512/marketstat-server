@@ -29,20 +29,19 @@ public class FactSalaryService : IFactSalaryService
     private readonly IMapper _mapper;
     private readonly ILogger<FactSalaryService> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
-    private readonly MarketStatDbContext _dbContext;
+    // private readonly MarketStatDbContext _dbContext;
 
     private const string PermanentStagingTableName = "marketstat.api_fact_uploads_staging";
 
     public FactSalaryService(
         IFactSalaryRepository factSalaryRepository,
         IMapper mapper,
-        ILogger<FactSalaryService> logger,
-        MarketStatDbContext dbContext)
+        ILogger<FactSalaryService> logger)
     {
         _factSalaryRepository = factSalaryRepository ?? throw new ArgumentNullException(nameof(factSalaryRepository));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        // _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _jsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -264,183 +263,183 @@ public class FactSalaryService : IFactSalaryService
         }
     }
     
-    public async Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
-            PublicSalaryByEducationQueryDto queryDto)
-    {
-        _logger.LogInformation(
-            "Service: Getting public salary by education in industry with DTO: {@QueryDto}", queryDto);
-        
-        if (queryDto.IndustryFieldId <= 0)
-        {
-            _logger.LogWarning("GetPublicSalaryByEducationInIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
-            throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
-        }
-        if (queryDto.TopNSpecialties <= 0)
-        {
-             throw new ArgumentException("TopNSpecialties must be a positive integer.", nameof(queryDto.TopNSpecialties));
-        }
-        if (queryDto.MinEmployeesPerSpecialty < 0)
-        {
-             throw new ArgumentException("MinEmployeesPerSpecialty cannot be negative.", nameof(queryDto.MinEmployeesPerSpecialty));
-        }
-        if (queryDto.MinEmployeesPerLevelInSpecialty < 0)
-        {
-             throw new ArgumentException("MinEmployeesPerLevelInSpecialty cannot be negative.", nameof(queryDto.MinEmployeesPerLevelInSpecialty));
-        }
-
-        try
-        {
-            var result = await _factSalaryRepository.GetPublicSalaryByEducationInIndustryAsync(queryDto);
-            _logger.LogInformation("Service: Successfully retrieved {Count} records for public salary by education in industry.", result.Count());
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Service: Error retrieving public salary by education in industry for DTO: {@QueryDto}", queryDto);
-            throw;
-        }
-    }
+    // public async Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
+    //         PublicSalaryByEducationQueryDto queryDto)
+    // {
+    //     _logger.LogInformation(
+    //         "Service: Getting public salary by education in industry with DTO: {@QueryDto}", queryDto);
+    //     
+    //     if (queryDto.IndustryFieldId <= 0)
+    //     {
+    //         _logger.LogWarning("GetPublicSalaryByEducationInIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
+    //         throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
+    //     }
+    //     if (queryDto.TopNSpecialties <= 0)
+    //     {
+    //          throw new ArgumentException("TopNSpecialties must be a positive integer.", nameof(queryDto.TopNSpecialties));
+    //     }
+    //     if (queryDto.MinEmployeesPerSpecialty < 0)
+    //     {
+    //          throw new ArgumentException("MinEmployeesPerSpecialty cannot be negative.", nameof(queryDto.MinEmployeesPerSpecialty));
+    //     }
+    //     if (queryDto.MinEmployeesPerLevelInSpecialty < 0)
+    //     {
+    //          throw new ArgumentException("MinEmployeesPerLevelInSpecialty cannot be negative.", nameof(queryDto.MinEmployeesPerLevelInSpecialty));
+    //     }
+    //
+    //     try
+    //     {
+    //         var result = await _factSalaryRepository.GetPublicSalaryByEducationInIndustryAsync(queryDto);
+    //         _logger.LogInformation("Service: Successfully retrieved {Count} records for public salary by education in industry.", result.Count());
+    //         return result;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError(ex, "Service: Error retrieving public salary by education in industry for DTO: {@QueryDto}", queryDto);
+    //         throw;
+    //     }
+    // }
     
-    public async Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-            PublicTopEmployerRoleSalariesQueryDto queryDto)
-    {
-        _logger.LogInformation(
-            "Service: Getting public top employer role salaries in industry with DTO: {@QueryDto}", queryDto);
-
-        if (queryDto.IndustryFieldId <= 0)
-        {
-            _logger.LogWarning("GetPublicTopEmployerRoleSalariesInIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
-            throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
-        }
-        if (queryDto.TopNEmployers <= 0)
-        {
-             throw new ArgumentException("TopNEmployers must be a positive integer.", nameof(queryDto.TopNEmployers));
-        }
-        if (queryDto.TopMRolesPerEmployer <= 0)
-        {
-             throw new ArgumentException("TopMRolesPerEmployer must be a positive integer.", nameof(queryDto.TopMRolesPerEmployer));
-        }
-        if (queryDto.MinSalaryRecordsForRoleAtEmployer < 0)
-        {
-             throw new ArgumentException("MinSalaryRecordsForRoleAtEmployer cannot be negative.", nameof(queryDto.MinSalaryRecordsForRoleAtEmployer));
-        }
-
-        try
-        {
-            var result = await _factSalaryRepository.GetPublicTopEmployerRoleSalariesInIndustryAsync(queryDto);
-            _logger.LogInformation("Service: Successfully retrieved {Count} records for public top employer role salaries.", result.Count());
-            return result;
-        }
-        catch (Exception ex) // Catch exceptions from repository (which should be ApplicationException wrapping DB errors)
-        {
-            _logger.LogError(ex, "Service: Error retrieving public top employer role salaries for DTO: {@QueryDto}", queryDto);
-            throw;
-        }
-    }
+    // public async Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+    //         PublicTopEmployerRoleSalariesQueryDto queryDto)
+    // {
+    //     _logger.LogInformation(
+    //         "Service: Getting public top employer role salaries in industry with DTO: {@QueryDto}", queryDto);
+    //
+    //     if (queryDto.IndustryFieldId <= 0)
+    //     {
+    //         _logger.LogWarning("GetPublicTopEmployerRoleSalariesInIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
+    //         throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
+    //     }
+    //     if (queryDto.TopNEmployers <= 0)
+    //     {
+    //          throw new ArgumentException("TopNEmployers must be a positive integer.", nameof(queryDto.TopNEmployers));
+    //     }
+    //     if (queryDto.TopMRolesPerEmployer <= 0)
+    //     {
+    //          throw new ArgumentException("TopMRolesPerEmployer must be a positive integer.", nameof(queryDto.TopMRolesPerEmployer));
+    //     }
+    //     if (queryDto.MinSalaryRecordsForRoleAtEmployer < 0)
+    //     {
+    //          throw new ArgumentException("MinSalaryRecordsForRoleAtEmployer cannot be negative.", nameof(queryDto.MinSalaryRecordsForRoleAtEmployer));
+    //     }
+    //
+    //     try
+    //     {
+    //         var result = await _factSalaryRepository.GetPublicTopEmployerRoleSalariesInIndustryAsync(queryDto);
+    //         _logger.LogInformation("Service: Successfully retrieved {Count} records for public top employer role salaries.", result.Count());
+    //         return result;
+    //     }
+    //     catch (Exception ex) // Catch exceptions from repository (which should be ApplicationException wrapping DB errors)
+    //     {
+    //         _logger.LogError(ex, "Service: Error retrieving public top employer role salaries for DTO: {@QueryDto}", queryDto);
+    //         throw;
+    //     }
+    // }
     
     // ETL tool
 
-    public async Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile)
-    {
-        _logger.LogInformation("Service: Starting CSV upload processing for file: {FileName}, Size: {FileSize} bytes", csvFile.FileName, csvFile.Length);
-
-        // 1. File Validation
-        if (csvFile == null || csvFile.Length == 0)
-        {
-            _logger.LogWarning("Service: No file uploaded or file is empty.");
-            return new EtlProcessingResultDto(false, "No file uploaded or file is empty.");
-        }
-        if (csvFile.Length > 10 * 1024 * 1024)
-        {
-            _logger.LogWarning("Service: File {FileName} exceeds size limit of 10MB.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, "File exceeds maximum allowed size (10MB).");
-        }
-        if (Path.GetExtension(csvFile.FileName).ToLowerInvariant() != ".csv")
-        {
-            _logger.LogWarning("Service: Invalid file type for {FileName}. Only CSV files are allowed.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, "Invalid file type. Only CSV files are allowed.");
-        }
-
-        var recordsToStage = new List<StagedSalaryRecordDto>();
-        int csvRowsRead = 0;
-
-        // 2. Parse CSV
-        try
-        {
-            _logger.LogInformation("Service: Parsing CSV file {FileName}", csvFile.FileName);
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                HasHeaderRecord = true,
-                MissingFieldFound = null, 
-                HeaderValidated = null,   
-                TrimOptions = TrimOptions.Trim,
-                BadDataFound = context => _logger.LogWarning("Bad data found in CSV at row number {RowNumber} (approx): {RawRecord}. Field: {Field}", 
-                                                              context.Context.Parser.RawRow, context.RawRecord, context.Field)
-            };
-
-            using (var reader = new StreamReader(csvFile.OpenReadStream(), Encoding.UTF8))
-            using (var csv = new CsvReader(reader, config))
-            {
-                csv.Context.RegisterClassMap<StagedSalaryRecordDtoMap>();
-                await foreach (var record in csv.GetRecordsAsync<StagedSalaryRecordDto>())
-                {
-                    recordsToStage.Add(record);
-                    csvRowsRead++;
-                }
-            }
-            _logger.LogInformation("Service: Parsed {CsvRowsRead} records from CSV file {FileName}.", csvRowsRead, csvFile.FileName);
-
-            if (csvRowsRead == 0)
-            {
-                return new EtlProcessingResultDto(false, "CSV file is empty or contains no valid records.") { CsvRowsRead = 0 };
-            }
-        }
-        catch (HeaderValidationException hvex)
-        {
-             _logger.LogError(hvex, "Service: CSV header validation error for file {FileName}.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, $"CSV header error: {hvex.Message}") { CsvRowsRead = csvRowsRead };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Service: Error parsing CSV file {FileName}.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, $"Error parsing CSV: {ex.Message}") { CsvRowsRead = csvRowsRead };
-        }
-
-        int insertedCount = 0;
-        int skippedCount = 0;
-
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
-        try
-        {
-            _logger.LogInformation("Service: Starting database transaction for staging and bulk load.");
-            await _factSalaryRepository.TruncateStagingTableAsync(PermanentStagingTableName);
-            await _factSalaryRepository.BatchInsertToStagingTableAsync(PermanentStagingTableName, recordsToStage);
-            var procedureResult = await _factSalaryRepository.CallBulkLoadFromStagingProcedureAsync(PermanentStagingTableName);
-            insertedCount = procedureResult.insertedCount;
-            skippedCount = procedureResult.skippedCount;
-            
-            await transaction.CommitAsync();
-            _logger.LogInformation("Service: CSV processing and bulk load completed successfully for {FileName}. {CsvRowsRead} records read, {StagedCount} records staged.", 
-                csvFile.FileName, csvRowsRead, recordsToStage.Count);
-            return new EtlProcessingResultDto(true, "Salary facts CSV processed successfully.") 
-            { 
-                CsvRowsRead = csvRowsRead, 
-                RowsStaged = recordsToStage.Count,
-                FactsInserted = insertedCount,
-                RowsSkippedOrFailedInProcedure = skippedCount
-            };
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "Service: Error during database staging or bulk load procedure for {FileName}. Transaction rolled back.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, $"Database operation failed: {ex.Message}") 
-            { 
-                CsvRowsRead = csvRowsRead, 
-                RowsStaged = (ex is ApplicationException && ex.InnerException is NpgsqlException) ? 0 : recordsToStage.Count,
-                FactsInserted = -1,
-                RowsSkippedOrFailedInProcedure = -1
-            };
-        }
-    }
+    // public async Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile)
+    // {
+    //     _logger.LogInformation("Service: Starting CSV upload processing for file: {FileName}, Size: {FileSize} bytes", csvFile.FileName, csvFile.Length);
+    //
+    //     // 1. File Validation
+    //     if (csvFile == null || csvFile.Length == 0)
+    //     {
+    //         _logger.LogWarning("Service: No file uploaded or file is empty.");
+    //         return new EtlProcessingResultDto(false, "No file uploaded or file is empty.");
+    //     }
+    //     if (csvFile.Length > 10 * 1024 * 1024)
+    //     {
+    //         _logger.LogWarning("Service: File {FileName} exceeds size limit of 10MB.", csvFile.FileName);
+    //         return new EtlProcessingResultDto(false, "File exceeds maximum allowed size (10MB).");
+    //     }
+    //     if (Path.GetExtension(csvFile.FileName).ToLowerInvariant() != ".csv")
+    //     {
+    //         _logger.LogWarning("Service: Invalid file type for {FileName}. Only CSV files are allowed.", csvFile.FileName);
+    //         return new EtlProcessingResultDto(false, "Invalid file type. Only CSV files are allowed.");
+    //     }
+    //
+    //     var recordsToStage = new List<StagedSalaryRecordDto>();
+    //     int csvRowsRead = 0;
+    //
+    //     // 2. Parse CSV
+    //     try
+    //     {
+    //         _logger.LogInformation("Service: Parsing CSV file {FileName}", csvFile.FileName);
+    //         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+    //         {
+    //             HasHeaderRecord = true,
+    //             MissingFieldFound = null, 
+    //             HeaderValidated = null,   
+    //             TrimOptions = TrimOptions.Trim,
+    //             BadDataFound = context => _logger.LogWarning("Bad data found in CSV at row number {RowNumber} (approx): {RawRecord}. Field: {Field}", 
+    //                                                           context.Context.Parser.RawRow, context.RawRecord, context.Field)
+    //         };
+    //
+    //         using (var reader = new StreamReader(csvFile.OpenReadStream(), Encoding.UTF8))
+    //         using (var csv = new CsvReader(reader, config))
+    //         {
+    //             csv.Context.RegisterClassMap<StagedSalaryRecordDtoMap>();
+    //             await foreach (var record in csv.GetRecordsAsync<StagedSalaryRecordDto>())
+    //             {
+    //                 recordsToStage.Add(record);
+    //                 csvRowsRead++;
+    //             }
+    //         }
+    //         _logger.LogInformation("Service: Parsed {CsvRowsRead} records from CSV file {FileName}.", csvRowsRead, csvFile.FileName);
+    //
+    //         if (csvRowsRead == 0)
+    //         {
+    //             return new EtlProcessingResultDto(false, "CSV file is empty or contains no valid records.") { CsvRowsRead = 0 };
+    //         }
+    //     }
+    //     catch (HeaderValidationException hvex)
+    //     {
+    //          _logger.LogError(hvex, "Service: CSV header validation error for file {FileName}.", csvFile.FileName);
+    //         return new EtlProcessingResultDto(false, $"CSV header error: {hvex.Message}") { CsvRowsRead = csvRowsRead };
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError(ex, "Service: Error parsing CSV file {FileName}.", csvFile.FileName);
+    //         return new EtlProcessingResultDto(false, $"Error parsing CSV: {ex.Message}") { CsvRowsRead = csvRowsRead };
+    //     }
+    //
+    //     int insertedCount = 0;
+    //     int skippedCount = 0;
+    //
+    //     await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+    //     try
+    //     {
+    //         _logger.LogInformation("Service: Starting database transaction for staging and bulk load.");
+    //         await _factSalaryRepository.TruncateStagingTableAsync(PermanentStagingTableName);
+    //         await _factSalaryRepository.BatchInsertToStagingTableAsync(PermanentStagingTableName, recordsToStage);
+    //         var procedureResult = await _factSalaryRepository.CallBulkLoadFromStagingProcedureAsync(PermanentStagingTableName);
+    //         insertedCount = procedureResult.insertedCount;
+    //         skippedCount = procedureResult.skippedCount;
+    //         
+    //         await transaction.CommitAsync();
+    //         _logger.LogInformation("Service: CSV processing and bulk load completed successfully for {FileName}. {CsvRowsRead} records read, {StagedCount} records staged.", 
+    //             csvFile.FileName, csvRowsRead, recordsToStage.Count);
+    //         return new EtlProcessingResultDto(true, "Salary facts CSV processed successfully.") 
+    //         { 
+    //             CsvRowsRead = csvRowsRead, 
+    //             RowsStaged = recordsToStage.Count,
+    //             FactsInserted = insertedCount,
+    //             RowsSkippedOrFailedInProcedure = skippedCount
+    //         };
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await transaction.RollbackAsync();
+    //         _logger.LogError(ex, "Service: Error during database staging or bulk load procedure for {FileName}. Transaction rolled back.", csvFile.FileName);
+    //         return new EtlProcessingResultDto(false, $"Database operation failed: {ex.Message}") 
+    //         { 
+    //             CsvRowsRead = csvRowsRead, 
+    //             RowsStaged = (ex is ApplicationException && ex.InnerException is NpgsqlException) ? 0 : recordsToStage.Count,
+    //             FactsInserted = -1,
+    //             RowsSkippedOrFailedInProcedure = -1
+    //         };
+    //     }
+    // }
 }

@@ -7,6 +7,10 @@ public class DimEmployee
     
     public DateOnly CareerStartDate { get; set; }
 
+    public DimEmployee()
+    {
+    }
+
     public DimEmployee(int employeeId, DateOnly birthDate, DateOnly careerStartDate)
     {
         EmployeeId = employeeId;

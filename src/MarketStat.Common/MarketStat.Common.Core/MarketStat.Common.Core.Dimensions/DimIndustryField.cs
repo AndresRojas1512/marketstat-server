@@ -5,6 +5,10 @@ public class DimIndustryField
     public int IndustryFieldId { get; set; }
     public string IndustryFieldName { get; set; }
 
+    public DimIndustryField()
+    {
+    }
+
     public DimIndustryField(int industryFieldId, string industryFieldName)
     {
         IndustryFieldId = industryFieldId;

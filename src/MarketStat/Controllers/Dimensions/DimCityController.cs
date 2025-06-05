@@ -79,7 +79,8 @@ public class DimCityController : ControllerBase
     /// </summary>
     /// <param name="createDto"></param>
     [HttpPost]
-    [Authorize(Roles = "EtlUser")]
+    // [Authorize(Roles = "EtlUser")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(DimCityDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -103,7 +104,8 @@ public class DimCityController : ControllerBase
     /// <param name="id"></param>
     /// <param name="updateDto"></param>
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
+    // [Authorize(Roles = "EtlUser")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -130,7 +132,8 @@ public class DimCityController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
+    // [Authorize(Roles = "EtlUser")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

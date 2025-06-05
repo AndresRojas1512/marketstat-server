@@ -6,6 +6,10 @@ public class DimOblast
     public string OblastName { get; set; }
     public int DistrictId { get; set; }
 
+    public DimOblast()
+    {
+    }
+
     public DimOblast(int oblastId, string oblastName, int districtId)
     {
         OblastId = oblastId;

@@ -298,243 +298,243 @@ public class FactSalaryRepository : IFactSalaryRepository
         }
     }
     
-    public async Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(PublicSalaryByEducationQueryDto queryDto)
-    {
-        _logger.LogInformation(
-            "Repository: Calling fn_public_salary_by_education_in_industry with DTO: {@QueryDto}", queryDto);
+    // public async Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(PublicSalaryByEducationQueryDto queryDto)
+    // {
+    //     _logger.LogInformation(
+    //         "Repository: Calling fn_public_salary_by_education_in_industry with DTO: {@QueryDto}", queryDto);
+    //
+    //     try
+    //     {
+    //         var results = await _dbContext.Set<PublicSalaryByEducationInIndustryDto>()
+    //             .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_salary_by_education_in_industry({queryDto.IndustryFieldId}, {queryDto.TopNSpecialties}, {queryDto.MinEmployeesPerSpecialty}, {queryDto.MinEmployeesPerLevelInSpecialty})")
+    //             .AsNoTracking()
+    //             .ToListAsync();
+    //         
+    //         _logger.LogInformation("Repository: fn_public_salary_by_education_in_industry returned {Count} records.", results.Count);
+    //         return results;
+    //     }
+    //     catch (NpgsqlException npgEx)
+    //     {
+    //         if (npgEx is PostgresException pgEx_specific)
+    //         {
+    //             _logger.LogError(pgEx_specific, "Repository: PostgresException executing fn_public_salary_by_education_in_industry with DTO {@QueryDto}. SQLSTATE: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
+    //                 queryDto, pgEx_specific.SqlState, pgEx_specific.MessageText, pgEx_specific.Detail);
+    //         }
+    //         else
+    //         {
+    //             _logger.LogError(npgEx, "Repository: NpgsqlException executing fn_public_salary_by_education_in_industry with DTO {@QueryDto}.", queryDto);
+    //         }
+    //         throw new ApplicationException("A database error occurred while fetching public salary by education data.", npgEx);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError(ex, "Repository: Generic error executing fn_public_salary_by_education_in_industry with DTO {@QueryDto}.", queryDto);
+    //         throw new ApplicationException("An unexpected error occurred while fetching public salary by education data.", ex);
+    //     }
+    // }
 
-        try
-        {
-            var results = await _dbContext.Set<PublicSalaryByEducationInIndustryDto>()
-                .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_salary_by_education_in_industry({queryDto.IndustryFieldId}, {queryDto.TopNSpecialties}, {queryDto.MinEmployeesPerSpecialty}, {queryDto.MinEmployeesPerLevelInSpecialty})")
-                .AsNoTracking()
-                .ToListAsync();
-            
-            _logger.LogInformation("Repository: fn_public_salary_by_education_in_industry returned {Count} records.", results.Count);
-            return results;
-        }
-        catch (NpgsqlException npgEx)
-        {
-            if (npgEx is PostgresException pgEx_specific)
-            {
-                _logger.LogError(pgEx_specific, "Repository: PostgresException executing fn_public_salary_by_education_in_industry with DTO {@QueryDto}. SQLSTATE: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
-                    queryDto, pgEx_specific.SqlState, pgEx_specific.MessageText, pgEx_specific.Detail);
-            }
-            else
-            {
-                _logger.LogError(npgEx, "Repository: NpgsqlException executing fn_public_salary_by_education_in_industry with DTO {@QueryDto}.", queryDto);
-            }
-            throw new ApplicationException("A database error occurred while fetching public salary by education data.", npgEx);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Repository: Generic error executing fn_public_salary_by_education_in_industry with DTO {@QueryDto}.", queryDto);
-            throw new ApplicationException("An unexpected error occurred while fetching public salary by education data.", ex);
-        }
-    }
-
-    public async Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-            PublicTopEmployerRoleSalariesQueryDto queryDto)
-    {
-        _logger.LogInformation(
-            "Repository: Calling fn_public_top_employer_role_salaries_in_industry with DTO: {@QueryDto}", queryDto);
-
-        try
-        {
-            var results = await _dbContext.Set<PublicTopEmployerRoleSalariesInIndustryDto>()
-                .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_top_employer_role_salaries_in_industry({queryDto.IndustryFieldId}, {queryDto.TopNEmployers}, {queryDto.TopMRolesPerEmployer}, {queryDto.MinSalaryRecordsForRoleAtEmployer})")
-                .AsNoTracking()
-                .ToListAsync();
-            
-            _logger.LogInformation("Repository: fn_public_top_employer_role_salaries_in_industry returned {Count} records.", results.Count);
-            return results;
-        }
-        catch (NpgsqlException npgEx)
-        {
-            if (npgEx is PostgresException pgEx_specific)
-            {
-                _logger.LogError(pgEx_specific, "Repository: PostgresException executing fn_public_top_employer_role_salaries_in_industry with DTO {@QueryDto}. SQLSTATE: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
-                    queryDto, pgEx_specific.SqlState, pgEx_specific.MessageText, pgEx_specific.Detail);
-            }
-            else
-            {
-                _logger.LogError(npgEx, "Repository: NpgsqlException executing fn_public_top_employer_role_salaries_in_industry with DTO {@QueryDto}.", queryDto);
-            }
-            throw new ApplicationException("A database error occurred while fetching top employer role salaries.", npgEx);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Repository: Generic error executing fn_public_top_employer_role_salaries_in_industry with DTO {@QueryDto}.", queryDto);
-            throw new ApplicationException("An unexpected error occurred while fetching top employer role salaries.", ex);
-        }
-    }
+    // public async Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+    //         PublicTopEmployerRoleSalariesQueryDto queryDto)
+    // {
+    //     _logger.LogInformation(
+    //         "Repository: Calling fn_public_top_employer_role_salaries_in_industry with DTO: {@QueryDto}", queryDto);
+    //
+    //     try
+    //     {
+    //         var results = await _dbContext.Set<PublicTopEmployerRoleSalariesInIndustryDto>()
+    //             .FromSqlInterpolated($"SELECT * FROM marketstat.fn_public_top_employer_role_salaries_in_industry({queryDto.IndustryFieldId}, {queryDto.TopNEmployers}, {queryDto.TopMRolesPerEmployer}, {queryDto.MinSalaryRecordsForRoleAtEmployer})")
+    //             .AsNoTracking()
+    //             .ToListAsync();
+    //         
+    //         _logger.LogInformation("Repository: fn_public_top_employer_role_salaries_in_industry returned {Count} records.", results.Count);
+    //         return results;
+    //     }
+    //     catch (NpgsqlException npgEx)
+    //     {
+    //         if (npgEx is PostgresException pgEx_specific)
+    //         {
+    //             _logger.LogError(pgEx_specific, "Repository: PostgresException executing fn_public_top_employer_role_salaries_in_industry with DTO {@QueryDto}. SQLSTATE: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
+    //                 queryDto, pgEx_specific.SqlState, pgEx_specific.MessageText, pgEx_specific.Detail);
+    //         }
+    //         else
+    //         {
+    //             _logger.LogError(npgEx, "Repository: NpgsqlException executing fn_public_top_employer_role_salaries_in_industry with DTO {@QueryDto}.", queryDto);
+    //         }
+    //         throw new ApplicationException("A database error occurred while fetching top employer role salaries.", npgEx);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError(ex, "Repository: Generic error executing fn_public_top_employer_role_salaries_in_industry with DTO {@QueryDto}.", queryDto);
+    //         throw new ApplicationException("An unexpected error occurred while fetching top employer role salaries.", ex);
+    //     }
+    // }
     
     
     // ETL methods
 
-    public async Task TruncateStagingTableAsync(string stagingTableName)
-    {
-        _logger.LogInformation("Repository: Truncating staging table: {StagingTable}", stagingTableName);
-        await _dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {stagingTableName};");
-        _logger.LogInformation("Repository: Staging table {StagingTable} truncated", stagingTableName);
-    }
+    // public async Task TruncateStagingTableAsync(string stagingTableName)
+    // {
+    //     _logger.LogInformation("Repository: Truncating staging table: {StagingTable}", stagingTableName);
+    //     await _dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {stagingTableName};");
+    //     _logger.LogInformation("Repository: Staging table {StagingTable} truncated", stagingTableName);
+    // }
+    
+    // public async Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records)
+    // {
+    //     if (records == null || !records.Any())
+    //     {
+    //         _logger.LogInformation("Repository: No records provided for batch insert into {StagingTable}.", stagingTableName);
+    //         return;
+    //     }
+    //
+    //     _logger.LogInformation("Repository: Starting batch insert of {RecordCount} records into {StagingTable}.", records.Count(), stagingTableName);
+    //
+    //     var connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection(); 
+    //     
+    //     if (connection.State != ConnectionState.Open)
+    //     {
+    //         _logger.LogWarning("[REPO BatchInsert] Connection was not open despite expecting an active transaction. Opening now.");
+    //         await connection.OpenAsync(); 
+    //     }
+    //
+    //     var copyCommand = $"COPY {stagingTableName} (recorded_date_text, city_name, oblast_name, employer_name, standard_job_role_title, job_role_title, hierarchy_level_name, employee_birth_date_text, employee_career_start_date_text, salary_amount, bonus_amount) FROM STDIN (FORMAT BINARY)";
+    //
+    //     NpgsqlBinaryImporter? writer = null;
+    //     try
+    //     {
+    //         writer = await connection.BeginBinaryImportAsync(copyCommand);
+    //         foreach (var record in records)
+    //         {
+    //             await writer.StartRowAsync();
+    //             await writer.WriteAsync(record.RecordedDateText, NpgsqlDbType.Text);
+    //             await writer.WriteAsync(record.CityName, NpgsqlDbType.Text);
+    //             await writer.WriteAsync(record.OblastName, NpgsqlDbType.Text);
+    //             await writer.WriteAsync(record.EmployerName, NpgsqlDbType.Text);
+    //             await writer.WriteAsync(record.StandardJobRoleTitle, NpgsqlDbType.Text);
+    //             await writer.WriteAsync(record.JobRoleTitle, NpgsqlDbType.Text);
+    //             await writer.WriteAsync(record.HierarchyLevelName, NpgsqlDbType.Text);
+    //             await writer.WriteAsync(record.EmployeeBirthDateText, NpgsqlDbType.Text);
+    //             await writer.WriteAsync(record.EmployeeCareerStartDateText, NpgsqlDbType.Text);
+    //             
+    //             if (record.SalaryAmount.HasValue) await writer.WriteAsync(record.SalaryAmount.Value, NpgsqlDbType.Numeric);
+    //             else await writer.WriteNullAsync();
+    //             
+    //             if (record.BonusAmount.HasValue) await writer.WriteAsync(record.BonusAmount.Value, NpgsqlDbType.Numeric);
+    //             else await writer.WriteNullAsync();
+    //         }
+    //         await writer.CompleteAsync();
+    //         _logger.LogInformation("Repository: Batch insert of {RecordCount} records into {StagingTable} completed.", records.Count(), stagingTableName);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError(ex, "Repository: Error during binary import to {StagingTable}.", stagingTableName);
+    //         if (writer != null)
+    //         {
+    //             try { await writer.DisposeAsync(); }
+    //             catch (Exception disposeEx) { _logger.LogError(disposeEx, "Repository: Error disposing NpgsqlBinaryImporter after an error."); }
+    //         }
+    //         throw;
+    //     }
+    //     finally
+    //     {
+    //         if (writer != null)
+    //         {
+    //             await writer.DisposeAsync();
+    //         }
+    //     }
+    // }
 
-    public async Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records)
-    {
-        if (records == null || !records.Any())
-        {
-            _logger.LogInformation("Repository: No records provided for batch insert into {StagingTable}.", stagingTableName);
-            return;
-        }
-
-        _logger.LogInformation("Repository: Starting batch insert of {RecordCount} records into {StagingTable}.", records.Count(), stagingTableName);
-
-        var connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection(); 
-        
-        if (connection.State != ConnectionState.Open)
-        {
-            _logger.LogWarning("[REPO BatchInsert] Connection was not open despite expecting an active transaction. Opening now.");
-            await connection.OpenAsync(); 
-        }
-
-        var copyCommand = $"COPY {stagingTableName} (recorded_date_text, city_name, oblast_name, employer_name, standard_job_role_title, job_role_title, hierarchy_level_name, employee_birth_date_text, employee_career_start_date_text, salary_amount, bonus_amount) FROM STDIN (FORMAT BINARY)";
-
-        NpgsqlBinaryImporter? writer = null;
-        try
-        {
-            writer = await connection.BeginBinaryImportAsync(copyCommand);
-            foreach (var record in records)
-            {
-                await writer.StartRowAsync();
-                await writer.WriteAsync(record.RecordedDateText, NpgsqlDbType.Text);
-                await writer.WriteAsync(record.CityName, NpgsqlDbType.Text);
-                await writer.WriteAsync(record.OblastName, NpgsqlDbType.Text);
-                await writer.WriteAsync(record.EmployerName, NpgsqlDbType.Text);
-                await writer.WriteAsync(record.StandardJobRoleTitle, NpgsqlDbType.Text);
-                await writer.WriteAsync(record.JobRoleTitle, NpgsqlDbType.Text);
-                await writer.WriteAsync(record.HierarchyLevelName, NpgsqlDbType.Text);
-                await writer.WriteAsync(record.EmployeeBirthDateText, NpgsqlDbType.Text);
-                await writer.WriteAsync(record.EmployeeCareerStartDateText, NpgsqlDbType.Text);
-                
-                if (record.SalaryAmount.HasValue) await writer.WriteAsync(record.SalaryAmount.Value, NpgsqlDbType.Numeric);
-                else await writer.WriteNullAsync();
-                
-                if (record.BonusAmount.HasValue) await writer.WriteAsync(record.BonusAmount.Value, NpgsqlDbType.Numeric);
-                else await writer.WriteNullAsync();
-            }
-            await writer.CompleteAsync();
-            _logger.LogInformation("Repository: Batch insert of {RecordCount} records into {StagingTable} completed.", records.Count(), stagingTableName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Repository: Error during binary import to {StagingTable}.", stagingTableName);
-            if (writer != null)
-            {
-                try { await writer.DisposeAsync(); }
-                catch (Exception disposeEx) { _logger.LogError(disposeEx, "Repository: Error disposing NpgsqlBinaryImporter after an error."); }
-            }
-            throw;
-        }
-        finally
-        {
-            if (writer != null)
-            {
-                await writer.DisposeAsync();
-            }
-        }
-    }
-
-    public async Task<(int insertedCount, int skippedCount)> CallBulkLoadFromStagingProcedureAsync(string stagingTableNameFromService)
-    {
-        string procedureParameterTableName = stagingTableNameFromService;
-        if (procedureParameterTableName.StartsWith("marketstat.", StringComparison.OrdinalIgnoreCase))
-        {
-            procedureParameterTableName = procedureParameterTableName.Substring("marketstat.".Length);
-            _logger.LogInformation("[REPO] Using non-schema-qualified table name for SP parameter: {TableName}", procedureParameterTableName);
-        }
-        else
-        {
-            _logger.LogInformation("[REPO] Using provided table name for SP parameter as is: {TableName}", procedureParameterTableName);
-        }
-
-        _logger.LogInformation("[REPO] Calling SP: {SPName} with parameter table name: {ParameterTableName}", 
-            "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName);
-        
-        int insertedCount = 0;
-        int skippedCount = 0;
-
-        NpgsqlConnection? connection = null;
-        bool wasConnectionOpenedByThisMethod = false;
-        
-        try
-        {
-            connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection();
-            if (connection.State != ConnectionState.Open)
-            {
-                await connection.OpenAsync();
-                wasConnectionOpenedByThisMethod = true;
-                _logger.LogDebug("[REPO] Connection was closed, opened it for SP call.");
-            } else {
-                _logger.LogDebug("[REPO] Connection was already open for SP call.");
-            }
-            
-            IDbContextTransaction? efCoreTransaction = _dbContext.Database.CurrentTransaction;
-            NpgsqlTransaction? npgsqlTransaction = (NpgsqlTransaction?)efCoreTransaction?.GetDbTransaction();
-
-            _logger.LogDebug("[REPO] Using EF Core Transaction ID: {TransactionId}, NpgsqlTransaction HashCode: {NpgsqlTransactionHashCode}", 
-                efCoreTransaction?.TransactionId.ToString() ?? "None", 
-                npgsqlTransaction?.GetHashCode().ToString() ?? "None (or not NpgsqlTransaction)");
-
-            await using var command = new NpgsqlCommand("marketstat.bulk_load_salary_facts_from_staging", connection)
-            {
-                CommandType = CommandType.StoredProcedure,
-                Transaction = npgsqlTransaction 
-            };
-            
-            // Add IN parameter
-            command.Parameters.Add(new NpgsqlParameter("p_source_staging_table_name", NpgsqlDbType.Text) { Value = procedureParameterTableName });
-            
-            // Add OUT parameters - their names here must match the formal parameter names in the PG procedure
-            var pInserted = new NpgsqlParameter("p_inserted_count", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
-            var pSkipped = new NpgsqlParameter("p_skipped_count", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
-            command.Parameters.Add(pInserted);
-            command.Parameters.Add(pSkipped);
-                
-            _logger.LogInformation("[REPO] BEFORE ExecuteNonQueryAsync for SP call. Transaction assigned: {IsTransactionAssigned}", npgsqlTransaction != null);
-            await command.ExecuteNonQueryAsync();
-            _logger.LogInformation("[REPO] AFTER ExecuteNonQueryAsync for SP call - SUCCESS for staging table originally named: {OriginalStagingTableName}.", stagingTableNameFromService);
-
-            // Retrieve OUT parameter values
-            insertedCount = (pInserted.Value != DBNull.Value && pInserted.Value != null) ? Convert.ToInt32(pInserted.Value) : 0;
-            skippedCount = (pSkipped.Value != DBNull.Value && pSkipped.Value != null) ? Convert.ToInt32(pSkipped.Value) : 0;
-
-            _logger.LogInformation("[REPO] SP OUT Params - Inserted: {InsertedCount}, Skipped: {SkippedCount}", insertedCount, skippedCount);
-        }
-        catch(PostgresException pgEx)
-        {
-            _logger.LogError(pgEx, "[REPO] POSTGRES EXCEPTION executing SP {SPName} with input table {InputTable}. SQLState: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
-                "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName, pgEx.SqlState, pgEx.MessageText, pgEx.Detail);
-            throw new ApplicationException($"Database error during bulk load procedure execution: {pgEx.MessageText}", pgEx);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[REPO] GENERIC EXCEPTION executing SP {SPName} with input table {InputTable}.", 
-                "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName);
-            throw new ApplicationException("An unexpected error occurred while executing the bulk load procedure.", ex);
-        }
-        finally
-        {
-            if (wasConnectionOpenedByThisMethod && 
-                _dbContext.Database.CurrentTransaction == null && // Only close if no encompassing EF transaction
-                connection != null && 
-                connection.State == ConnectionState.Open)
-            {
-                _logger.LogDebug("[REPO] Closing connection that was opened by this method as no EF transaction is active.");
-                await connection.CloseAsync();
-            } else if (connection != null) {
-                _logger.LogDebug("[REPO] Leaving connection in state: {ConnectionState} as it's managed by EF transaction or was already open.", connection.State);
-            }
-        }
-        return (insertedCount, skippedCount);
-    }
+    // public async Task<(int insertedCount, int skippedCount)> CallBulkLoadFromStagingProcedureAsync(string stagingTableNameFromService)
+    // {
+    //     string procedureParameterTableName = stagingTableNameFromService;
+    //     if (procedureParameterTableName.StartsWith("marketstat.", StringComparison.OrdinalIgnoreCase))
+    //     {
+    //         procedureParameterTableName = procedureParameterTableName.Substring("marketstat.".Length);
+    //         _logger.LogInformation("[REPO] Using non-schema-qualified table name for SP parameter: {TableName}", procedureParameterTableName);
+    //     }
+    //     else
+    //     {
+    //         _logger.LogInformation("[REPO] Using provided table name for SP parameter as is: {TableName}", procedureParameterTableName);
+    //     }
+    //
+    //     _logger.LogInformation("[REPO] Calling SP: {SPName} with parameter table name: {ParameterTableName}", 
+    //         "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName);
+    //     
+    //     int insertedCount = 0;
+    //     int skippedCount = 0;
+    //
+    //     NpgsqlConnection? connection = null;
+    //     bool wasConnectionOpenedByThisMethod = false;
+    //     
+    //     try
+    //     {
+    //         connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection();
+    //         if (connection.State != ConnectionState.Open)
+    //         {
+    //             await connection.OpenAsync();
+    //             wasConnectionOpenedByThisMethod = true;
+    //             _logger.LogDebug("[REPO] Connection was closed, opened it for SP call.");
+    //         } else {
+    //             _logger.LogDebug("[REPO] Connection was already open for SP call.");
+    //         }
+    //         
+    //         IDbContextTransaction? efCoreTransaction = _dbContext.Database.CurrentTransaction;
+    //         NpgsqlTransaction? npgsqlTransaction = (NpgsqlTransaction?)efCoreTransaction?.GetDbTransaction();
+    //
+    //         _logger.LogDebug("[REPO] Using EF Core Transaction ID: {TransactionId}, NpgsqlTransaction HashCode: {NpgsqlTransactionHashCode}", 
+    //             efCoreTransaction?.TransactionId.ToString() ?? "None", 
+    //             npgsqlTransaction?.GetHashCode().ToString() ?? "None (or not NpgsqlTransaction)");
+    //
+    //         await using var command = new NpgsqlCommand("marketstat.bulk_load_salary_facts_from_staging", connection)
+    //         {
+    //             CommandType = CommandType.StoredProcedure,
+    //             Transaction = npgsqlTransaction 
+    //         };
+    //         
+    //         // Add IN parameter
+    //         command.Parameters.Add(new NpgsqlParameter("p_source_staging_table_name", NpgsqlDbType.Text) { Value = procedureParameterTableName });
+    //         
+    //         // Add OUT parameters - their names here must match the formal parameter names in the PG procedure
+    //         var pInserted = new NpgsqlParameter("p_inserted_count", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
+    //         var pSkipped = new NpgsqlParameter("p_skipped_count", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
+    //         command.Parameters.Add(pInserted);
+    //         command.Parameters.Add(pSkipped);
+    //             
+    //         _logger.LogInformation("[REPO] BEFORE ExecuteNonQueryAsync for SP call. Transaction assigned: {IsTransactionAssigned}", npgsqlTransaction != null);
+    //         await command.ExecuteNonQueryAsync();
+    //         _logger.LogInformation("[REPO] AFTER ExecuteNonQueryAsync for SP call - SUCCESS for staging table originally named: {OriginalStagingTableName}.", stagingTableNameFromService);
+    //
+    //         // Retrieve OUT parameter values
+    //         insertedCount = (pInserted.Value != DBNull.Value && pInserted.Value != null) ? Convert.ToInt32(pInserted.Value) : 0;
+    //         skippedCount = (pSkipped.Value != DBNull.Value && pSkipped.Value != null) ? Convert.ToInt32(pSkipped.Value) : 0;
+    //
+    //         _logger.LogInformation("[REPO] SP OUT Params - Inserted: {InsertedCount}, Skipped: {SkippedCount}", insertedCount, skippedCount);
+    //     }
+    //     catch(PostgresException pgEx)
+    //     {
+    //         _logger.LogError(pgEx, "[REPO] POSTGRES EXCEPTION executing SP {SPName} with input table {InputTable}. SQLState: {SqlState}, Message: {MessageText}, Detail: {Detail}", 
+    //             "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName, pgEx.SqlState, pgEx.MessageText, pgEx.Detail);
+    //         throw new ApplicationException($"Database error during bulk load procedure execution: {pgEx.MessageText}", pgEx);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError(ex, "[REPO] GENERIC EXCEPTION executing SP {SPName} with input table {InputTable}.", 
+    //             "marketstat.bulk_load_salary_facts_from_staging", procedureParameterTableName);
+    //         throw new ApplicationException("An unexpected error occurred while executing the bulk load procedure.", ex);
+    //     }
+    //     finally
+    //     {
+    //         if (wasConnectionOpenedByThisMethod && 
+    //             _dbContext.Database.CurrentTransaction == null && // Only close if no encompassing EF transaction
+    //             connection != null && 
+    //             connection.State == ConnectionState.Open)
+    //         {
+    //             _logger.LogDebug("[REPO] Closing connection that was opened by this method as no EF transaction is active.");
+    //             await connection.CloseAsync();
+    //         } else if (connection != null) {
+    //             _logger.LogDebug("[REPO] Leaving connection in state: {ConnectionState} as it's managed by EF transaction or was already open.", connection.State);
+    //         }
+    //     }
+    //     return (insertedCount, skippedCount);
+    // }
 }

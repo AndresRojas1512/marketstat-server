@@ -5,6 +5,10 @@ public class DimEducationLevel
     public int EducationLevelId { get; set; }
     public string EducationLevelName { get; set; }
 
+    public DimEducationLevel()
+    {
+    }
+
     public DimEducationLevel(int educationLevelId, string educationLevelName)
     {
         EducationLevelId = educationLevelId;

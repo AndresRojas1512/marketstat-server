@@ -7,6 +7,10 @@ public class DimEducation
     public string SpecialtyCode { get; set; }
     public int EducationLevelId { get; set; }
 
+    public DimEducation()
+    {
+    }
+
     public DimEducation(int educationId, string specialty, string specialtyCode, int educationLevelId)
     {
         EducationId = educationId;
