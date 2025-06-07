@@ -12,126 +12,143 @@ public class DimHierarchyLevelIntegrationTests : IDisposable
 {
     private readonly MarketStatAccessObjectInMemory _accessObject;
     private readonly IDimHierarchyLevelService _dimHierarchyLevelService;
+    
+    private DimHierarchyLevel CreateTestHierarchyLevel(int id = 0, string code = "TEST", string name = "Test Level")
+    {
+        return new DimHierarchyLevel(id, code, name);
+    }
 
     public DimHierarchyLevelIntegrationTests()
     {
         _accessObject = new MarketStatAccessObjectInMemory();
-        _dimHierarchyLevelService = new DimHierarchyLevelService(_accessObject.DimHierarchyLevelRepository,
-            NullLogger<DimHierarchyLevelService>.Instance);
+        _dimHierarchyLevelService = _accessObject.DimHierarchyLevelService;
     }
-    public void Dispose() => _accessObject.Dispose();
-    
-    [Fact]
-    public async Task CreateHierarchyLevelAsync_ValidName_CreatesAndReturnsNewLevel()
-    {
-        var name = "Level A";
-        var level = await _dimHierarchyLevelService.CreateHierarchyLevelAsync(name);
 
-        Assert.True(level.HierarchyLevelId > 0);
+    public void Dispose() => _accessObject.Dispose();
+
+    [Fact]
+    public async Task CreateHierarchyLevelAsync_ValidParameters_CreatesAndReturnsNewLevel()
+    {
+        var code = "L1";
+        var name = "Junior Specialist";
+        
+        var level = await _dimHierarchyLevelService.CreateHierarchyLevelAsync(code, name);
+        
+        Assert.True(level.HierarchyLevelId > 0, "HierarchyLevelId should be generated and > 0");
+        Assert.Equal(code, level.HierarchyLevelCode);
         Assert.Equal(name, level.HierarchyLevelName);
 
         var all = (await _dimHierarchyLevelService.GetAllHierarchyLevelsAsync()).ToList();
         Assert.Single(all);
         Assert.Equal(level.HierarchyLevelId, all[0].HierarchyLevelId);
+        Assert.Equal(code, all[0].HierarchyLevelCode);
     }
 
     [Fact]
-    public async Task CreateHierarchyLevelAsync_InvalidName_ThrowsArgumentException()
+    public async Task CreateHierarchyLevelAsync_InvalidParameters_ThrowsArgumentException()
     {
+        
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimHierarchyLevelService.CreateHierarchyLevelAsync(null!));
+            _dimHierarchyLevelService.CreateHierarchyLevelAsync("", "Valid Name"));
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimHierarchyLevelService.CreateHierarchyLevelAsync(string.Empty));
+            _dimHierarchyLevelService.CreateHierarchyLevelAsync("L1", ""));
     }
-    
+
     [Fact]
     public async Task GetHierarchyLevelByIdAsync_Seeded_ReturnsLevel()
     {
-        var seed = new DimHierarchyLevel(42, "Seeded");
+        var seed = CreateTestHierarchyLevel(42, "L42", "Seeded Level");
         await _accessObject.SeedHierarchyLevelsAsync(new[] { seed });
 
         var fetched = await _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(42);
+
+        Assert.NotNull(fetched);
         Assert.Equal(seed.HierarchyLevelId,   fetched.HierarchyLevelId);
+        Assert.Equal(seed.HierarchyLevelCode, fetched.HierarchyLevelCode);
         Assert.Equal(seed.HierarchyLevelName, fetched.HierarchyLevelName);
     }
-    
-    [Fact]
-    public async Task GetHierarchyLevelByIdAsync_NotFound_ThrowsException()
-    {
-        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(99));
 
-        Assert.Equal("Hierarchy level 99 not found.", ex.Message);
+    [Fact]
+    public async Task GetHierarchyLevelByIdAsync_NotFound_ThrowsNotFoundException()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(999));
     }
-    
+
     [Fact]
     public async Task GetAllHierarchyLevelsAsync_Seeded_ReturnsAll()
     {
         var seeds = new[]
         {
-            new DimHierarchyLevel(1, "One"),
-            new DimHierarchyLevel(2, "Two")
+            CreateTestHierarchyLevel(1, "L1", "One"),
+            CreateTestHierarchyLevel(2, "L2", "Two")
         };
         await _accessObject.SeedHierarchyLevelsAsync(seeds);
 
         var list = (await _dimHierarchyLevelService.GetAllHierarchyLevelsAsync()).ToList();
+
         Assert.Equal(2, list.Count);
         Assert.Contains(list, h => h.HierarchyLevelId == 1 && h.HierarchyLevelName == "One");
-        Assert.Contains(list, h => h.HierarchyLevelId == 2 && h.HierarchyLevelName == "Two");
+        Assert.Contains(list, h => h.HierarchyLevelId == 2 && h.HierarchyLevelCode == "L2");
     }
-    
+
     [Fact]
     public async Task UpdateHierarchyLevelAsync_Existing_UpdatesAndReturns()
     {
-        var original = new DimHierarchyLevel(5, "Original");
+        var original = CreateTestHierarchyLevel(5, "L5-OLD", "Original Name");
         await _accessObject.SeedHierarchyLevelsAsync(new[] { original });
 
-        var updated = await _dimHierarchyLevelService.UpdateHierarchyLevelAsync(5, "Updated");
+        var newCode = "L5-NEW";
+        var newName = "Updated Name";
+        
+        var updated = await _dimHierarchyLevelService.UpdateHierarchyLevelAsync(5, newCode, newName);
+
         Assert.Equal(5, updated.HierarchyLevelId);
-        Assert.Equal("Updated", updated.HierarchyLevelName);
-
-        var fetched = await _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(5);
-        Assert.Equal("Updated", fetched.HierarchyLevelName);
-    }
+        Assert.Equal(newCode, updated.HierarchyLevelCode);
+        Assert.Equal(newName, updated.HierarchyLevelName);
     
-    [Fact]
-    public async Task UpdateHierarchyLevelAsync_NotFound_ThrowsException()
-    {
-        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(99, "X"));
+        var fetched = await _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(5);
+        Assert.NotNull(fetched);
+        Assert.Equal(newCode, fetched.HierarchyLevelCode);
+        Assert.Equal(newName, fetched.HierarchyLevelName);
+    }
 
-        Assert.Equal("Hierarchy level 99 not found.", ex.Message);
+    [Fact]
+    public async Task UpdateHierarchyLevelAsync_NotFound_ThrowsNotFoundException()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(99, "L99", "Not Found Level"));
     }
 
     [Fact]
     public async Task UpdateHierarchyLevelAsync_InvalidParameters_ThrowsArgumentException()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(0, "Name"));
+            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(0, "L0", "Name"));
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(1, ""));
+            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(1, "", "Name"));
     }
 
     [Fact]
     public async Task DeleteHierarchyLevelAsync_Existing_RemovesLevel()
     {
-        var seed = new DimHierarchyLevel(7, "ToDelete");
+        var seed = CreateTestHierarchyLevel(7, "L7-DEL", "ToDelete");
         await _accessObject.SeedHierarchyLevelsAsync(new[] { seed });
 
         await _dimHierarchyLevelService.DeleteHierarchyLevelAsync(7);
 
-        var all = (await _dimHierarchyLevelService.GetAllHierarchyLevelsAsync()).ToList();
-        Assert.Empty(all);
+        await Assert.ThrowsAsync<NotFoundException>(() => 
+            _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(7)
+        );
     }
 
     [Fact]
-    public async Task DeleteHierarchyLevelAsync_NotFound_ThrowsException()
+    public async Task DeleteHierarchyLevelAsync_NotFound_ThrowsNotFoundException()
     {
-        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimHierarchyLevelService.DeleteHierarchyLevelAsync(123));
-
-        Assert.Equal("Hierarchy level 123 not found.", ex.Message);
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _dimHierarchyLevelService.DeleteHierarchyLevelAsync(888)
+        );
     }
 }

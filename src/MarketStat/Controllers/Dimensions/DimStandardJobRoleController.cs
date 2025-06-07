@@ -76,11 +76,14 @@ public class DimStandardJobRoleController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        var created =
-            await _dimStandardJobRoleService.CreateStandardJobRoleAsync(
-                createDto.StandardJobRoleTitle,
-                createDto.IndustryFieldId);
+
+        var created = await _dimStandardJobRoleService.CreateStandardJobRoleAsync(
+            createDto.StandardJobRoleCode,
+            createDto.StandardJobRoleTitle,
+            createDto.IndustryFieldId
+        );
         var dto = _mapper.Map<DimStandardJobRoleDto>(created);
+
         return CreatedAtAction(nameof(GetById), new { id = dto.StandardJobRoleId }, dto);
     }
     
@@ -108,10 +111,14 @@ public class DimStandardJobRoleController : ControllerBase
         {
             return BadRequest(new { Message = "Invalid StandardJobRoleId." });
         }
+
         await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(
             id,
+            updateDto.StandardJobRoleCode,
             updateDto.StandardJobRoleTitle,
-            updateDto.IndustryFieldId);
+            updateDto.IndustryFieldId
+        );
+
         return NoContent();
     }
     

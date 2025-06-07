@@ -10,9 +10,14 @@ public class DimHierarchyLevelProfile : Profile
     {
         CreateMap<DimHierarchyLevel, DimHierarchyLevelDto>();
         
-        CreateMap<CreateDimHierarchyLevelDto, DimHierarchyLevel>();
+        CreateMap<CreateDimHierarchyLevelDto, DimHierarchyLevel>()
+            .ForMember(dest => dest.HierarchyLevelId, opt => opt.Ignore())
+            .ForMember(dest => dest.DimStandardJobRoleHierarchies, opt => opt.Ignore())
+            .ForMember(dest => dest.DimJobRoles, opt => opt.Ignore());
         
         CreateMap<UpdateDimHierarchyLevelDto, DimHierarchyLevel>()
-            .ForMember(dest => dest.HierarchyLevelId, opt => opt.Ignore());
+            .ForMember(dest => dest.HierarchyLevelId, opt => opt.Ignore())
+            .ForMember(dest => dest.DimStandardJobRoleHierarchies, opt => opt.Ignore())
+            .ForMember(dest => dest.DimJobRoles, opt => opt.Ignore());
     }
 }

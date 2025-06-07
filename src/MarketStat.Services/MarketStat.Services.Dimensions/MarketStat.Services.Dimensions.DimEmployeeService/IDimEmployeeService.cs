@@ -4,9 +4,9 @@ namespace MarketStat.Services.Dimensions.DimEmployeeService;
 
 public interface IDimEmployeeService
 {
-    Task<DimEmployee> CreateEmployeeAsync(DateOnly birthDate, DateOnly careerStartDate);
+    Task<DimEmployee> CreateEmployeeAsync(string employeeRefId, DateOnly birthDate, DateOnly careerStartDate, string? gender);
     Task<DimEmployee> GetEmployeeByIdAsync(int employeeId);
     Task<IEnumerable<DimEmployee>> GetAllEmployeesAsync();
-    Task<DimEmployee> UpdateEmployeeAsync(int employeeId, DateOnly birthDate, DateOnly careerStartDate);
+    Task<DimEmployee> UpdateEmployeeAsync(int employeeId, string employeeRefId, DateOnly birthDate, DateOnly careerStartDate, string? gender);
     Task DeleteEmployeeAsync(int employeeId);
 }

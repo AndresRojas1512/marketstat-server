@@ -52,7 +52,7 @@ CREATE INDEX IF NOT EXISTS idx_dim_city_oblast_id
     ON dim_city (oblast_id);
 
 
-CREATE TABLE IF NOT EXISTS marketstat.dim_employer (
+CREATE TABLE IF NOT EXISTS dim_employer (
     employer_id         INT GENERATED ALWAYS AS IDENTITY
                             CONSTRAINT pk_dim_employer PRIMARY KEY,
     employer_name       VARCHAR(255) NOT NULL
@@ -74,8 +74,10 @@ CREATE TABLE IF NOT EXISTS marketstat.dim_employer (
 CREATE TABLE IF NOT EXISTS dim_industry_field (
     industry_field_id   INT GENERATED ALWAYS AS IDENTITY
                             CONSTRAINT pk_dim_industry_field PRIMARY KEY,
-    industry_field_name VARCHAR(255) NOT NULL,
-    CONSTRAINT uq_dim_industry_field_name UNIQUE (industry_field_name)
+    industry_field_code VARCHAR(10) NOT NULL
+                            CONSTRAINT uq_dim_industry_field_code UNIQUE,
+    industry_field_name VARCHAR(255) NOT NULL
+                            CONSTRAINT uq_dim_industry_field_name UNIQUE
 );
 
 
@@ -92,22 +94,26 @@ CREATE INDEX IF NOT EXISTS idx_dim_eif_field
 
 
 
-CREATE TABLE IF NOT EXISTS dim_hierarchy_level (
+CREATE TABLE IF NOT EXISTS marketstat.dim_hierarchy_level (
     hierarchy_level_id      INT GENERATED ALWAYS AS IDENTITY
                                 CONSTRAINT pk_dim_hierarchy_level PRIMARY KEY,
-    hierarchy_level_name    VARCHAR(255) NOT NULL,
-    CONSTRAINT uq_dim_hierarchy_level UNIQUE (hierarchy_level_name)
+    hierarchy_level_code    VARCHAR(10) NOT NULL
+                                CONSTRAINT uq_dim_hierarchy_level_code UNIQUE,
+    hierarchy_level_name    VARCHAR(255) NOT NULL
+                                CONSTRAINT uq_dim_hierarchy_level_name UNIQUE
 );
 
 
 
-CREATE TABLE IF NOT EXISTS dim_standard_job_role (
+CREATE TABLE IF NOT EXISTS marketstat.dim_standard_job_role (
     standard_job_role_id    INT GENERATED ALWAYS AS IDENTITY
                                 CONSTRAINT pk_dim_standard_job_role PRIMARY KEY,
-    standard_job_role_title VARCHAR(255) NOT NULL,
+    standard_job_role_code  VARCHAR(20) NOT NULL
+                                CONSTRAINT uq_dim_sjr_code UNIQUE,
+    standard_job_role_title VARCHAR(255) NOT NULL
+                                CONSTRAINT uq_dim_sjr_title UNIQUE,
     industry_field_id       INT NOT NULL,
-    CONSTRAINT fk_dim_sjr_field FOREIGN KEY (industry_field_id) REFERENCES dim_industry_field(industry_field_id),
-    CONSTRAINT uq_dim_sjr_title UNIQUE (standard_job_role_title)
+                                CONSTRAINT fk_dim_sjr_field FOREIGN KEY (industry_field_id) REFERENCES dim_industry_field(industry_field_id)
 );
 CREATE INDEX IF NOT EXISTS idx_dim_sjr_field
     ON dim_standard_job_role (industry_field_id);
@@ -167,10 +173,15 @@ CREATE INDEX IF NOT EXISTS idx_dim_edu_lvl
 CREATE TABLE IF NOT EXISTS dim_employee (
     employee_id         INT GENERATED ALWAYS AS IDENTITY
                             CONSTRAINT pk_dim_employee PRIMARY KEY,
-    birth_date          DATE CHECK (birth_date <= CURRENT_DATE) NOT NULL,
+    employee_ref_id VARCHAR(255) NOT NULL
+                            CONSTRAINT uq_dim_employee_ref_id UNIQUE,
+    birth_date          DATE NOT NULL,
+                            CONSTRAINT ck_dim_emp_birth_date CHECK (birth_date <= CURRENT_DATE),
     career_start_date   DATE NOT NULL
                             CONSTRAINT ck_dim_emp_career_start CHECK (career_start_date <= CURRENT_DATE),
-    CONSTRAINT uq_dim_employee_natural_key UNIQUE (birth_date, career_start_date)
+    gender              VARCHAR(50) NULL,
+    CONSTRAINT ck_career_after_birth CHECK (career_start_date > birth_date),
+    CONSTRAINT ck_career_min_age CHECK (career_start_date >= birth_date + INTERVAL '16 years')
 );
 
 
@@ -284,4 +295,3 @@ CREATE TABLE IF NOT EXISTS api_fact_uploads_staging (
     bonus_amount                    NUMERIC(18,2)
 );
 
-\echo 'Table "marketstat.failed_salary_facts_load" created and privileges granted.'

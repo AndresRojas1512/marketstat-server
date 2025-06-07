@@ -18,21 +18,22 @@ public class DimIndustryFieldService : IDimIndustryFieldService
         _logger = logger;
     }
     
-    public async Task<DimIndustryField> CreateIndustryFieldAsync(string industryFieldName)
+    public async Task<DimIndustryField> CreateIndustryFieldAsync(string industryFieldCode, string industryFieldName)
     {
-        DimIndustryFieldValidator.ValidateForCreate(industryFieldName);
-        var industryField = new DimIndustryField(0, industryFieldName);
+        DimIndustryFieldValidator.ValidateForCreate(industryFieldCode, industryFieldName);
+        _logger.LogInformation("Service: Attempting to create industry field: {IndustryFieldName}", industryFieldName);
 
+        var industryField = new DimIndustryField(0, industryFieldCode, industryFieldName);
         try
         {
             await _dimIndustryFieldRepository.AddIndustryFieldAsync(industryField);
-            _logger.LogInformation("Created DimIndustryField {IndustryFieldId}", industryField.IndustryFieldId);
+            _logger.LogInformation("Service: Created DimIndustryField {IndustryFieldId} ('{IndustryFieldName}')", 
+                industryField.IndustryFieldId, industryField.IndustryFieldName);
             return industryField;
         }
         catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Conflict creating industry field {IndustryFieldId} with name {IndustryFieldName}.",
-                industryField.IndustryFieldId, industryField.IndustryFieldName);
+            _logger.LogError(ex, "Service: Conflict creating industry field '{IndustryFieldName}'.", industryFieldName);
             throw;
         }
     }
@@ -52,32 +53,36 @@ public class DimIndustryFieldService : IDimIndustryFieldService
     
     public async Task<IEnumerable<DimIndustryField>> GetAllIndustryFieldsAsync()
     {
+        _logger.LogInformation("Service: Fetching all industry fields.");
         var industryFields = await _dimIndustryFieldRepository.GetAllIndustryFieldsAsync();
-        _logger.LogInformation("Fetched {Count} industry fields", industryFields.Count());
+        _logger.LogInformation("Service: Fetched {Count} industry fields.", industryFields.Count());
         return industryFields;
     }
     
-    public async Task<DimIndustryField> UpdateIndustryFieldAsync(int industryFieldId, string industryFieldName)
+    public async Task<DimIndustryField> UpdateIndustryFieldAsync(int industryFieldId, string industryFieldCode, string industryFieldName)
     {
-        DimIndustryFieldValidator.ValidateForUpdate(industryFieldId, industryFieldName);
+        DimIndustryFieldValidator.ValidateForUpdate(industryFieldId, industryFieldCode, industryFieldName);
+        _logger.LogInformation("Service: Attempting to update DimIndustryField {IndustryFieldId}", industryFieldId);
+
         try
         {
             var existingIndustryField = await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId);
-            
+                
             existingIndustryField.IndustryFieldName = industryFieldName;
-            
+            existingIndustryField.IndustryFieldCode = industryFieldCode;
+                
             await _dimIndustryFieldRepository.UpdateIndustryFieldAsync(existingIndustryField);
-            _logger.LogInformation("Updated DimIndustryField {IndustryFieldId}", industryFieldId);
+            _logger.LogInformation("Service: Updated DimIndustryField {IndustryFieldId}", industryFieldId);
             return existingIndustryField;
         }
         catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Industry field {IndustryFieldId} not found", industryFieldId);
+            _logger.LogWarning(ex, "Service: Cannot update, industry field {IndustryFieldId} not found.", industryFieldId);
             throw;
         }
         catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Conflict updating industry field {IndustryFieldId}", industryFieldName);
+            _logger.LogError(ex, "Service: Conflict when updating industry field {IndustryFieldId}.", industryFieldId);
             throw;
         }
     }

@@ -11,23 +11,21 @@ public class DimHierarchyLevelDbModel
     public int HierarchyLevelId { get; set; }
 
     [Required]
+    [Column("hierarchy_level_code")]
+    [StringLength(10)]
+    public string HierarchyLevelCode { get; set; } = string.Empty;
+
+    [Required]
     [Column("hierarchy_level_name")]
     [StringLength(255)]
     public string HierarchyLevelName { get; set; } = string.Empty;
-    
+
     public virtual ICollection<DimStandardJobRoleHierarchyDbModel> DimStandardJobRoleHierarchies { get; set; }
-    public virtual ICollection<DimJobRoleDbModel> DimJobRoles { get; set; } = new List<DimJobRoleDbModel>();
-    
+    public virtual ICollection<DimJobRoleDbModel> DimJobRoles { get; set; }
+
     public DimHierarchyLevelDbModel() 
     {
         DimStandardJobRoleHierarchies = new List<DimStandardJobRoleHierarchyDbModel>();
-        DimJobRoles = new List<DimJobRoleDbModel>();
-    }
-
-    public DimHierarchyLevelDbModel(int hierarchyLevelId, string hierarchyLevelName)
-    {
-        HierarchyLevelId = hierarchyLevelId;
-        HierarchyLevelName = hierarchyLevelName;
         DimJobRoles = new List<DimJobRoleDbModel>();
     }
 }

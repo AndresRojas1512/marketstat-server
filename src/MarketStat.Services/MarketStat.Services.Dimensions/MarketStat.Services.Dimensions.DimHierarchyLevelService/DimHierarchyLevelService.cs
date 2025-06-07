@@ -18,22 +18,24 @@ public class DimHierarchyLevelService : IDimHierarchyLevelService
         _logger = logger;
     }
 
-    public async Task<DimHierarchyLevel> CreateHierarchyLevelAsync(string hierarchyLevelName)
+    public async Task<DimHierarchyLevel> CreateHierarchyLevelAsync(string hierarchyLevelCode, string hierarchyLevelName)
     {
-        DimHierarchyLevelValidator.ValidateForCreate(hierarchyLevelName);
-        var hierarchyLevel = new DimHierarchyLevel(0, hierarchyLevelName);
+        DimHierarchyLevelValidator.ValidateForCreate(hierarchyLevelCode, hierarchyLevelName);
+        _logger.LogInformation("Service: Attempting to create hierarchy level: {HierarchyLevelName}", hierarchyLevelName);
+
+        var hierarchyLevel = new DimHierarchyLevel(0, hierarchyLevelCode, hierarchyLevelName);
         try
         {
             await _dimHierarchyLevelRepository.AddHierarchyLevelAsync(hierarchyLevel);
-            _logger.LogInformation("Created DimHierarchyLevel {HierarchyLevelId}", hierarchyLevel.HierarchyLevelId);
+            _logger.LogInformation("Service: Created DimHierarchyLevel {HierarchyLevelId} ('{HierarchyLevelName}')", 
+                hierarchyLevel.HierarchyLevelId, hierarchyLevel.HierarchyLevelName);
             return hierarchyLevel;
         }
         catch (ConflictException ex)
         {
-            _logger.LogError(ex, "A hierarchy level {HierarchyLevelId} with name '{HierarchyLevelName}' already exists", hierarchyLevel.HierarchyLevelId, hierarchyLevel.HierarchyLevelName);
+            _logger.LogError(ex, "Service: Conflict creating hierarchy level '{HierarchyLevelName}'.", hierarchyLevelName);
             throw;
         }
-        
     }
 
     public async Task<DimHierarchyLevel> GetHierarchyLevelByIdAsync(int id)
@@ -51,31 +53,35 @@ public class DimHierarchyLevelService : IDimHierarchyLevelService
 
     public async Task<IEnumerable<DimHierarchyLevel>> GetAllHierarchyLevelsAsync()
     {
+        _logger.LogInformation("Service: Fetching all hierarchy levels.");
         var hierarchyLevels = await _dimHierarchyLevelRepository.GetAllHierarchyLevelsAsync();
-        _logger.LogInformation("Fetched {Count} hierarchy levels", hierarchyLevels.Count());
+        _logger.LogInformation("Service: Fetched {Count} hierarchy levels", hierarchyLevels.Count());
         return hierarchyLevels;
     }
 
-    public async Task<DimHierarchyLevel> UpdateHierarchyLevelAsync(int hierarchyLevelId, string hierarchyLevelName)
+    public async Task<DimHierarchyLevel> UpdateHierarchyLevelAsync(int hierarchyLevelId, string hierarchyLevelCode, string hierarchyLevelName)
     {
-        DimHierarchyLevelValidator.ValidateForUpdate(hierarchyLevelId, hierarchyLevelName);
+        DimHierarchyLevelValidator.ValidateForUpdate(hierarchyLevelId, hierarchyLevelCode, hierarchyLevelName);
+        _logger.LogInformation("Service: Attempting to update HierarchyLevel {HierarchyLevelId}", hierarchyLevelId);
         try
         {
-            var existingHierarchyLevel =
-                await _dimHierarchyLevelRepository.GetHierarchyLevelByIdAsync(hierarchyLevelId);
+            var existingHierarchyLevel = await _dimHierarchyLevelRepository.GetHierarchyLevelByIdAsync(hierarchyLevelId);
+                
             existingHierarchyLevel.HierarchyLevelName = hierarchyLevelName;
+            existingHierarchyLevel.HierarchyLevelCode = hierarchyLevelCode;
+
             await _dimHierarchyLevelRepository.UpdateHierarchyLevelAsync(existingHierarchyLevel);
-            _logger.LogInformation("Updated HierarchyLevel {HierarchyLevelId}", hierarchyLevelId);
+            _logger.LogInformation("Service: Updated HierarchyLevel {HierarchyLevelId}", hierarchyLevelId);
             return existingHierarchyLevel;
         }
         catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update hierarchy level {HierarchyLevelId}", hierarchyLevelId);
+            _logger.LogWarning(ex, "Service: Cannot update hierarchy level {HierarchyLevelId}, it was not found.", hierarchyLevelId);
             throw;
         }
         catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Conflict updating hierarchy level {HierarchyLevelId}, already exists", hierarchyLevelId);
+            _logger.LogError(ex, "Service: Conflict when updating hierarchy level {HierarchyLevelId}.", hierarchyLevelId);
             throw;
         }
     }

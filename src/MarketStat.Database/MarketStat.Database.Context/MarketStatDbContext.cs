@@ -107,9 +107,19 @@ public class MarketStatDbContext : DbContext
         {
             b.ToTable("dim_industry_field");
             b.HasKey(i => i.IndustryFieldId);
+        
             b.Property(i => i.IndustryFieldId)
                 .HasColumnName("industry_field_id")
                 .UseIdentityByDefaultColumn();
+        
+            b.Property(i => i.IndustryFieldCode)
+                .HasColumnName("industry_field_code")
+                .HasMaxLength(10)
+                .IsRequired();
+            b.HasIndex(i => i.IndustryFieldCode)
+                .IsUnique()
+                .HasDatabaseName("uq_dim_industry_field_code");
+        
             b.Property(i => i.IndustryFieldName)
                 .HasColumnName("industry_field_name")
                 .HasMaxLength(255)
@@ -211,9 +221,19 @@ public class MarketStatDbContext : DbContext
         {
             b.ToTable("dim_employee");
             b.HasKey(e => e.EmployeeId);
+
             b.Property(e => e.EmployeeId)
                 .HasColumnName("employee_id")
                 .UseIdentityByDefaultColumn();
+
+            b.Property(e => e.EmployeeRefId)
+                .HasColumnName("employee_ref_id")
+                .HasMaxLength(255)
+                .IsRequired();
+            b.HasIndex(e => e.EmployeeRefId)
+                .IsUnique()
+                .HasDatabaseName("uq_dim_employee_ref_id");
+
             b.Property(e => e.BirthDate)
                 .HasColumnName("birth_date")
                 .HasColumnType("date")
@@ -222,9 +242,11 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("career_start_date")
                 .HasColumnType("date")
                 .IsRequired();
-            b.HasIndex(e => new { e.BirthDate, e.CareerStartDate })
-                .IsUnique()
-                .HasDatabaseName("uq_dim_employee_natural_key");
+
+            b.Property(e => e.Gender)
+                .HasColumnName("gender")
+                .HasMaxLength(50)
+                .IsRequired(false);
         });
 
         modelBuilder.Entity<DimEmployeeEducationDbModel>(b =>
@@ -257,16 +279,26 @@ public class MarketStatDbContext : DbContext
         {
             b.ToTable("dim_hierarchy_level");
             b.HasKey(h => h.HierarchyLevelId);
+
             b.Property(h => h.HierarchyLevelId)
                 .HasColumnName("hierarchy_level_id")
                 .UseIdentityByDefaultColumn();
+
+            b.Property(h => h.HierarchyLevelCode)
+                .HasColumnName("hierarchy_level_code")
+                .HasMaxLength(10)
+                .IsRequired();
+            b.HasIndex(h => h.HierarchyLevelCode)
+                .IsUnique()
+                .HasDatabaseName("uq_dim_hierarchy_level_code");
+
             b.Property(h => h.HierarchyLevelName)
                 .HasColumnName("hierarchy_level_name")
                 .HasMaxLength(255)
                 .IsRequired();
             b.HasIndex(h => h.HierarchyLevelName)
                 .IsUnique()
-                .HasDatabaseName("uq_dim_hierarchy_level");
+                .HasDatabaseName("uq_dim_hierarchy_level_name");
         });
 
         modelBuilder.Entity<DimEmployerIndustryFieldDbModel>(b =>
@@ -367,9 +399,19 @@ public class MarketStatDbContext : DbContext
         {
             b.ToTable("dim_standard_job_role");
             b.HasKey(j => j.StandardJobRoleId);
+        
             b.Property(j => j.StandardJobRoleId)
                 .HasColumnName("standard_job_role_id")
                 .UseIdentityByDefaultColumn();
+        
+            b.Property(j => j.StandardJobRoleCode)
+                .HasColumnName("standard_job_role_code")
+                .HasMaxLength(20)
+                .IsRequired();
+            b.HasIndex(j => j.StandardJobRoleCode)
+                .IsUnique()
+                .HasDatabaseName("uq_dim_sjr_code");
+        
             b.Property(j => j.StandardJobRoleTitle)
                 .HasColumnName("standard_job_role_title")
                 .HasMaxLength(255)
@@ -377,12 +419,15 @@ public class MarketStatDbContext : DbContext
             b.HasIndex(j => j.StandardJobRoleTitle)
                 .IsUnique()
                 .HasDatabaseName("uq_dim_sjr_title");
+                
             b.Property(j => j.IndustryFieldId)
                 .HasColumnName("industry_field_id")
                 .IsRequired();
+        
             b.HasOne(sjr => sjr.DimIndustryField)
                 .WithMany(ifield => ifield.DimStandardJobRoles)
                 .HasForeignKey(sjr => sjr.IndustryFieldId)
+                .HasConstraintName("fk_dim_sjr_field")
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

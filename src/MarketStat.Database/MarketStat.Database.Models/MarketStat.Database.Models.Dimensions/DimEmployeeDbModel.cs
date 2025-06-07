@@ -10,29 +10,30 @@ public class DimEmployeeDbModel
     [Key]
     [Column("employee_id")]
     public int EmployeeId { get; set; }
-    
+
     [Required]
-    [Column("birth_date")]
+    [Column("employee_ref_id")]
+    [StringLength(255)]
+    public string EmployeeRefId { get; set; } = string.Empty;
+
+    [Required]
+    [Column("birth_date", TypeName = "date")]
     public DateOnly BirthDate { get; set; }
-    
+        
     [Required]
-    [Column("career_start_date")]
+    [Column("career_start_date", TypeName = "date")]
     public DateOnly CareerStartDate { get; set; }
-    
+
+    [Column("gender")]
+    [StringLength(50)]
+    public string? Gender { get; set; }
+
     public virtual ICollection<DimEmployeeEducationDbModel> DimEmployeeEducations { get; set; }
-    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; } = new List<FactSalaryDbModel>();
-    
+    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; }
+
     public DimEmployeeDbModel() 
     {
         DimEmployeeEducations = new List<DimEmployeeEducationDbModel>();
-        FactSalaries = new List<FactSalaryDbModel>();
-    } 
-
-    public DimEmployeeDbModel(int employeeId, DateOnly birthDate, DateOnly careerStartDate)
-    {
-        EmployeeId = employeeId;
-        BirthDate = birthDate;
-        CareerStartDate = careerStartDate;
         FactSalaries = new List<FactSalaryDbModel>();
     }
 }

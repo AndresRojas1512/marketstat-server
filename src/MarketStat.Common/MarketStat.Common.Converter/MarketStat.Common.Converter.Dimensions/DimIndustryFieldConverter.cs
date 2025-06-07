@@ -3,21 +3,31 @@ using MarketStat.Database.Models;
 
 namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 
-public class DimIndustryFieldConverter
+public static class DimIndustryFieldConverter
 {
-    public static DimIndustryFieldDbModel ToDbModel(DimIndustryField dimIndustryField)
+    public static DimIndustryFieldDbModel ToDbModel(DimIndustryField domainIndustryField)
     {
-        return new DimIndustryFieldDbModel(
-            dimIndustryField.IndustryFieldId,
-            dimIndustryField.IndustryFieldName
-        );
+        if (domainIndustryField == null)
+            throw new ArgumentNullException(nameof(domainIndustryField));
+
+        return new DimIndustryFieldDbModel
+        {
+            IndustryFieldId = domainIndustryField.IndustryFieldId,
+            IndustryFieldCode = domainIndustryField.IndustryFieldCode,
+            IndustryFieldName = domainIndustryField.IndustryFieldName
+        };
     }
 
     public static DimIndustryField ToDomain(DimIndustryFieldDbModel dbIndustryField)
     {
-        return new DimIndustryField(
-            dbIndustryField.IndustryFieldId,
-            dbIndustryField.IndustryFieldName
-        );
+        if (dbIndustryField == null)
+            throw new ArgumentNullException(nameof(dbIndustryField));
+
+        return new DimIndustryField
+        {
+            IndustryFieldId = dbIndustryField.IndustryFieldId,
+            IndustryFieldCode = dbIndustryField.IndustryFieldCode,
+            IndustryFieldName = dbIndustryField.IndustryFieldName
+        };
     }
 }

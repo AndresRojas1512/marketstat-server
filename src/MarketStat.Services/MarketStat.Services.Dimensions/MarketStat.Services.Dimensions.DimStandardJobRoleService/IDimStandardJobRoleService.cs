@@ -4,10 +4,10 @@ namespace MarketStat.Services.Dimensions.DimStandardJobRoleService;
 
 public interface IDimStandardJobRoleService
 {
-    Task<DimStandardJobRole> CreateStandardJobRoleAsync(string jobRoleTitle, int industryFieldId);
+    Task<DimStandardJobRole> CreateStandardJobRoleAsync(string standardJobRoleCode, string jobRoleTitle, int industryFieldId);
     Task<DimStandardJobRole> GetStandardJobRoleByIdAsync(int id);
     Task<IEnumerable<DimStandardJobRole>> GetAllStandardJobRolesAsync();
-    Task<DimStandardJobRole> UpdateStandardJobRoleAsync(int id, string jobRoleTitle, int industryFieldId);
+    Task<DimStandardJobRole> UpdateStandardJobRoleAsync(int id, string standardJobRoleCode, string jobRoleTitle, int industryFieldId);
     Task DeleteStandardJobRoleAsync(int id);
     Task<IEnumerable<DimStandardJobRole>> GetStandardJobRolesByIndustryAsync(int industryFieldId);
 }

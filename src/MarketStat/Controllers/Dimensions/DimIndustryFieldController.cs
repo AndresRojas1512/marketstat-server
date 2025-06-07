@@ -65,17 +65,20 @@ public class DimIndustryFieldController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<DimIndustryFieldDto>> PostIndustryField(
-        [FromBody] CreateDimIndustryFieldDto createDto)
+    public async Task<ActionResult<DimIndustryFieldDto>> PostIndustryField([FromBody] CreateDimIndustryFieldDto createDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        var created = await _dimIndustryFieldService.CreateIndustryFieldAsync(createDto.IndustryFieldName);
+
+        var created = await _dimIndustryFieldService.CreateIndustryFieldAsync(
+            createDto.IndustryFieldCode, 
+            createDto.IndustryFieldName
+        );
         var dto = _mapper.Map<DimIndustryFieldDto>(created);
-        return CreatedAtAction(nameof(GetById), new { id = created.IndustryFieldId }, dto);
+
+        return CreatedAtAction(nameof(GetById), new { id = dto.IndustryFieldId }, dto);
     }
     
     /// <summary>
@@ -101,7 +104,13 @@ public class DimIndustryFieldController : ControllerBase
         {
             return BadRequest(new { Message = "Invalid IndustryFieldId." });
         }
-        await _dimIndustryFieldService.UpdateIndustryFieldAsync(id, updateDto.IndustryFieldName);
+
+        await _dimIndustryFieldService.UpdateIndustryFieldAsync(
+            id, 
+            updateDto.IndustryFieldCode, 
+            updateDto.IndustryFieldName
+        );
+
         return NoContent();
     }
     

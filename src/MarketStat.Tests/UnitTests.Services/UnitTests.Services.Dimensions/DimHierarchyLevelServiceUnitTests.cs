@@ -14,49 +14,57 @@ public class DimHierarchyLevelServiceUnitTests
     private readonly Mock<ILogger<DimHierarchyLevelService>> _loggerMock;
     private readonly DimHierarchyLevelService _dimHierarchyLevelService;
 
+    private DimHierarchyLevel CreateTestHierarchyLevel(int id, string code, string name)
+    {
+        return new DimHierarchyLevel(id, code, name);
+    }
+
     public DimHierarchyLevelServiceUnitTests()
     {
         _dimHierarchyLevelRepositoryMock = new Mock<IDimHierarchyLevelRepository>();
         _loggerMock = new Mock<ILogger<DimHierarchyLevelService>>();
         _dimHierarchyLevelService = new DimHierarchyLevelService(_dimHierarchyLevelRepositoryMock.Object, _loggerMock.Object);
     }
-    
+
     [Fact]
     public async Task CreateHierarchyLevelAsync_ValidParameters_ReturnsNewLevel()
     {
         _dimHierarchyLevelRepositoryMock.Setup(r => r.AddHierarchyLevelAsync(It.IsAny<DimHierarchyLevel>()))
              .Callback<DimHierarchyLevel>(h => h.HierarchyLevelId = 1)
              .Returns(Task.CompletedTask);
-
-        var result = await _dimHierarchyLevelService.CreateHierarchyLevelAsync("Junior");
-
+        
+        var result = await _dimHierarchyLevelService.CreateHierarchyLevelAsync("L2", "Junior");
+        
         Assert.Equal(1, result.HierarchyLevelId);
+        Assert.Equal("L2", result.HierarchyLevelCode);
         Assert.Equal("Junior", result.HierarchyLevelName);
+
         _dimHierarchyLevelRepositoryMock.Verify(r => r.AddHierarchyLevelAsync(
             It.Is<DimHierarchyLevel>(h =>
+                h.HierarchyLevelCode == "L2" &&
                 h.HierarchyLevelName == "Junior")), Times.Once);
     }
-    
+
     [Fact]
     public async Task CreateHierarchyLevelAsync_Duplicate_ThrowsConflictException()
     {
         _dimHierarchyLevelRepositoryMock.Setup(r => r.AddHierarchyLevelAsync(It.IsAny<DimHierarchyLevel>()))
              .ThrowsAsync(new ConflictException("dup"));
-
+        
         await Assert.ThrowsAsync<ConflictException>(() =>
-            _dimHierarchyLevelService.CreateHierarchyLevelAsync("Senior")
+            _dimHierarchyLevelService.CreateHierarchyLevelAsync("L8", "Senior")
         );
     }
 
     [Fact]
     public async Task GetHierarchyLevelByIdAsync_Existing_ReturnsLevel()
     {
-        var expected = new DimHierarchyLevel(5, "Expert");
+        var expected = CreateTestHierarchyLevel(5, "L10", "Expert");
         _dimHierarchyLevelRepositoryMock.Setup(r => r.GetHierarchyLevelByIdAsync(5))
              .ReturnsAsync(expected);
-
+        
         var actual = await _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(5);
-
+        
         Assert.Same(expected, actual);
     }
 
@@ -65,7 +73,7 @@ public class DimHierarchyLevelServiceUnitTests
     {
         _dimHierarchyLevelRepositoryMock.Setup(r => r.GetHierarchyLevelByIdAsync(7))
              .ThrowsAsync(new NotFoundException("nf"));
-
+        
         await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimHierarchyLevelService.GetHierarchyLevelByIdAsync(7)
         );
@@ -76,33 +84,35 @@ public class DimHierarchyLevelServiceUnitTests
     {
         var list = new[]
         {
-            new DimHierarchyLevel(1, "A"),
-            new DimHierarchyLevel(2, "B")
+            CreateTestHierarchyLevel(1, "L1", "A"),
+            CreateTestHierarchyLevel(2, "L2", "B")
         };
         _dimHierarchyLevelRepositoryMock.Setup(r => r.GetAllHierarchyLevelsAsync())
              .ReturnsAsync(list);
-
+        
         var result = await _dimHierarchyLevelService.GetAllHierarchyLevelsAsync();
-
+        
         Assert.Equal(list, result);
     }
 
     [Fact]
     public async Task UpdateHierarchyLevelAsync_ValidParameters_UpdatesAndReturns()
     {
-        var existing = new DimHierarchyLevel(4, "OldName");
+        var existing = CreateTestHierarchyLevel(4, "L4", "OldName");
         _dimHierarchyLevelRepositoryMock.Setup(r => r.GetHierarchyLevelByIdAsync(4))
              .ReturnsAsync(existing);
         _dimHierarchyLevelRepositoryMock.Setup(r => r.UpdateHierarchyLevelAsync(It.IsAny<DimHierarchyLevel>()))
              .Returns(Task.CompletedTask);
-
-        var updated = await _dimHierarchyLevelService.UpdateHierarchyLevelAsync(4, "NewName");
-
+        
+        var updated = await _dimHierarchyLevelService.UpdateHierarchyLevelAsync(4, "L4-NEW", "NewName");
+        
         Assert.Equal(4, updated.HierarchyLevelId);
+        Assert.Equal("L4-NEW", updated.HierarchyLevelCode);
         Assert.Equal("NewName", updated.HierarchyLevelName);
         _dimHierarchyLevelRepositoryMock.Verify(r => r.UpdateHierarchyLevelAsync(
             It.Is<DimHierarchyLevel>(h =>
                 h.HierarchyLevelId   == 4 &&
+                h.HierarchyLevelCode == "L4-NEW" &&
                 h.HierarchyLevelName == "NewName")), Times.Once);
     }
 
@@ -111,23 +121,23 @@ public class DimHierarchyLevelServiceUnitTests
     {
         _dimHierarchyLevelRepositoryMock.Setup(r => r.GetHierarchyLevelByIdAsync(9))
              .ThrowsAsync(new NotFoundException("nf"));
-
+        
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(9, "Any")
+            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(9, "L9", "Any")
         );
     }
 
     [Fact]
     public async Task UpdateHierarchyLevelAsync_Conflict_ThrowsConflictException()
     {
-        var existing = new DimHierarchyLevel(8, "E");
+        var existing = CreateTestHierarchyLevel(8, "L8", "E");
         _dimHierarchyLevelRepositoryMock.Setup(r => r.GetHierarchyLevelByIdAsync(8))
              .ReturnsAsync(existing);
         _dimHierarchyLevelRepositoryMock.Setup(r => r.UpdateHierarchyLevelAsync(It.IsAny<DimHierarchyLevel>()))
              .ThrowsAsync(new ConflictException("dup"));
-
+        
         await Assert.ThrowsAsync<ConflictException>(() =>
-            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(8, "Dup")
+            _dimHierarchyLevelService.UpdateHierarchyLevelAsync(8, "L8-DUP", "Dup")
         );
     }
 
@@ -136,9 +146,9 @@ public class DimHierarchyLevelServiceUnitTests
     {
         _dimHierarchyLevelRepositoryMock.Setup(r => r.DeleteHierarchyLevelAsync(8))
              .Returns(Task.CompletedTask);
-
+        
         await _dimHierarchyLevelService.DeleteHierarchyLevelAsync(8);
-
+        
         _dimHierarchyLevelRepositoryMock.Verify(r => r.DeleteHierarchyLevelAsync(8), Times.Once);
     }
 
@@ -147,7 +157,7 @@ public class DimHierarchyLevelServiceUnitTests
     {
         _dimHierarchyLevelRepositoryMock.Setup(r => r.DeleteHierarchyLevelAsync(10))
              .ThrowsAsync(new NotFoundException("nf"));
-
+        
         await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimHierarchyLevelService.DeleteHierarchyLevelAsync(10)
         );

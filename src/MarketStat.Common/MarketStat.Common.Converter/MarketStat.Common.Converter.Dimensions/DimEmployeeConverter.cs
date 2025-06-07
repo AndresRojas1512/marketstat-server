@@ -3,23 +3,35 @@ using MarketStat.Database.Models;
 
 namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 
-public class DimEmployeeConverter
+public static class DimEmployeeConverter
 {
-    public static DimEmployeeDbModel ToDbModel(DimEmployee dimEmployee)
+    public static DimEmployeeDbModel ToDbModel(DimEmployee domainEmployee)
     {
-        return new DimEmployeeDbModel(
-            dimEmployee.EmployeeId,
-            dimEmployee.BirthDate,
-            dimEmployee.CareerStartDate
-        );
-    }
+        if (domainEmployee == null)
+            throw new ArgumentNullException(nameof(domainEmployee));
 
+        return new DimEmployeeDbModel
+        {
+            EmployeeId = domainEmployee.EmployeeId,
+            EmployeeRefId = domainEmployee.EmployeeRefId,
+            BirthDate = domainEmployee.BirthDate,
+            CareerStartDate = domainEmployee.CareerStartDate,
+            Gender = domainEmployee.Gender
+        };
+    }
+    
     public static DimEmployee ToDomain(DimEmployeeDbModel dbEmployee)
     {
-        return new DimEmployee(
-            dbEmployee.EmployeeId,
-            dbEmployee.BirthDate,
-            dbEmployee.CareerStartDate
-        );
+        if (dbEmployee == null)
+            throw new ArgumentNullException(nameof(dbEmployee));
+
+        return new DimEmployee
+        {
+            EmployeeId = dbEmployee.EmployeeId,
+            EmployeeRefId = dbEmployee.EmployeeRefId,
+            BirthDate = dbEmployee.BirthDate,
+            CareerStartDate = dbEmployee.CareerStartDate,
+            Gender = dbEmployee.Gender
+        };
     }
 }

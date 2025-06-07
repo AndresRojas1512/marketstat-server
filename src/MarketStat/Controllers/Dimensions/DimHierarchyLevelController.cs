@@ -65,15 +65,16 @@ public class DimHierarchyLevelController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<DimHierarchyLevelDto>> PostHierarchyLevel(
-        [FromBody] CreateDimHierarchyLevelDto createDto)
+    public async Task<ActionResult<DimHierarchyLevelDto>> PostHierarchyLevel([FromBody] CreateDimHierarchyLevelDto createDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        var created = await _dimHierarchyLevelService.CreateHierarchyLevelAsync(createDto.HierarchyLevelName);
+
+        var created = await _dimHierarchyLevelService.CreateHierarchyLevelAsync(createDto.HierarchyLevelCode, createDto.HierarchyLevelName);
         var dto = _mapper.Map<DimHierarchyLevelDto>(created);
+
         return CreatedAtAction(nameof(GetById), new { id = dto.HierarchyLevelId }, dto);
     }
     
@@ -100,7 +101,9 @@ public class DimHierarchyLevelController : ControllerBase
         {
             return BadRequest(new { Message = "Invalid HierarchyLevelId." });
         }
-        await _dimHierarchyLevelService.UpdateHierarchyLevelAsync(id, updateDto.HierarchyLevelName);
+
+        await _dimHierarchyLevelService.UpdateHierarchyLevelAsync(id, updateDto.HierarchyLevelCode, updateDto.HierarchyLevelName);
+
         return NoContent();
     }
     

@@ -18,24 +18,26 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
         _logger = logger;
     }
     
-    public async Task<DimStandardJobRole> CreateStandardJobRoleAsync(string jobRoleTitle, int industryFieldId)
+    public async Task<DimStandardJobRole> CreateStandardJobRoleAsync(string standardJobRoleCode, string jobRoleTitle, int industryFieldId)
     {
-        DimStandardJobRoleValidator.ValidateForCreate(jobRoleTitle, industryFieldId);
-        var role = new DimStandardJobRole(0, jobRoleTitle, industryFieldId);
+        DimStandardJobRoleValidator.ValidateForCreate(standardJobRoleCode, jobRoleTitle, industryFieldId);
+        _logger.LogInformation("Service: Attempting to create standard job role: {JobRoleTitle}", jobRoleTitle);
+
+        var role = new DimStandardJobRole(0, standardJobRoleCode, jobRoleTitle, industryFieldId);
         try
         {
             await _dimStandardJobRoleRepository.AddStandardJobRoleAsync(role);
-            _logger.LogInformation("Created DimStandardJobRole {JobRoleId}", role.StandardJobRoleId);
+            _logger.LogInformation("Service: Created DimStandardJobRole {JobRoleId} ('{JobRoleTitle}')", role.StandardJobRoleId, role.StandardJobRoleTitle);
             return role;
         }
         catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Failed to create DimStandardJobRole (duplicate {JobRoleId})", role.StandardJobRoleId);
+            _logger.LogError(ex, "Service: Conflict creating standard job role '{JobRoleTitle}'.", jobRoleTitle);
             throw;
         }
         catch (NotFoundException ex)
         {
-            _logger.LogError(ex, "FK not found: Industry field ID not found");
+            _logger.LogError(ex, "Service: Cannot create standard job role '{JobRoleTitle}' because IndustryFieldId {IndustryFieldId} was not found.", jobRoleTitle, industryFieldId);
             throw;
         }
     }
@@ -60,26 +62,30 @@ public class DimStandardJobRoleService : IDimStandardJobRoleService
         return list;
     }
 
-    public async Task<DimStandardJobRole> UpdateStandardJobRoleAsync(int id, string jobRoleTitle, int industryFieldId)
+    public async Task<DimStandardJobRole> UpdateStandardJobRoleAsync(int id, string standardJobRoleCode, string jobRoleTitle, int industryFieldId)
     {
-        DimStandardJobRoleValidator.ValidateForUpdate(id, jobRoleTitle, industryFieldId);
+        DimStandardJobRoleValidator.ValidateForUpdate(id, standardJobRoleCode, jobRoleTitle, industryFieldId);
+        _logger.LogInformation("Service: Attempting to update DimStandardJobRole {JobRoleId}", id);
         try
         {
             var existing = await _dimStandardJobRoleRepository.GetStandardJobRoleByIdAsync(id);
+                
             existing.StandardJobRoleTitle = jobRoleTitle;
+            existing.StandardJobRoleCode = standardJobRoleCode;
             existing.IndustryFieldId = industryFieldId;
+                
             await _dimStandardJobRoleRepository.UpdateStandardJobRoleAsync(existing);
-            _logger.LogInformation("Updated DimStandardJobRole {JobRoleId}", id);
+            _logger.LogInformation("Service: Updated DimStandardJobRole {JobRoleId}", id);
             return existing;
         }
         catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update, standard job role {JobRoleId} not found", id);
+            _logger.LogWarning(ex, "Service: Cannot update, standard job role {JobRoleId} not found.", id);
             throw;
         }
         catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Conflict updating standard job role {JobRoleId}", id);
+            _logger.LogError(ex, "Service: Conflict updating standard job role {JobRoleId}.", id);
             throw;
         }
     }

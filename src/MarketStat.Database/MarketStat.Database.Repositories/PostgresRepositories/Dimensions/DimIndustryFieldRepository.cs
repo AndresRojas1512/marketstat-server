@@ -20,61 +20,77 @@ public class DimIndustryFieldRepository : BaseRepository, IDimIndustryFieldRepos
     
     public async Task AddIndustryFieldAsync(DimIndustryField industryField)
     {
-        var dbModel = new DimIndustryFieldDbModel(
-            industryFieldId: 0,
-            industryFieldName: industryField.IndustryFieldName
-        );
+        var dbModel = DimIndustryFieldConverter.ToDbModel(industryField);
+            
         await _dbContext.DimIndustryFields.AddAsync(dbModel);
         try
         {
             await _dbContext.SaveChangesAsync();
         }
         catch (DbUpdateException dbEx)
-            when (dbEx.InnerException is PostgresException pg
-                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+            when (dbEx.InnerException is PostgresException pgEx 
+                  && pgEx.SqlState == PostgresErrorCodes.UniqueViolation)
         {
-            throw new ConflictException($"An industry field '{industryField.IndustryFieldName}' already exists.");
+            throw new ConflictException(
+                $"An industry field with the code '{industryField.IndustryFieldCode}' or name '{industryField.IndustryFieldName}' already exists.");
         }
         industryField.IndustryFieldId = dbModel.IndustryFieldId;
     }
 
     public async Task<DimIndustryField> GetIndustryFieldByIdAsync(int industryFieldId)
     {
-        var dbIndustryField = await _dbContext.DimIndustryFields.FindAsync(industryFieldId);
-        if (dbIndustryField is null)
+        var dbIndustryField = await _dbContext.DimIndustryFields
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.IndustryFieldId == industryFieldId);
+                
+        if (dbIndustryField == null)
+        {
             throw new NotFoundException($"Industry field with id {industryFieldId} not found.");
+        }
         return DimIndustryFieldConverter.ToDomain(dbIndustryField);
     }
 
     public async Task<IEnumerable<DimIndustryField>> GetAllIndustryFieldsAsync()
     {
-        var allDbIndustryFields = await _dbContext.DimIndustryFields.ToListAsync();
+        var allDbIndustryFields = await _dbContext.DimIndustryFields
+            .AsNoTracking()
+            .OrderBy(i => i.IndustryFieldName)
+            .ToListAsync();
         return allDbIndustryFields.Select(DimIndustryFieldConverter.ToDomain);
     }
 
     public async Task UpdateIndustryFieldAsync(DimIndustryField industryField)
     {
-        var dbIndustryField = await _dbContext.DimIndustryFields.FindAsync(industryField.IndustryFieldId);
-        if (dbIndustryField is null)
+        var dbIndustryField = await _dbContext.DimIndustryFields
+            .FirstOrDefaultAsync(i => i.IndustryFieldId == industryField.IndustryFieldId);
+
+        if (dbIndustryField == null)
+        {
             throw new NotFoundException($"Industry field with id {industryField.IndustryFieldId} not found");
+        }
+            
         dbIndustryField.IndustryFieldName = industryField.IndustryFieldName;
+        dbIndustryField.IndustryFieldCode = industryField.IndustryFieldCode;
+            
         try
         {
             await _dbContext.SaveChangesAsync();
         }
         catch (DbUpdateException dbEx)
-            when (dbEx.InnerException is PostgresException pg
-                  && pg.SqlState == PostgresErrorCodes.UniqueViolation)
+            when (dbEx.InnerException is PostgresException pgEx 
+                  && pgEx.SqlState == PostgresErrorCodes.UniqueViolation)
         {
-            throw new ConflictException($"An industry field with code '{industryField.IndustryFieldName}' already exists.");
+            throw new ConflictException($"Updating resulted in a conflict. The code '{industryField.IndustryFieldCode}' or name '{industryField.IndustryFieldName}' may already exist.");
         }
     }
 
     public async Task DeleteIndustryFieldAsync(int industryFieldId)
     {
         var dbIndustryField = await _dbContext.DimIndustryFields.FindAsync(industryFieldId);
-        if (dbIndustryField is null)
+        if (dbIndustryField == null)
+        {
             throw new NotFoundException($"Industry field with id {industryFieldId} not found");
+        }
         _dbContext.DimIndustryFields.Remove(dbIndustryField);
         await _dbContext.SaveChangesAsync();
     }

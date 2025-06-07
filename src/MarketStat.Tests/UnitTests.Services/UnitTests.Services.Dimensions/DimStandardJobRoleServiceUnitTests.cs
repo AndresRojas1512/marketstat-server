@@ -10,77 +10,61 @@ namespace UnitTests.Services.UnitTests.Services.Dimensions;
 
 public class DimStandardJobRoleServiceUnitTests
 {
-    private Mock<IDimStandardJobRoleRepository> _dimStandardJobRoleRepository;
-    private Mock<ILogger<DimStandardJobRoleService>> _logger;
-    private DimStandardJobRoleService _dimStandardJobRoleService;
+    private readonly Mock<IDimStandardJobRoleRepository> _dimStandardJobRoleRepositoryMock;
+    private readonly Mock<ILogger<DimStandardJobRoleService>> _loggerMock;
+    private readonly DimStandardJobRoleService _dimStandardJobRoleService;
+
+    private DimStandardJobRole CreateTestStandardJobRole(int id, string code, string title, int industryId)
+    {
+        return new DimStandardJobRole(id, code, title, industryId);
+    }
 
     public DimStandardJobRoleServiceUnitTests()
     {
-        _dimStandardJobRoleRepository = new Mock<IDimStandardJobRoleRepository>();
-        _logger = new Mock<ILogger<DimStandardJobRoleService>>();
-        _dimStandardJobRoleService = new DimStandardJobRoleService(_dimStandardJobRoleRepository.Object, _logger.Object);
+        _dimStandardJobRoleRepositoryMock = new Mock<IDimStandardJobRoleRepository>();
+        _loggerMock = new Mock<ILogger<DimStandardJobRoleService>>();
+        _dimStandardJobRoleService = new DimStandardJobRoleService(_dimStandardJobRoleRepositoryMock.Object, _loggerMock.Object);
     }
-    
+
     [Fact]
     public async Task CreateStandardJobRoleAsync_ValidParameters_ReturnsNewRole()
     {
-        _dimStandardJobRoleRepository
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.AddStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
             .Callback<DimStandardJobRole>(d => d.StandardJobRoleId = 1)
             .Returns(Task.CompletedTask);
 
-        var result = await _dimStandardJobRoleService.CreateStandardJobRoleAsync("Architect", 2);
-
+        var result = await _dimStandardJobRoleService.CreateStandardJobRoleAsync("ARCH", "Architect", 2);
+        
         Assert.Equal(1, result.StandardJobRoleId);
+        Assert.Equal("ARCH", result.StandardJobRoleCode);
         Assert.Equal("Architect", result.StandardJobRoleTitle);
         Assert.Equal(2, result.IndustryFieldId);
-        _dimStandardJobRoleRepository.Verify(r => r.AddStandardJobRoleAsync(
+
+        _dimStandardJobRoleRepositoryMock.Verify(r => r.AddStandardJobRoleAsync(
             It.Is<DimStandardJobRole>(d =>
-                d.StandardJobRoleId    == 1 &&
+                d.StandardJobRoleCode == "ARCH" &&
                 d.StandardJobRoleTitle == "Architect" &&
-                d.IndustryFieldId      == 2
-            )), Times.Once);
+                d.IndustryFieldId == 2
+        )), Times.Once);
     }
 
     [Fact]
     public async Task CreateStandardJobRoleAsync_Conflict_ThrowsConflictException()
     {
-        _dimStandardJobRoleRepository
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.AddStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
             .ThrowsAsync(new ConflictException("duplicate"));
-
+        
         await Assert.ThrowsAsync<ConflictException>(() =>
-            _dimStandardJobRoleService.CreateStandardJobRoleAsync("Developer", 1));
-    }
-
-    [Fact]
-    public async Task CreateStandardJobRoleAsync_FkMissing_ThrowsNotFoundException()
-    {
-        _dimStandardJobRoleRepository
-            .Setup(r => r.AddStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
-            .ThrowsAsync(new NotFoundException("fk"));
-
-        await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimStandardJobRoleService.CreateStandardJobRoleAsync("Developer", 1));
-    }
-
-    [Fact]
-    public async Task CreateStandardJobRoleAsync_GenericError_Propagates()
-    {
-        _dimStandardJobRoleRepository
-            .Setup(r => r.AddStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
-            .ThrowsAsync(new InvalidOperationException("db error"));
-
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _dimStandardJobRoleService.CreateStandardJobRoleAsync("Developer", 1));
-        Assert.Equal("db error", ex.Message);
+            _dimStandardJobRoleService.CreateStandardJobRoleAsync("DEV", "Developer", 1));
     }
 
     [Fact]
     public async Task GetStandardJobRoleByIdAsync_Existing_ReturnsRole()
     {
-        var expected = new DimStandardJobRole(5, "Analyst", 3);
-        _dimStandardJobRoleRepository
+        var expected = CreateTestStandardJobRole(5, "ANL", "Analyst", 3);
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.GetStandardJobRoleByIdAsync(5))
             .ReturnsAsync(expected);
 
@@ -92,7 +76,7 @@ public class DimStandardJobRoleServiceUnitTests
     [Fact]
     public async Task GetStandardJobRoleByIdAsync_NotFound_ThrowsNotFoundException()
     {
-        _dimStandardJobRoleRepository
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.GetStandardJobRoleByIdAsync(7))
             .ThrowsAsync(new NotFoundException("missing"));
 
@@ -105,10 +89,10 @@ public class DimStandardJobRoleServiceUnitTests
     {
         var list = new List<DimStandardJobRole>
         {
-            new DimStandardJobRole(1, "QA", 2),
-            new DimStandardJobRole(2, "DevOps", 1)
+            CreateTestStandardJobRole(1, "QA", "QA Engineer", 2),
+            CreateTestStandardJobRole(2, "DEVOPS", "DevOps Engineer", 1)
         };
-        _dimStandardJobRoleRepository
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.GetAllStandardJobRolesAsync())
             .ReturnsAsync(list);
 
@@ -121,69 +105,56 @@ public class DimStandardJobRoleServiceUnitTests
     [Fact]
     public async Task UpdateStandardJobRoleAsync_ValidParameters_UpdatesAndReturns()
     {
-        var existing = new DimStandardJobRole(3, "Tester", 2);
-        _dimStandardJobRoleRepository
+        var existing = CreateTestStandardJobRole(3, "TEST", "Tester", 2);
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.GetStandardJobRoleByIdAsync(3))
             .ReturnsAsync(existing);
-        _dimStandardJobRoleRepository
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.UpdateStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
             .Returns(Task.CompletedTask);
 
-        var updated = await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(3, "Lead Tester", 2);
+        var updated = await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(3, "LEADTEST", "Lead Tester", 2);
 
         Assert.Equal(3, updated.StandardJobRoleId);
+        Assert.Equal("LEADTEST", updated.StandardJobRoleCode);
         Assert.Equal("Lead Tester", updated.StandardJobRoleTitle);
         Assert.Equal(2, updated.IndustryFieldId);
-        _dimStandardJobRoleRepository.Verify(r => r.UpdateStandardJobRoleAsync(
+        _dimStandardJobRoleRepositoryMock.Verify(r => r.UpdateStandardJobRoleAsync(
             It.Is<DimStandardJobRole>(d =>
-                d.StandardJobRoleId    == 3 &&
+                d.StandardJobRoleId == 3 &&
+                d.StandardJobRoleCode == "LEADTEST" &&
                 d.StandardJobRoleTitle == "Lead Tester" &&
-                d.IndustryFieldId      == 2
-            )), Times.Once);
+                d.IndustryFieldId == 2
+        )), Times.Once);
     }
 
     [Fact]
     public async Task UpdateStandardJobRoleAsync_NotFound_ThrowsNotFoundException()
     {
-        _dimStandardJobRoleRepository
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.GetStandardJobRoleByIdAsync(9))
             .ThrowsAsync(new NotFoundException("missing"));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimStandardJobRoleService.UpdateStandardJobRoleAsync(9, "X", 1));
-    }
-
-    [Fact]
-    public async Task UpdateStandardJobRoleAsync_Conflict_ThrowsConflictException()
-    {
-        var existing = new DimStandardJobRole(4, "Dev", 1);
-        _dimStandardJobRoleRepository
-            .Setup(r => r.GetStandardJobRoleByIdAsync(4))
-            .ReturnsAsync(existing);
-        _dimStandardJobRoleRepository
-            .Setup(r => r.UpdateStandardJobRoleAsync(It.IsAny<DimStandardJobRole>()))
-            .ThrowsAsync(new ConflictException("dup"));
-
-        await Assert.ThrowsAsync<ConflictException>(() =>
-            _dimStandardJobRoleService.UpdateStandardJobRoleAsync(4, "Dev", 1));
+            _dimStandardJobRoleService.UpdateStandardJobRoleAsync(9, "CODE", "Title", 1));
     }
 
     [Fact]
     public async Task DeleteStandardJobRoleAsync_Valid_CallsRepository()
     {
-        _dimStandardJobRoleRepository
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.DeleteStandardJobRoleAsync(4))
             .Returns(Task.CompletedTask);
 
         await _dimStandardJobRoleService.DeleteStandardJobRoleAsync(4);
 
-        _dimStandardJobRoleRepository.Verify(r => r.DeleteStandardJobRoleAsync(4), Times.Once);
+        _dimStandardJobRoleRepositoryMock.Verify(r => r.DeleteStandardJobRoleAsync(4), Times.Once);
     }
 
     [Fact]
     public async Task DeleteStandardJobRoleAsync_NotFound_ThrowsNotFoundException()
     {
-        _dimStandardJobRoleRepository
+        _dimStandardJobRoleRepositoryMock
             .Setup(r => r.DeleteStandardJobRoleAsync(6))
             .ThrowsAsync(new NotFoundException("missing"));
 

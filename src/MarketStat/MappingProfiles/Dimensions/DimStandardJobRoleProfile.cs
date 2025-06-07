@@ -10,9 +10,16 @@ public class DimStandardJobRoleProfile : Profile
     {
         CreateMap<DimStandardJobRole, DimStandardJobRoleDto>();
         
-        CreateMap<CreateDimStandardJobRoleDto, DimStandardJobRole>();
+        CreateMap<CreateDimStandardJobRoleDto, DimStandardJobRole>()
+            .ForMember(dest => dest.StandardJobRoleId, opt => opt.Ignore())
+            .ForMember(dest => dest.DimIndustryField, opt => opt.Ignore())
+            .ForMember(dest => dest.DimJobRoles, opt => opt.Ignore())
+            .ForMember(dest => dest.DimStandardJobRoleHierarchies, opt => opt.Ignore());
         
         CreateMap<UpdateDimStandardJobRoleDto, DimStandardJobRole>()
-            .ForMember(dest => dest.StandardJobRoleId, opt => opt.Ignore());
+            .ForMember(dest => dest.StandardJobRoleId, opt => opt.Ignore())
+            .ForMember(dest => dest.DimIndustryField, opt => opt.Ignore())
+            .ForMember(dest => dest.DimJobRoles, opt => opt.Ignore())
+            .ForMember(dest => dest.DimStandardJobRoleHierarchies, opt => opt.Ignore());
     }
 }

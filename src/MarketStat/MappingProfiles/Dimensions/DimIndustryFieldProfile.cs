@@ -9,10 +9,15 @@ public class DimIndustryFieldProfile : Profile
     public DimIndustryFieldProfile()
     {
         CreateMap<DimIndustryField, DimIndustryFieldDto>();
-        
-        CreateMap<CreateDimIndustryFieldDto, DimIndustryField>();
-        
+            
+        CreateMap<CreateDimIndustryFieldDto, DimIndustryField>()
+            .ForMember(dest => dest.IndustryFieldId, opt => opt.Ignore())
+            .ForMember(dest => dest.EmployerIndustryFields, opt => opt.Ignore())
+            .ForMember(dest => dest.DimStandardJobRoles, opt => opt.Ignore());
+            
         CreateMap<UpdateDimIndustryFieldDto, DimIndustryField>()
-            .ForMember(dest => dest.IndustryFieldId, opt => opt.Ignore());
+            .ForMember(dest => dest.IndustryFieldId, opt => opt.Ignore())
+            .ForMember(dest => dest.EmployerIndustryFields, opt => opt.Ignore())
+            .ForMember(dest => dest.DimStandardJobRoles, opt => opt.Ignore());
     }
 }

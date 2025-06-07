@@ -3,12 +3,17 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MarketStat.Database.Models;
 
-[Table("dim_standard_job_role")]
+[Table("dim_standard_job_role", Schema = "marketstat")]
 public class DimStandardJobRoleDbModel
 {
     [Key]
     [Column("standard_job_role_id")]
     public int StandardJobRoleId { get; set; }
+
+    [Required]
+    [Column("standard_job_role_code")]
+    [StringLength(20)]
+    public string StandardJobRoleCode { get; set; } = string.Empty;
 
     [Required]
     [Column("standard_job_role_title")]
@@ -25,16 +30,9 @@ public class DimStandardJobRoleDbModel
     public virtual ICollection<DimJobRoleDbModel> DimJobRoles { get; set; }
     public virtual ICollection<DimStandardJobRoleHierarchyDbModel> DimStandardJobRoleHierarchies { get; set; }
     
-    public DimStandardJobRoleDbModel() 
+    public DimStandardJobRoleDbModel()
     {
         DimJobRoles = new List<DimJobRoleDbModel>();
         DimStandardJobRoleHierarchies = new List<DimStandardJobRoleHierarchyDbModel>();
-    }
-
-    public DimStandardJobRoleDbModel(int standardJobRoleId, string standardJobRoleTitle, int industryFieldId)
-    {
-        StandardJobRoleId = standardJobRoleId;
-        StandardJobRoleTitle = standardJobRoleTitle;
-        IndustryFieldId = industryFieldId;
     }
 }

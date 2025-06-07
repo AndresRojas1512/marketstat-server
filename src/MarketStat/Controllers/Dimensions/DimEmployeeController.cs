@@ -75,9 +75,16 @@ public class DimEmployeeController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        var created = await _dimEmployeeService.CreateEmployeeAsync(createDto.BirthDate, createDto.CareerStartDate);
+
+        var created = await _dimEmployeeService.CreateEmployeeAsync(
+            createDto.EmployeeRefId,
+            createDto.BirthDate,
+            createDto.CareerStartDate,
+            createDto.Gender
+        );
         var dto = _mapper.Map<DimEmployeeDto>(created);
-        return CreatedAtAction(nameof(GetById), new { id = dto.EmployeeId}, dto );
+
+        return CreatedAtAction(nameof(GetById), new { id = dto.EmployeeId }, dto);
     }
     
     /// <summary>
@@ -103,7 +110,15 @@ public class DimEmployeeController : ControllerBase
         {
             return BadRequest(new { Message = "Invalid EmployeeId." });
         }
-        await _dimEmployeeService.UpdateEmployeeAsync(id, updateDto.BirthDate, updateDto.CareerStartDate);
+
+        await _dimEmployeeService.UpdateEmployeeAsync(
+            id,
+            updateDto.EmployeeRefId,
+            updateDto.BirthDate,
+            updateDto.CareerStartDate,
+            updateDto.Gender
+        );
+
         return NoContent();
     }
     

@@ -5,21 +5,31 @@ namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 
 public static class DimStandardJobRoleConverter
 {
-    public static DimStandardJobRoleDbModel ToDbModel(DimStandardJobRole jobRole)
+    public static DimStandardJobRoleDbModel ToDbModel(DimStandardJobRole domainJobRole)
     {
-        return new DimStandardJobRoleDbModel(
-            jobRole.StandardJobRoleId,
-            jobRole.StandardJobRoleTitle,
-            jobRole.IndustryFieldId
-        );
+        if (domainJobRole == null)
+            throw new ArgumentNullException(nameof(domainJobRole));
+
+        return new DimStandardJobRoleDbModel
+        {
+            StandardJobRoleId = domainJobRole.StandardJobRoleId,
+            StandardJobRoleCode = domainJobRole.StandardJobRoleCode,
+            StandardJobRoleTitle = domainJobRole.StandardJobRoleTitle,
+            IndustryFieldId = domainJobRole.IndustryFieldId
+        };
     }
 
     public static DimStandardJobRole ToDomain(DimStandardJobRoleDbModel dbJobRole)
     {
-        return new DimStandardJobRole(
-            dbJobRole.StandardJobRoleId,
-            dbJobRole.StandardJobRoleTitle,
-            dbJobRole.IndustryFieldId
-        );
+        if (dbJobRole == null)
+            throw new ArgumentNullException(nameof(dbJobRole));
+
+        return new DimStandardJobRole
+        {
+            StandardJobRoleId = dbJobRole.StandardJobRoleId,
+            StandardJobRoleCode = dbJobRole.StandardJobRoleCode,
+            StandardJobRoleTitle = dbJobRole.StandardJobRoleTitle,
+            IndustryFieldId = dbJobRole.IndustryFieldId
+        };
     }
 }

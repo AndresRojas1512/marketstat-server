@@ -11,47 +11,57 @@ public class DimStandardJobRoleServiceIntegrationTests : IDisposable
 {
     private readonly MarketStatAccessObjectInMemory _accessObject;
     private readonly IDimStandardJobRoleService _dimStandardJobRoleService;
+    
+    private DimStandardJobRole CreateTestStandardJobRole(int id, string code, string title, int industryId)
+    {
+        return new DimStandardJobRole(id, code, title, industryId);
+    }
 
     public DimStandardJobRoleServiceIntegrationTests()
     {
         _accessObject = new MarketStatAccessObjectInMemory();
-        _dimStandardJobRoleService = new DimStandardJobRoleService(_accessObject.DimStandardJobRoleRepository,
-            NullLogger<DimStandardJobRoleService>.Instance);
+        _dimStandardJobRoleService = _accessObject.DimStandardJobRoleService;
     }
+
     public void Dispose() => _accessObject.Dispose();
-    
+
     [Fact]
     public async Task CreateStandardJobRoleAsync_ValidParameters_CreatesAndReturnsRole()
     {
+        var code = "DEV";
         var title = "Developer";
         var fieldId = 7;
-
-        var role = await _dimStandardJobRoleService.CreateStandardJobRoleAsync(title, fieldId);
-
+        
+        var role = await _dimStandardJobRoleService.CreateStandardJobRoleAsync(code, title, fieldId);
+        
         Assert.True(role.StandardJobRoleId > 0);
+        Assert.Equal(code, role.StandardJobRoleCode);
         Assert.Equal(title, role.StandardJobRoleTitle);
         Assert.Equal(fieldId, role.IndustryFieldId);
 
         var all = (await _dimStandardJobRoleService.GetAllStandardJobRolesAsync()).ToList();
         Assert.Single(all);
         Assert.Equal(role.StandardJobRoleId, all[0].StandardJobRoleId);
+        Assert.Equal(code, all[0].StandardJobRoleCode);
     }
 
     [Fact]
     public async Task GetStandardJobRoleByIdAsync_Existing_ReturnsRole()
     {
-        var seed = new DimStandardJobRole(42, "Analyst", 3);
+        var seed = CreateTestStandardJobRole(42, "ANL-42", "Analyst", 3);
         await _accessObject.SeedStandardJobRoleAsync(new[] { seed });
-
+        
         var fetched = await _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(42);
-
+        
+        Assert.NotNull(fetched);
         Assert.Equal(seed.StandardJobRoleId, fetched.StandardJobRoleId);
+        Assert.Equal(seed.StandardJobRoleCode, fetched.StandardJobRoleCode);
         Assert.Equal(seed.StandardJobRoleTitle, fetched.StandardJobRoleTitle);
         Assert.Equal(seed.IndustryFieldId, fetched.IndustryFieldId);
     }
 
     [Fact]
-    public async Task GetStandardJobRoleByIdAsync_NotFound_ThrowsException()
+    public async Task GetStandardJobRoleByIdAsync_NotFound_ThrowsNotFoundException()
     {
         await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(999));
@@ -62,55 +72,63 @@ public class DimStandardJobRoleServiceIntegrationTests : IDisposable
     {
         var seeds = new[]
         {
-            new DimStandardJobRole(1, "A", 1),
-            new DimStandardJobRole(2, "B", 2),
+            CreateTestStandardJobRole(1, "QA", "QA Engineer", 1),
+            CreateTestStandardJobRole(2, "DEVOPS", "DevOps Engineer", 2),
         };
         await _accessObject.SeedStandardJobRoleAsync(seeds);
-
+        
         var list = (await _dimStandardJobRoleService.GetAllStandardJobRolesAsync()).ToList();
-
+        
         Assert.Equal(2, list.Count);
-        Assert.Contains(list, r => r.StandardJobRoleTitle == "A" && r.IndustryFieldId == 1);
-        Assert.Contains(list, r => r.StandardJobRoleTitle == "B" && r.IndustryFieldId == 2);
+        Assert.Contains(list, r => r.StandardJobRoleCode == "QA" && r.IndustryFieldId == 1);
+        Assert.Contains(list, r => r.StandardJobRoleCode == "DEVOPS" && r.IndustryFieldId == 2);
     }
 
     [Fact]
     public async Task UpdateStandardJobRoleAsync_Existing_UpdatesAndReturns()
     {
-        var original = new DimStandardJobRole(5, "OldTitle", 4);
+        var original = CreateTestStandardJobRole(5, "OLD-TTL", "OldTitle", 4);
         await _accessObject.SeedStandardJobRoleAsync(new[] { original });
-
-        var updated = await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(5, "NewTitle", 9);
-
+        
+        var newCode = "NEW-TTL";
+        var newTitle = "NewTitle";
+        var newIndustryId = 9;
+        
+        var updated = await _dimStandardJobRoleService.UpdateStandardJobRoleAsync(5, newCode, newTitle, newIndustryId);
+        
         Assert.Equal(5, updated.StandardJobRoleId);
-        Assert.Equal("NewTitle", updated.StandardJobRoleTitle);
-        Assert.Equal(9, updated.IndustryFieldId);
+        Assert.Equal(newCode, updated.StandardJobRoleCode);
+        Assert.Equal(newTitle, updated.StandardJobRoleTitle);
+        Assert.Equal(newIndustryId, updated.IndustryFieldId);
 
         var fetched = await _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(5);
-        Assert.Equal("NewTitle", fetched.StandardJobRoleTitle);
+        Assert.NotNull(fetched);
+        Assert.Equal(newCode, fetched.StandardJobRoleCode);
+        Assert.Equal(newTitle, fetched.StandardJobRoleTitle);
     }
 
     [Fact]
-    public async Task UpdateStandardJobRoleAsync_NotFound_ThrowsException()
+    public async Task UpdateStandardJobRoleAsync_NotFound_ThrowsNotFoundException()
     {
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimStandardJobRoleService.UpdateStandardJobRoleAsync(123, "X", 1));
+            _dimStandardJobRoleService.UpdateStandardJobRoleAsync(123, "CODE", "Title", 1));
     }
 
     [Fact]
     public async Task DeleteStandardJobRoleAsync_Existing_RemovesRole()
     {
-        var seed = new DimStandardJobRole(7, "ToDelete", 8);
+        var seed = CreateTestStandardJobRole(7, "DEL-7", "ToDelete", 8);
         await _accessObject.SeedStandardJobRoleAsync(new[] { seed });
 
         await _dimStandardJobRoleService.DeleteStandardJobRoleAsync(7);
 
-        var all = (await _dimStandardJobRoleService.GetAllStandardJobRolesAsync()).ToList();
-        Assert.Empty(all);
+        await Assert.ThrowsAsync<NotFoundException>(() => 
+            _dimStandardJobRoleService.GetStandardJobRoleByIdAsync(7)
+        );
     }
 
     [Fact]
-    public async Task DeleteStandardJobRoleAsync_NotFound_ThrowsException()
+    public async Task DeleteStandardJobRoleAsync_NotFound_ThrowsNotFoundException()
     {
         await Assert.ThrowsAsync<NotFoundException>(() =>
             _dimStandardJobRoleService.DeleteStandardJobRoleAsync(999));

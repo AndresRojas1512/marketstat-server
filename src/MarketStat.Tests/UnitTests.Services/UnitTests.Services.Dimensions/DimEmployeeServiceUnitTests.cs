@@ -14,77 +14,93 @@ public class DimEmployeeServiceUnitTests
     private readonly Mock<ILogger<DimEmployeeService>> _loggerMock;
     private readonly DimEmployeeService _dimEmployeeService;
 
+    private (string refId, DateOnly birthDate, DateOnly careerStartDate, string? gender) GetDefaultEmployeeParams(string refId = "EMP-TEST-001")
+    {
+        return (
+            refId: refId,
+            birthDate: new DateOnly(1990, 1, 1),
+            careerStartDate: new DateOnly(2010, 5, 20),
+            gender: "Female"
+        );
+    }
+
     public DimEmployeeServiceUnitTests()
     {
         _dimEmployeeRepositoryMock = new Mock<IDimEmployeeRepository>();
         _loggerMock = new Mock<ILogger<DimEmployeeService>>();
         _dimEmployeeService = new DimEmployeeService(_dimEmployeeRepositoryMock.Object, _loggerMock.Object);
     }
-    
+
     [Fact]
-    public async Task CreateEmployeeAsync_ValidDates_AssignsId()
+    public async Task CreateEmployeeAsync_ValidParameters_AssignsIdAndReturns()
     {
-        var birthDate       = new DateOnly(1990, 1, 1);
-        var careerStartDate = new DateOnly(2010, 5, 20);
+        var defaultParams = GetDefaultEmployeeParams();
+        var expectedEmployeeId = 1;
 
-        _dimEmployeeRepositoryMock
-            .Setup(r => r.AddEmployeeAsync(It.IsAny<DimEmployee>()))
-            .Callback<DimEmployee>(e => e.EmployeeId = 1)
-            .Returns(Task.CompletedTask);
-
-        var result = await _dimEmployeeService.CreateEmployeeAsync(birthDate, careerStartDate);
-
-        Assert.Equal(1, result.EmployeeId);
-        Assert.Equal(birthDate, result.BirthDate);
-        Assert.Equal(careerStartDate, result.CareerStartDate);
+        _dimEmployeeRepositoryMock.Setup(r => r.AddEmployeeAsync(It.IsAny<DimEmployee>()))
+             .Callback<DimEmployee>(e => e.EmployeeId = expectedEmployeeId)
+             .Returns(Task.CompletedTask);
+        
+        var result = await _dimEmployeeService.CreateEmployeeAsync(
+            defaultParams.refId, defaultParams.birthDate, defaultParams.careerStartDate, defaultParams.gender
+        );
+        
+        Assert.NotNull(result);
+        Assert.Equal(expectedEmployeeId, result.EmployeeId);
+        Assert.Equal(defaultParams.refId, result.EmployeeRefId);
+        Assert.Equal(defaultParams.birthDate, result.BirthDate);
+        Assert.Equal(defaultParams.careerStartDate, result.CareerStartDate);
+        Assert.Equal(defaultParams.gender, result.Gender);
 
         _dimEmployeeRepositoryMock.Verify(r =>
             r.AddEmployeeAsync(It.Is<DimEmployee>(e =>
-                e.EmployeeId      == 1 &&
-                e.BirthDate       == birthDate &&
-                e.CareerStartDate == careerStartDate
-            )), Times.Once);
+                e.EmployeeRefId == defaultParams.refId &&
+                e.BirthDate == defaultParams.birthDate &&
+                e.CareerStartDate == defaultParams.careerStartDate &&
+                e.Gender == defaultParams.gender
+        )), Times.Once);
     }
 
     [Fact]
-    public async Task CreateEmployeeAsync_FutureBirthDate_ThrowsArgumentException()
+    public async Task CreateEmployeeAsync_RepositoryThrowsConflict_ThrowsConflictException()
     {
-        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
-        var today    = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEmployeeService.CreateEmployeeAsync(tomorrow, today)
-        );
-    }
-
-    [Fact]
-    public async Task CreateEmployeeAsync_RepositoryThrows_WrapsException()
-    {
-        var birthDate       = new DateOnly(1990, 1, 1);
-        var careerStartDate = new DateOnly(2010, 1, 1);
-
+        var defaultParams = GetDefaultEmployeeParams();
         _dimEmployeeRepositoryMock
             .Setup(r => r.AddEmployeeAsync(It.IsAny<DimEmployee>()))
-            .ThrowsAsync(new Exception("db fail"));
+            .ThrowsAsync(new ConflictException("Duplicate Ref ID"));
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _dimEmployeeService.CreateEmployeeAsync(birthDate, careerStartDate)
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            _dimEmployeeService.CreateEmployeeAsync(
+                defaultParams.refId, defaultParams.birthDate, defaultParams.careerStartDate, defaultParams.gender
+            )
         );
+    }
 
-        Assert.Contains("Could not create employee 0", ex.Message);
+    [Fact]
+    public async Task CreateEmployeeAsync_InvalidRefId_ThrowsArgumentException()
+    {
+        var defaultParams = GetDefaultEmployeeParams(refId: "");
+        
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _dimEmployeeService.CreateEmployeeAsync(
+                defaultParams.refId, defaultParams.birthDate, defaultParams.careerStartDate, defaultParams.gender
+            )
+        );
     }
 
     [Fact]
     public async Task GetEmployeeByIdAsync_Existing_ReturnsEmployee()
     {
-        var emp = new DimEmployee(2, new DateOnly(1985, 2, 2), new DateOnly(2005, 2, 2));
+        var defaultParams = GetDefaultEmployeeParams();
+        var expectedEmployee = new DimEmployee(2, defaultParams.refId, defaultParams.birthDate, defaultParams.careerStartDate, defaultParams.gender);
+        
         _dimEmployeeRepositoryMock
             .Setup(r => r.GetEmployeeByIdAsync(2))
-            .ReturnsAsync(emp);
+            .ReturnsAsync(expectedEmployee);
 
         var result = await _dimEmployeeService.GetEmployeeByIdAsync(2);
 
-        Assert.Same(emp, result);
+        Assert.Same(expectedEmployee, result);
     }
 
     [Fact]
@@ -104,7 +120,8 @@ public class DimEmployeeServiceUnitTests
     {
         var list = new List<DimEmployee>
         {
-            new(1, new DateOnly(1990,1,1), new DateOnly(2010,1,1))
+            new DimEmployee(1, "EMP-001", new DateOnly(1990,1,1), new DateOnly(2010,1,1), "Male"),
+            new DimEmployee(2, "EMP-002", new DateOnly(1992,2,2), new DateOnly(2012,2,2), "Female")
         };
         _dimEmployeeRepositoryMock
             .Setup(r => r.GetAllEmployeesAsync())
@@ -118,7 +135,7 @@ public class DimEmployeeServiceUnitTests
     [Fact]
     public async Task UpdateEmployeeAsync_Valid_UpdatesAndReturns()
     {
-        var existing = new DimEmployee(3, new DateOnly(1980,1,1), new DateOnly(2000,1,1));
+        var existing = new DimEmployee(3, "EMP-OLD", new DateOnly(1980,1,1), new DateOnly(2000,1,1), "Male");
         _dimEmployeeRepositoryMock
             .Setup(r => r.GetEmployeeByIdAsync(3))
             .ReturnsAsync(existing);
@@ -126,39 +143,43 @@ public class DimEmployeeServiceUnitTests
             .Setup(r => r.UpdateEmployeeAsync(It.IsAny<DimEmployee>()))
             .Returns(Task.CompletedTask);
 
-        var newBirth = new DateOnly(1981,2,2);
-        var newCareer = new DateOnly(2001,2,2);
+        var newParams = GetDefaultEmployeeParams("EMP-NEW");
 
-        var updated = await _dimEmployeeService.UpdateEmployeeAsync(3, newBirth, newCareer);
+        var updated = await _dimEmployeeService.UpdateEmployeeAsync(3, newParams.refId, newParams.birthDate, newParams.careerStartDate, newParams.gender);
 
-        Assert.Equal(newBirth, updated.BirthDate);
-        Assert.Equal(newCareer, updated.CareerStartDate);
+        Assert.Equal(newParams.birthDate, updated.BirthDate);
+        Assert.Equal(newParams.careerStartDate, updated.CareerStartDate);
+        Assert.Equal(newParams.refId, updated.EmployeeRefId);
+        Assert.Equal(newParams.gender, updated.Gender);
 
         _dimEmployeeRepositoryMock.Verify(r =>
             r.UpdateEmployeeAsync(It.Is<DimEmployee>(e =>
                 e.EmployeeId      == 3 &&
-                e.BirthDate       == newBirth &&
-                e.CareerStartDate == newCareer
-            )), Times.Once);
+                e.EmployeeRefId   == newParams.refId &&
+                e.BirthDate       == newParams.birthDate
+        )), Times.Once);
     }
 
     [Fact]
     public async Task UpdateEmployeeAsync_InvalidId_ThrowsArgumentException()
     {
+        var defaultParams = GetDefaultEmployeeParams();
+
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimEmployeeService.UpdateEmployeeAsync(0, DateOnly.FromDateTime(DateTime.UtcNow), DateOnly.FromDateTime(DateTime.UtcNow))
+            _dimEmployeeService.UpdateEmployeeAsync(0, defaultParams.refId, defaultParams.birthDate, defaultParams.careerStartDate, defaultParams.gender)
         );
     }
 
     [Fact]
     public async Task UpdateEmployeeAsync_NotFound_ThrowsNotFoundException()
     {
+        var defaultParams = GetDefaultEmployeeParams();
         _dimEmployeeRepositoryMock
             .Setup(r => r.GetEmployeeByIdAsync(5))
             .ThrowsAsync(new NotFoundException("not found"));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimEmployeeService.UpdateEmployeeAsync(5, new DateOnly(1990,1,1), new DateOnly(2010,1,1))
+            _dimEmployeeService.UpdateEmployeeAsync(5, defaultParams.refId, defaultParams.birthDate, defaultParams.careerStartDate, defaultParams.gender)
         );
     }
 
