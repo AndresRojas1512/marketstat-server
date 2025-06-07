@@ -4,6 +4,12 @@ using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Facts;
+using MarketStat.Services.Dimensions.DimCityService;
+using MarketStat.Services.Dimensions.DimFederalDistrictService;
+using MarketStat.Services.Dimensions.DimHierarchyLevelService;
+using MarketStat.Services.Dimensions.DimIndustryFieldService;
+using MarketStat.Services.Dimensions.DimOblastService;
+using MarketStat.Services.Dimensions.DimStandardJobRoleService;
 using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,6 +24,13 @@ public class FactSalaryServiceUnitTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<ILogger<FactSalaryService>> _loggerMock;
     private readonly Mock<MarketStatDbContext> _dbContextMock;
+    
+    private readonly Mock<IDimCityService> _dimCityServiceMock;
+    private readonly Mock<IDimOblastService> _dimOblastServiceMock;
+    private readonly Mock<IDimFederalDistrictService> _dimFederalDistrictServiceMock;
+    private readonly Mock<IDimIndustryFieldService> _dimIndustryFieldServiceMock;
+    private readonly Mock<IDimStandardJobRoleService> _dimStandardJobRoleServiceMock;
+    private readonly Mock<IDimHierarchyLevelService> _dimHierarchyLevelServiceMock;
 
     private readonly FactSalaryService _factSalaryService;
 
@@ -26,14 +39,29 @@ public class FactSalaryServiceUnitTests
         _factSalaryRepositoryMock = new Mock<IFactSalaryRepository>();
         _mapperMock = new Mock<IMapper>();
         _loggerMock = new Mock<ILogger<FactSalaryService>>();
-        
+            
         var mockDbContextOptions = new DbContextOptions<MarketStatDbContext>();
         _dbContextMock = new Mock<MarketStatDbContext>(mockDbContextOptions);
+
+        _dimCityServiceMock = new Mock<IDimCityService>();
+        _dimOblastServiceMock = new Mock<IDimOblastService>();
+        _dimFederalDistrictServiceMock = new Mock<IDimFederalDistrictService>();
+        _dimIndustryFieldServiceMock = new Mock<IDimIndustryFieldService>();
+        _dimStandardJobRoleServiceMock = new Mock<IDimStandardJobRoleService>();
+        _dimHierarchyLevelServiceMock = new Mock<IDimHierarchyLevelService>();
 
         _factSalaryService = new FactSalaryService(
             _factSalaryRepositoryMock.Object,
             _mapperMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _dimCityServiceMock.Object,
+            _dimOblastServiceMock.Object,
+            _dimFederalDistrictServiceMock.Object,
+            _dimIndustryFieldServiceMock.Object,
+            _dimStandardJobRoleServiceMock.Object,
+            _dimHierarchyLevelServiceMock.Object,
+            _dbContextMock.Object
+        );
     }
 
     private FactSalary CreateTestFactSalary(

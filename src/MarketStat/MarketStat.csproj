@@ -17,6 +17,11 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
@@ -29,6 +34,21 @@
   <ItemGroup>
     <_ContentIncludedByDefault Remove="MarketStat.Tests\UnitTests.Services\obj\project.assets.json" />
     <_ContentIncludedByDefault Remove="MarketStat.Tests\UnitTests.Services\obj\UnitTests.Services.csproj.nuget.dgspec.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\web.config" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\web.config" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\web.config" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\appsettings.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\MarketStat.deps.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\MarketStat.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\appsettings.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\MarketStat.deps.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\MarketStat.runtimeconfig.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\appsettings.Development.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\appsettings.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\MarketStat.deps.json" />
+    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\MarketStat.runtimeconfig.json" />
   </ItemGroup>
 
   <ItemGroup>

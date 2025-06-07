@@ -27,10 +27,6 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using MarketStat.Database.Core.Repositories.Account;
-using MarketStat.Database.Repositories.MongoRepositories;
-using MarketStat.Database.Repositories.MongoRepositories.Account;
-using MarketStat.Database.Repositories.MongoRepositories.Dimensions;
-using MarketStat.Database.Repositories.MongoRepositories.Facts;
 using MarketStat.Database.Repositories.PostgresRepositories.Account;
 using MarketStat.Middleware;
 using MarketStat.Services.Account.BenchmarkHistoryService;
@@ -75,106 +71,49 @@ try
         );
     });
     
-    string? activeProvider = builder.Configuration.GetValue<string>("DatabaseSettings:ActiveProvider");
-    bool enableSensitiveDataLogging = builder.Configuration.GetValue<bool>("DatabaseSettings:EnableSensitiveDataLogging", false);
-    Log.Information("Active Database Provider from configuration: {ActiveProvider}", activeProvider ?? "Not Set (Defaulting to PostgreSQL)");
-
-    if (activeProvider?.Equals("MongoDB", StringComparison.OrdinalIgnoreCase) == true)
+    var connectionString = builder.Configuration.GetConnectionString("MarketStat")
+                           ?? throw new InvalidOperationException("Missing connection string 'MarketStat'.");
+    
+    builder.Services.AddDbContext<MarketStatDbContext>(opts =>
     {
-        Log.Information("Configuring application to use MongoDB data provider.");
-        var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDB");
-        if (string.IsNullOrEmpty(mongoConnectionString))
-        {
-            Log.Fatal("MongoDB connection string ('MongoDB') is missing from configuration.");
-            throw new InvalidOperationException("MongoDB connection string ('MongoDB') is missing from configuration.");
-        }
-        
-        builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(mongoConnectionString));
-        builder.Services.AddScoped<IMongoDatabase>(sp =>
-        {
-            var client = sp.GetRequiredService<IMongoClient>();
-            var mongoUrl = MongoUrl.Create(mongoConnectionString);
-            var databaseName = mongoUrl.DatabaseName;
-            if (string.IsNullOrEmpty(databaseName))
+        opts.UseNpgsql(connectionString, npgsqlOptionsAction: sqlOptions =>
             {
-                Log.Fatal("MongoDB database name not specified in the connection string.");
-                throw new InvalidOperationException("MongoDB database name not specified in the connection string.");
-            }
-            Log.Information("Connecting to MongoDB database: {DatabaseName}", databaseName);
-            return client.GetDatabase(databaseName);
-        });
-        
-        builder.Services.AddScoped<IDimCityRepository, MongoDimCityRepository>();
-        builder.Services.AddScoped<IDimDateRepository, MongoDimDateRepository>();
-        builder.Services.AddScoped<IDimEducationLevelRepository, MongoDimEducationLevelRepository>();
-        builder.Services.AddScoped<IDimEducationRepository, MongoDimEducationRepository>();
-        builder.Services.AddScoped<IDimEmployeeRepository, MongoDimEmployeeRepository>();
-        builder.Services.AddScoped<IDimEmployeeEducationRepository, MongoDimEmployeeEducationRepository>();
-        builder.Services.AddScoped<IDimEmployerRepository, MongoDimEmployerRepository>();
-        builder.Services.AddScoped<IDimEmployerIndustryFieldRepository, MongoDimEmployerIndustryFieldRepository>();
-        builder.Services.AddScoped<IDimFederalDistrictRepository, MongoDimFederalDistrictRepository>();
-        builder.Services.AddScoped<IDimHierarchyLevelRepository, MongoDimHierarchyLevelRepository>();
-        builder.Services.AddScoped<IDimIndustryFieldRepository, MongoDimIndustryFieldRepository>();
-        builder.Services.AddScoped<IDimJobRoleRepository, MongoDimJobRoleRepository>();
-        builder.Services.AddScoped<IDimOblastRepository, MongoDimOblastRepository>();
-        builder.Services.AddScoped<IDimStandardJobRoleRepository, MongoDimStandardJobRoleRepository>();
-        builder.Services.AddScoped<IDimStandardJobRoleHierarchyRepository, MongoDimStandardJobRoleHierarchyRepository>();
-        builder.Services.AddScoped<IFactSalaryRepository, MongoFactSalaryRepository>();
-        builder.Services.AddScoped<IUserRepository, MongoUserRepository>();
-        builder.Services.AddScoped<IBenchmarkHistoryRepository, MongoBenchmarkHistoryRepository>();
-    }
-    else
+                sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorCodesToAdd: null);
+            })
+            .UseSnakeCaseNamingConvention();
+    });
+    
+    if (builder.Services.All(s => s.ServiceType != typeof(IDbContextFactory<MarketStatDbContext>)))
     {
-        Log.Information("Configuring application to use PostgreSQL data provider.");
-        var pgConnectionString = builder.Configuration.GetConnectionString("PostgreSQL")
-                                 ?? throw new InvalidOperationException("PostgreSQL connection string ('PostgreSQL') is missing from configuration.");
-        
-        builder.Services.AddDbContext<MarketStatDbContext>(opts =>
+        if (typeof(NpgsqlDbContextFactory).IsAssignableTo(typeof(IDbContextFactory)))
         {
-            opts.UseNpgsql(pgConnectionString, npgsqlOptionsAction: sqlOptions =>
-                {
-                    sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorCodesToAdd: null);
-                })
-                .UseSnakeCaseNamingConvention();
-            if (enableSensitiveDataLogging)
-            {
-                opts.EnableSensitiveDataLogging();
-                Log.Information("Sensitive data logging is ENABLED for EF Core (PostgreSQL).");
-            }
-        });
-        
-        if (builder.Services.All(s => s.ServiceType != typeof(IDbContextFactory<MarketStatDbContext>)))
-        {
-            if (typeof(NpgsqlDbContextFactory).IsAssignableTo(typeof(IDbContextFactory)))
-            {
-                builder.Services.AddScoped<IDbContextFactory, NpgsqlDbContextFactory>();
-                Log.Information("Registered custom NpgsqlDbContextFactory for non-generic IDbContextFactory.");
-            }
-            else
-            {
-                Log.Warning("NpgsqlDbContextFactory not registered as IDbContextFactory as it does not implement the non-generic interface, or type mismatch.");
-            }
+            builder.Services.AddScoped<IDbContextFactory, NpgsqlDbContextFactory>();
+            Log.Information("Registered custom NpgsqlDbContextFactory for non-generic IDbContextFactory.");
         }
-        
-        builder.Services.AddScoped<IDimCityRepository, DimCityRepository>();
-        builder.Services.AddScoped<IDimDateRepository, DimDateRepository>();
-        builder.Services.AddScoped<IDimEducationLevelRepository, DimEducationLevelRepository>();
-        builder.Services.AddScoped<IDimEducationRepository, DimEducationRepository>();
-        builder.Services.AddScoped<IDimEmployeeRepository, DimEmployeeRepository>();
-        builder.Services.AddScoped<IDimEmployeeEducationRepository, DimEmployeeEducationRepository>();
-        builder.Services.AddScoped<IDimEmployerRepository, DimEmployerRepository>();
-        builder.Services.AddScoped<IDimEmployerIndustryFieldRepository, DimEmployerIndustryFieldRepository>();
-        builder.Services.AddScoped<IDimFederalDistrictRepository, DimFederalDistrictRepository>();
-        builder.Services.AddScoped<IDimHierarchyLevelRepository, DimHierarchyLevelRepository>();
-        builder.Services.AddScoped<IDimIndustryFieldRepository, DimIndustryFieldRepository>();
-        builder.Services.AddScoped<IDimJobRoleRepository, DimJobRoleRepository>();
-        builder.Services.AddScoped<IDimOblastRepository, DimOblastRepository>();
-        builder.Services.AddScoped<IDimStandardJobRoleRepository, DimStandardJobRoleRepository>();
-        builder.Services.AddScoped<IDimStandardJobRoleHierarchyRepository, DimStandardJobRoleHierarchyRepository>();
-        builder.Services.AddScoped<IFactSalaryRepository, FactSalaryRepository>();
-        builder.Services.AddScoped<IUserRepository, UserRepository>();
-        builder.Services.AddScoped<IBenchmarkHistoryRepository, BenchmarkHistoryRepository>();
+        else
+        {
+            Log.Warning("NpgsqlDbContextFactory not registered as IDbContextFactory as it does not implement the non-generic interface, or type mismatch.");
+        }
     }
+    
+    builder.Services.AddScoped<IDimCityRepository, DimCityRepository>();
+    builder.Services.AddScoped<IDimDateRepository, DimDateRepository>();
+    builder.Services.AddScoped<IDimEducationLevelRepository, DimEducationLevelRepository>();
+    builder.Services.AddScoped<IDimEducationRepository, DimEducationRepository>();
+    builder.Services.AddScoped<IDimEmployeeRepository, DimEmployeeRepository>();
+    builder.Services.AddScoped<IDimEmployeeEducationRepository, DimEmployeeEducationRepository>();
+    builder.Services.AddScoped<IDimEmployerRepository, DimEmployerRepository>();
+    builder.Services.AddScoped<IDimEmployerIndustryFieldRepository, DimEmployerIndustryFieldRepository>();
+    builder.Services.AddScoped<IDimFederalDistrictRepository, DimFederalDistrictRepository>();
+    builder.Services.AddScoped<IDimHierarchyLevelRepository, DimHierarchyLevelRepository>();
+    builder.Services.AddScoped<IDimIndustryFieldRepository, DimIndustryFieldRepository>();
+    builder.Services.AddScoped<IDimJobRoleRepository, DimJobRoleRepository>();
+    builder.Services.AddScoped<IDimOblastRepository, DimOblastRepository>();
+    builder.Services.AddScoped<IDimStandardJobRoleRepository, DimStandardJobRoleRepository>();
+    builder.Services.AddScoped<IDimStandardJobRoleHierarchyRepository, DimStandardJobRoleHierarchyRepository>();
+    builder.Services.AddScoped<IFactSalaryRepository, FactSalaryRepository>();
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IBenchmarkHistoryRepository, BenchmarkHistoryRepository>();
     
     builder.Services.AddScoped<IDimCityService, DimCityService>();
     builder.Services.AddScoped<IDimDateService, DimDateService>();
@@ -305,107 +244,6 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
-    
-    if (activeProvider?.Equals("MongoDB", StringComparison.OrdinalIgnoreCase) == true)
-    {
-        Log.Information("MongoDB is active. Ensuring indexes...");
-        using (var scope = app.Services.CreateScope())
-        {
-            var serviceProvider = scope.ServiceProvider;
-            try
-            {
-                var cityRepo = serviceProvider.GetRequiredService<IDimCityRepository>();
-                if (cityRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimCityRepository mongoCityRepo)
-                {
-                    await mongoCityRepo.CreateIndexesAsync();
-                }
-                var userRepo = serviceProvider.GetRequiredService<IUserRepository>();
-                if (userRepo is MarketStat.Database.Repositories.MongoRepositories.Account.MongoUserRepository mongoUserRepo)
-                {
-                    await mongoUserRepo.CreateIndexesAsync();
-                }
-                var dateRepo = serviceProvider.GetRequiredService<IDimDateRepository>();
-                if (dateRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimDateRepository mongoDateRepo)
-                {
-                    await mongoDateRepo.CreateIndexesAsync();
-                }
-                var educationLevelRepo = serviceProvider.GetRequiredService<IDimEducationLevelRepository>();
-                if (educationLevelRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimEducationLevelRepository mongoEducationLevelRepo)
-                {
-                    await mongoEducationLevelRepo.CreateIndexesAsync();
-                }
-                var educationRepo = serviceProvider.GetRequiredService<IDimEducationRepository>();
-                if (educationRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimEducationRepository mongoEducationRepo)
-                {
-                    await mongoEducationRepo.CreateIndexesAsync();
-                }
-                var employeeEducationRepo = serviceProvider.GetRequiredService<IDimEmployeeEducationRepository>();
-                if (employeeEducationRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimEmployeeEducationRepository mongoEmployeeEducationRepo)
-                {
-                    await mongoEmployeeEducationRepo.CreateIndexesAsync();
-                }
-                var employeeRepo = serviceProvider.GetRequiredService<IDimEmployeeRepository>();
-                if (employeeRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimEmployeeRepository mongoEmployeeRepo)
-                {
-                    await mongoEmployeeRepo.CreateIndexesAsync();
-                }
-                var employerIndustryFieldRepo = serviceProvider.GetRequiredService<IDimEmployerIndustryFieldRepository>();
-                if (employerIndustryFieldRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimEmployerIndustryFieldRepository mongoEmployerIndustryFieldRepo)
-                {
-                    await mongoEmployerIndustryFieldRepo.CreateIndexesAsync();
-                }
-                var employerRepo = serviceProvider.GetRequiredService<IDimEmployerRepository>();
-                if (employerRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimEmployerRepository mongoEmployerRepo)
-                {
-                    await mongoEmployerRepo.CreateIndexesAsync();
-                }
-                var federalDistrictRepo = serviceProvider.GetRequiredService<IDimFederalDistrictRepository>();
-                if (federalDistrictRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimFederalDistrictRepository mongoFederalDistrictRepo)
-                {
-                    await mongoFederalDistrictRepo.CreateIndexesAsync();
-                }
-                var hierarchyLevelRepo = serviceProvider.GetRequiredService<IDimHierarchyLevelRepository>();
-                if (hierarchyLevelRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimHierarchyLevelRepository mongoHierarchyLevelRepo)
-                {
-                    await mongoHierarchyLevelRepo.CreateIndexesAsync();
-                }
-                var industryFieldRepo = serviceProvider.GetRequiredService<IDimIndustryFieldRepository>();
-                if (industryFieldRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimIndustryFieldRepository mongoIndustryFieldRepo)
-                {
-                    await mongoIndustryFieldRepo.CreateIndexesAsync();
-                }
-                var jobRoleRepo = serviceProvider.GetRequiredService<IDimJobRoleRepository>();
-                if (jobRoleRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimJobRoleRepository mongoJobRoleRepo)
-                {
-                    await mongoJobRoleRepo.CreateIndexesAsync();
-                }
-                var oblastRepo = serviceProvider.GetRequiredService<IDimOblastRepository>();
-                if (oblastRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimOblastRepository mongoOblastRepo)
-                {
-                    await mongoOblastRepo.CreateIndexesAsync();
-                }
-                var standardJobRoleHierarchyRepo = serviceProvider.GetRequiredService<IDimStandardJobRoleHierarchyRepository>();
-                if (standardJobRoleHierarchyRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimStandardJobRoleHierarchyRepository mongoStandardJobRoleHierarchyRepo)
-                {
-                    await mongoStandardJobRoleHierarchyRepo.CreateIndexesAsync();
-                }
-                var standardJobRoleRepo = serviceProvider.GetRequiredService<IDimStandardJobRoleRepository>();
-                if (standardJobRoleRepo is MarketStat.Database.Repositories.MongoRepositories.Dimensions.MongoDimStandardJobRoleRepository mongoStandardJobRoleRepo)
-                {
-                    await mongoStandardJobRoleRepo.CreateIndexesAsync();
-                }
-                var benchmarkHistoryRepo = serviceProvider.GetRequiredService<IBenchmarkHistoryRepository>();
-                if (benchmarkHistoryRepo is MarketStat.Database.Repositories.MongoRepositories.Account.MongoBenchmarkHistoryRepository mongoBenchmarkHistoryRepo)
-                {
-                    await mongoBenchmarkHistoryRepo.CreateIndexesAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "An error occurred while ensuring MongoDB indexes.");
-            }
-        }
-    }
 
     Log.Information("--- MarketStat API: Host built, starting application ---");
     app.Run();

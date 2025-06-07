@@ -135,7 +135,18 @@ public class MarketStatAccessObjectInMemory : IDisposable
             NullLogger<DimStandardJobRoleService>.Instance);
         
         FactSalaryRepository = new FactSalaryRepository(Context, NullLogger<FactSalaryRepository>.Instance);
-        FactSalaryService = new FactSalaryService(FactSalaryRepository, MockMapper, NullLogger<FactSalaryService>.Instance);
+        FactSalaryService = new FactSalaryService(
+            FactSalaryRepository,
+            MockMapper,
+            NullLogger<FactSalaryService>.Instance,
+            DimCityService,
+            DimOblastService,
+            DimFederalDistrictService,
+            IndustryFieldService,
+            DimStandardJobRoleService,
+            DimHierarchyLevelService,
+            Context
+        );
     }
 
     public async Task SeedEmployerAsync(IEnumerable<DimEmployer> items)

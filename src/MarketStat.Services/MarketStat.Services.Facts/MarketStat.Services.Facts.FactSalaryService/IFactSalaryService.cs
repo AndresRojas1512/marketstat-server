@@ -28,14 +28,13 @@ public interface IFactSalaryService
     // Public Analytical Methods
     Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(
          PublicRolesQueryDto queryDto);
-    //
-    // Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
-    //     PublicSalaryByEducationQueryDto queryDto);
-    //
-    // Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-    //     PublicTopEmployerRoleSalariesQueryDto queryDto);
+    
+    Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
+        PublicSalaryByEducationQueryDto queryDto);
+    
+    Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+        PublicTopEmployerRoleSalariesQueryDto queryDto);
     
     // ETL Methods
-
-    // Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile);
+    Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile);
 }

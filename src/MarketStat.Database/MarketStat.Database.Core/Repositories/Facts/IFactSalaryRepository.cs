@@ -15,7 +15,7 @@ public interface IFactSalaryRepository
     Task UpdateFactSalaryAsync(FactSalary salaryFact);
     Task DeleteFactSalaryByIdAsync(long salaryFactId);
     
-    // Analytics
+    // Auth Analytics
     Task<string?> GetBenchmarkingReportJsonAsync(BenchmarkQueryDto filters);
     Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters);
     Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
@@ -25,13 +25,13 @@ public interface IFactSalaryRepository
     // Public Analytical Methods
     Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto);
 
-    // Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
-    //     PublicSalaryByEducationQueryDto queryDto);
-    //
-    // Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-    //     PublicTopEmployerRoleSalariesQueryDto queryDto);
+    Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
+        PublicSalaryByEducationQueryDto queryDto);
+    Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+        PublicTopEmployerRoleSalariesQueryDto queryDto); 
     
-    //Task TruncateStagingTableAsync(string stagingTableName);
-    // Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records);
-    // Task<(int insertedCount, int skippedCount)> CallBulkLoadFromStagingProcedureAsync(string stagingTableName);
+    // ETL
+    Task TruncateStagingTableAsync(string stagingTableName);
+    Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records);
+    Task<(int insertedCount, int skippedCount)> CallBulkLoadFromStagingProcedureAsync(string stagingTableName);
 }

@@ -79,8 +79,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Services.Account
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Account.BenchmarkHistoryService", "MarketStat.Services\MarketStat.Services.Account\MarketStat.Services.Account.BenchmarkHistoryService\MarketStat.Services.Account.BenchmarkHistoryService.csproj", "{D36DCC70-C5E4-4816-941A-1C49F5C108AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Database.MongoModels", "MarketStat.Database\MarketStat.Database.MongoModels\MarketStat.Database.MongoModels.csproj", "{0B1C7E1B-CA12-4B83-A211-B43E115F954F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -210,10 +208,6 @@ Global
 		{D36DCC70-C5E4-4816-941A-1C49F5C108AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D36DCC70-C5E4-4816-941A-1C49F5C108AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D36DCC70-C5E4-4816-941A-1C49F5C108AD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B1C7E1B-CA12-4B83-A211-B43E115F954F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B1C7E1B-CA12-4B83-A211-B43E115F954F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B1C7E1B-CA12-4B83-A211-B43E115F954F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B1C7E1B-CA12-4B83-A211-B43E115F954F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7DFC317E-6CD1-4BA9-9AFA-27EA18D6FAFB} = {000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}
@@ -249,6 +243,5 @@ Global
 		{825DECCE-B72F-4D39-8BA0-653D939FDD28} = {FFF03295-B10D-4A21-B566-BF5A18CA96B7}
 		{67A381EA-5945-4AF0-BDF1-9416C19EF7F8} = {F41D1465-FB87-4FAF-B66D-EE51BFDBDB7D}
 		{D36DCC70-C5E4-4816-941A-1C49F5C108AD} = {67A381EA-5945-4AF0-BDF1-9416C19EF7F8}
-		{0B1C7E1B-CA12-4B83-A211-B43E115F954F} = {75FD3B3F-F7B0-4555-B189-30AE64042622}
 	EndGlobalSection
 EndGlobal
