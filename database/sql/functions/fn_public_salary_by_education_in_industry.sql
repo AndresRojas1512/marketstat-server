@@ -13,7 +13,7 @@ RETURNS TABLE (
     education_level_name                VARCHAR(255),
     average_salary                      NUMERIC,
     employee_count_for_level            BIGINT,
-    overall_specialty_employee_count    BIGINT  -- Expected as BIGINT
+    overall_specialty_employee_count    BIGINT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER

@@ -37,7 +37,7 @@ BEGIN
         WHEN undefined_table THEN
             RAISE WARNING '[fn_salary_distribution] ERROR: Source temporary table % not found. Returning empty distribution.', p_source_temp_table_name;
             RETURN QUERY SELECT NULL::NUMERIC, NULL::NUMERIC, 0::BIGINT WHERE FALSE;
-            RETURN; -- Exit the function
+            RETURN;
     END;
   ELSE
     RAISE NOTICE '[fn_salary_distribution] Filtering data internally. Filters: IndustryID=% SJRID=% HLevelID=% DistrictID=% OblastID=% CityID=% DateStart=% DateEnd=%',

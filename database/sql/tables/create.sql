@@ -94,7 +94,7 @@ CREATE INDEX IF NOT EXISTS idx_dim_eif_field
 
 
 
-CREATE TABLE IF NOT EXISTS marketstat.dim_hierarchy_level (
+CREATE TABLE IF NOT EXISTS dim_hierarchy_level (
     hierarchy_level_id      INT GENERATED ALWAYS AS IDENTITY
                                 CONSTRAINT pk_dim_hierarchy_level PRIMARY KEY,
     hierarchy_level_code    VARCHAR(10) NOT NULL
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS marketstat.dim_hierarchy_level (
 
 
 
-CREATE TABLE IF NOT EXISTS marketstat.dim_standard_job_role (
+CREATE TABLE IF NOT EXISTS dim_standard_job_role (
     standard_job_role_id    INT GENERATED ALWAYS AS IDENTITY
                                 CONSTRAINT pk_dim_standard_job_role PRIMARY KEY,
     standard_job_role_code  VARCHAR(20) NOT NULL
@@ -161,9 +161,10 @@ CREATE TABLE IF NOT EXISTS dim_education (
     education_id        INT GENERATED ALWAYS AS IDENTITY
                             CONSTRAINT pk_dim_education PRIMARY KEY,
     specialty           VARCHAR(255) NOT NULL,
-    specialty_code      VARCHAR(255) NOT NULL,
+    specialty_code      VARCHAR(255) NOT NULL
+                            CONSTRAINT uq_dim_education_specialty_code UNIQUE,
     education_level_id  INT NOT NULL,
-    CONSTRAINT fk_dim_edu_lvl FOREIGN KEY (education_level_id) REFERENCES dim_education_level(education_level_id)
+                            CONSTRAINT fk_dim_edu_lvl FOREIGN KEY (education_level_id) REFERENCES dim_education_level(education_level_id)
 );
 CREATE INDEX IF NOT EXISTS idx_dim_edu_lvl
     ON dim_education (education_level_id);
@@ -265,23 +266,8 @@ CREATE INDEX IF NOT EXISTS idx_benchmark_history_saved_at ON marketstat.benchmar
 
 
 CREATE TABLE IF NOT EXISTS failed_salary_facts_load (
-    failed_load_id              SERIAL PRIMARY KEY,
-    run_timestamp               TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    recorded_date_text          TEXT,
-    city_name                   TEXT,
-    oblast_name                 TEXT,
-    employer_name               TEXT,
-    standard_job_role_title     TEXT,
-    job_role_title              TEXT,
-    hierarchy_level_name        TEXT,
-    employee_birth_date_text    TEXT,
-    employee_career_start_date_text TEXT,
-    salary_amount               NUMERIC(18,2),
-    bonus_amount                NUMERIC(18,2),
-    error_message               TEXT
-);
-
-CREATE TABLE IF NOT EXISTS api_fact_uploads_staging (
+    failed_load_id                  SERIAL PRIMARY KEY,
+    run_timestamp                   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     recorded_date_text              TEXT,
     city_name                       TEXT,
     oblast_name                     TEXT,
@@ -289,9 +275,37 @@ CREATE TABLE IF NOT EXISTS api_fact_uploads_staging (
     standard_job_role_title         TEXT,
     job_role_title                  TEXT,
     hierarchy_level_name            TEXT,
+    employee_ref_id                 TEXT,
     employee_birth_date_text        TEXT,
     employee_career_start_date_text TEXT,
+    gender                          TEXT,
+    education_level_name            TEXT,
+    specialty                       TEXT,
+    specialty_code                  TEXT,
+    graduation_year                 SMALLINT,
     salary_amount                   NUMERIC(18,2),
-    bonus_amount                    NUMERIC(18,2)
+    bonus_amount                    NUMERIC(18,2),
+    error_message                   TEXT
 );
 
+
+
+CREATE TABLE IF NOT EXISTS api_fact_uploads_staging (
+    recorded_date_text                TEXT,
+    city_name                         TEXT,
+    oblast_name                       TEXT,
+    employer_name                     TEXT,
+    standard_job_role_title           TEXT,
+    job_role_title                    TEXT,
+    hierarchy_level_name              TEXT,
+    employee_ref_id                   TEXT,
+    employee_birth_date_text          TEXT,
+    employee_career_start_date_text   TEXT,
+    gender                            TEXT,
+    education_level_name              TEXT,
+    specialty                         TEXT,
+    specialty_code                    TEXT,
+    graduation_year                   SMALLINT,
+    salary_amount                     NUMERIC(18,2),
+    bonus_amount                      NUMERIC(18,2)
+);
