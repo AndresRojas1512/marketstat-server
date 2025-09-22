@@ -17,6 +17,5 @@ public class BenchmarkDataDto
     {
         SalaryDistribution = new List<SalaryDistributionBucketDto>();
         SalaryTimeSeries = new List<SalaryTimeSeriesPointDto>();
-        // SalarySummary is nullable, defaults to null
     }
 }

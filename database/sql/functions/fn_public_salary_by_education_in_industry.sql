@@ -3,7 +3,7 @@ SET search_path = marketstat, public;
 DROP FUNCTION IF EXISTS marketstat.fn_public_salary_by_education_in_industry(INT, INT, INT, INT);
 
 CREATE OR REPLACE FUNCTION marketstat.fn_public_salary_by_education_in_industry(
-    p_industry_field_id INT, -- Mandatory
+    p_industry_field_id INT,
     p_top_n_specialties INT DEFAULT 10,
     p_min_employees_per_specialty INT DEFAULT 5,
     p_min_employees_per_level_in_specialty INT DEFAULT 3
@@ -63,7 +63,7 @@ BEGIN
     ranked_overall_specialties AS (
         SELECT
             sls.specialty,
-            SUM(sls.employee_count_for_level) AS total_employees_for_specialty, -- This SUM returns NUMERIC
+            SUM(sls.employee_count_for_level) AS total_employees_for_specialty,
             RANK() OVER (ORDER BY SUM(sls.employee_count_for_level) DESC, sls.specialty ASC) AS specialty_rank
         FROM specialty_level_stats sls
         GROUP BY sls.specialty
@@ -81,8 +81,8 @@ BEGIN
         sls.specialty AS education_specialty,
         sls.education_level_name,
         ROUND(sls.avg_salary_for_level, 0)::NUMERIC AS average_salary,
-        sls.employee_count_for_level, -- This is already BIGINT from COUNT(DISTINCT)
-        trs.total_employees_for_specialty::BIGINT AS overall_specialty_employee_count -- CAST to BIGINT
+        sls.employee_count_for_level,
+        trs.total_employees_for_specialty::BIGINT AS overall_specialty_employee_count
     FROM
         specialty_level_stats sls
     JOIN
@@ -96,5 +96,3 @@ $$;
 ALTER FUNCTION marketstat.fn_public_salary_by_education_in_industry(INT, INT, INT, INT) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_public_salary_by_education_in_industry(INT, INT, INT, INT) TO marketstat_public_guest;
 GRANT EXECUTE ON FUNCTION marketstat.fn_public_salary_by_education_in_industry(INT, INT, INT, INT) TO marketstat_analyst;
-
-\echo 'Function marketstat.fn_public_salary_by_education_in_industry (corrected return type for count) created/replaced.'

@@ -203,7 +203,6 @@ public class FactSalaryService : IFactSalaryService
         }
     }
     
-    // Auth analytical endpoints
     public async Task<BenchmarkDataDto?> GetBenchmarkingReportAsync(BenchmarkQueryDto filters)
     {
         _logger.LogInformation("Service: Validating filters for benchmark report: {@Filters}", filters);
@@ -361,9 +360,7 @@ public class FactSalaryService : IFactSalaryService
         _logger.LogInformation("Service: Fetched {Count} time series points for filters: {@Filters}", result.Count, filters);
         return result;
     }
-    
-    // Public analytical methods
-    
+        
     public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto)
     {
         _logger.LogInformation(
@@ -485,20 +482,18 @@ public class FactSalaryService : IFactSalaryService
             _logger.LogInformation("Service: Successfully retrieved {Count} records for public top employer role salaries.", result.Count());
             return result;
         }
-        catch (Exception ex) // Catch exceptions from repository (which should be ApplicationException wrapping DB errors)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Service: Error retrieving public top employer role salaries for DTO: {@QueryDto}", queryDto);
             throw;
         }
     }
     
-    // ETL tool
-
     public async Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile)
     {
         _logger.LogInformation("Service: Starting CSV upload processing for file: {FileName}, Size: {FileSize} bytes", csvFile.FileName, csvFile.Length);
     
-        // 1. File Validation
+        // file validation
         if (csvFile == null || csvFile.Length == 0)
         {
             _logger.LogWarning("Service: No file uploaded or file is empty.");
@@ -518,7 +513,7 @@ public class FactSalaryService : IFactSalaryService
         var recordsToStage = new List<StagedSalaryRecordDto>();
         int csvRowsRead = 0;
     
-        // 2. Parse CSV
+        // parse CSV
         try
         {
             _logger.LogInformation("Service: Parsing CSV file {FileName}", csvFile.FileName);

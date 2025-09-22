@@ -1,4 +1,3 @@
--- Run as marketstat_administrator
 SET search_path = marketstat, public;
 
 DROP FUNCTION IF EXISTS marketstat.fn_salary_time_series(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,TEXT,INT);
@@ -132,5 +131,4 @@ $$;
 
 ALTER FUNCTION marketstat.fn_salary_time_series(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,TEXT,INT) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_salary_time_series(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,TEXT,INT) TO marketstat_analyst;
-\echo 'Function marketstat.fn_salary_time_series (hybrid, with count, no salary_ids, with temp table exception handling) created/replaced.'
 

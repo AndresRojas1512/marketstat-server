@@ -68,4 +68,3 @@ ALTER PROCEDURE marketstat.sp_save_benchmark(OUT BIGINT, IN INT, IN JSONB, IN VA
 GRANT EXECUTE ON PROCEDURE marketstat.sp_save_benchmark(OUT BIGINT, IN INT, IN JSONB, IN VARCHAR(255), IN INT, IN INT, IN INT, IN INT, IN INT, IN INT, IN DATE, IN DATE, IN INT, IN TEXT, IN INT)
     TO marketstat_analyst;
 
-\echo 'Procedure marketstat.sp_save_benchmark (ID-based filters) created/replaced and privileges granted.'

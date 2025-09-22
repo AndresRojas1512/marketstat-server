@@ -71,4 +71,3 @@ $$;
 
 ALTER FUNCTION marketstat.fn_filtered_salaries(INT,INT,INT,INT,INT,INT,DATE,DATE) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_filtered_salaries(INT,INT,INT,INT,INT,INT,DATE,DATE) TO marketstat_analyst;
-\echo 'Function marketstat.fn_filtered_salaries (hybrid output structure) created/replaced.'

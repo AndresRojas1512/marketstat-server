@@ -21,6 +21,3 @@ COMMIT;
 
 SELECT COUNT(*) AS total_rows_in_dim_standard_job_role_hierarchy
   FROM marketstat.dim_standard_job_role_hierarchy;
-
-\echo 'Successfully populated dim_standard_job_role_hierarchy table.'
-\echo 'Verify that the total_rows_in_dim_standard_job_role_hierarchy matches the expected_combinations.'

@@ -1,4 +1,3 @@
--- Run as marketstat_administrator
 SET search_path = marketstat, public;
 
 DROP FUNCTION IF EXISTS marketstat.fn_salary_summary(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,INT);
@@ -93,4 +92,3 @@ $$;
 
 ALTER FUNCTION marketstat.fn_salary_summary(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,INT) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_salary_summary(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE,INT) TO marketstat_analyst;
-\echo 'Function marketstat.fn_salary_summary (hybrid, with exception handling for temp table) created/replaced.'

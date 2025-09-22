@@ -119,4 +119,3 @@ $$;
 
 ALTER FUNCTION marketstat.fn_compute_benchmark_data(INT,INT,INT,INT,INT,INT,DATE,DATE,INT,TEXT,INT) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_compute_benchmark_data(INT,INT,INT,INT,INT,INT,DATE,DATE,INT,TEXT,INT) TO marketstat_analyst;
-\echo 'Function marketstat.fn_compute_benchmark_data (orchestrator, cleaned logging) created/replaced.'

@@ -21,4 +21,3 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 ALTER FUNCTION marketstat.fn_update_user_benchmark_count() OWNER TO marketstat_administrator;
-\echo 'Trigger function marketstat.fn_update_user_benchmark_count created/replaced.'

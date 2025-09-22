@@ -8,7 +8,6 @@ public class BenchmarkHistory
     public string? BenchmarkName { get; set; }
     public DateTimeOffset SavedAt { get; set; }
 
-    // Filter parameters stored as IDs
     public int? FilterIndustryFieldId { get; set; }
     public int? FilterStandardJobRoleId { get; set; }
     public int? FilterHierarchyLevelId { get; set; }
@@ -18,18 +17,14 @@ public class BenchmarkHistory
     public DateOnly? FilterDateStart { get; set; }
     public DateOnly? FilterDateEnd { get; set; }
     
-    // Analytical parameters used
     public int? FilterTargetPercentile { get; set; }
     public string? FilterGranularity { get; set; }
     public int? FilterPeriods { get; set; }
 
-    // JSON result of the benchmark that was saved.
     public string BenchmarkResultJson { get; set; }
 
-    // Navigation property to the User who saved this benchmark
     public virtual User? User { get; set; }
 
-    // Parameterless constructor
     public BenchmarkHistory()
     {
         BenchmarkResultJson = "{}";

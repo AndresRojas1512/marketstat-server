@@ -1,7 +1,5 @@
--- Script for creating operational roles.
--- Run as 'postgres'
+-- run as postgres
 
-\echo '--- Create operational roles'
 \set ON_ERROR_STOP on
 
 \echo 'Creating operational roles: marketstat_etl_user, marketstat_analyst, marketstat_public_guest'
@@ -30,19 +28,18 @@ BEGIN
 END$$;
 \echo 'Operational roles creation process finished.'
 
-\echo 'Granting CONNECT on database "marketstat" to new roles...'
+\echo 'Granting CONNECT on database "marketstat" to new roles'
 GRANT CONNECT ON DATABASE marketstat TO marketstat_etl_user;
 GRANT CONNECT ON DATABASE marketstat TO marketstat_analyst;
 GRANT CONNECT ON DATABASE marketstat TO marketstat_public_guest;
 
-\echo 'Granting USAGE on schema "marketstat" to new roles...'
+\echo 'Granting USAGE on schema "marketstat" to new roles'
 GRANT USAGE ON SCHEMA marketstat TO marketstat_etl_user;
 GRANT USAGE ON SCHEMA marketstat TO marketstat_analyst;
 GRANT USAGE ON SCHEMA marketstat TO marketstat_public_guest;
 
-\echo 'Setting default search_path for new roles...'
+\echo 'Setting default search_path for new roles'
 ALTER ROLE marketstat_etl_user SET search_path = marketstat, public;
 ALTER ROLE marketstat_analyst SET search_path = marketstat, public;
 ALTER ROLE marketstat_public_guest SET search_path = marketstat, public;
 
-\echo '--- Success: roles created ---'

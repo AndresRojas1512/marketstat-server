@@ -1,14 +1,8 @@
--- Script for granting Object Privileges and Set Security Context
--- Run as 'marketstat_administrator'
+-- run as marketstat_administrator
 
-\echo '--- Granting Object Privileges by marketstat_administrator ---'
 \set ON_ERROR_STOP on
 SET search_path = marketstat, public;
 
-
-
-
-\echo 'Granting privileges to marketstat_etl_user...'
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
     dim_date, dim_federal_district, dim_oblast, dim_city,
     dim_employer, dim_industry_field, dim_hierarchy_level,
@@ -28,7 +22,6 @@ GRANT EXECUTE ON PROCEDURE marketstat.bulk_load_salary_facts_from_staging(TEXT) 
 
 
 
-\echo 'Granting privileges to marketstat_analyst'
 GRANT EXECUTE ON FUNCTION fn_compute_benchmark_data(INT, INT, INT, INT, INT, INT, DATE, DATE, INT, TEXT, INT) TO marketstat_analyst;
 GRANT EXECUTE ON PROCEDURE sp_save_benchmark(
     OUT BIGINT,  IN INT, IN JSONB,   IN VARCHAR,
@@ -58,7 +51,6 @@ GRANT EXECUTE ON FUNCTION fn_salary_time_series(TEXT,INT,INT,INT,INT,INT,INT,DAT
 
 
 
-\echo 'Granting privileges to marketstat_public_guest...'
 GRANT EXECUTE ON FUNCTION fn_public_get_roles_by_location_industry(INT, INT, INT, INT, INT) TO marketstat_public_guest;
 GRANT EXECUTE ON FUNCTION fn_public_degrees_by_industry(INT, INT, INT) TO marketstat_public_guest;
 \echo 'marketstat_public_guest privileges granted'
@@ -66,7 +58,6 @@ GRANT EXECUTE ON FUNCTION fn_public_degrees_by_industry(INT, INT, INT) TO market
 
 
 
-\echo 'Altering key routines to SECURITY DEFINER (Owner must be marketstat_administrator)'
 ALTER FUNCTION fn_filtered_salaries(INT,INT,INT,INT,INT,INT,DATE,DATE) SECURITY DEFINER;
 
 ALTER FUNCTION fn_salary_distribution(TEXT,INT,INT,INT,INT,INT,INT,DATE,DATE) SECURITY DEFINER;
@@ -83,14 +74,13 @@ ALTER PROCEDURE marketstat.bulk_load_salary_facts_from_staging(TEXT) OWNER TO ma
 
 
 
-\echo 'Setting default privileges for future objects created by marketstat_administrator in schema marketstat'
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
    GRANT SELECT ON TABLES TO marketstat_analyst;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
    GRANT EXECUTE ON FUNCTIONS TO marketstat_analyst;
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
-   GRANT EXECUTE ON ROUTINES TO marketstat_analyst; -- For procedures
+   GRANT EXECUTE ON ROUTINES TO marketstat_analyst;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO marketstat_etl_user;
@@ -98,4 +88,3 @@ ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
    GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO marketstat_etl_user;
 \echo 'Default privileges configured.'
 
-\echo '--- Success: privileges granted ---'

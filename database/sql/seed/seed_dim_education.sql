@@ -29,7 +29,6 @@ SELECT
 FROM staging_education AS se
 JOIN marketstat.dim_education_level AS lvl
   ON lvl.education_level_name = se.education_level
--- skip any duplicate specialty_code
 WHERE NOT EXISTS (
   SELECT 1
     FROM marketstat.dim_education de

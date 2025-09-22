@@ -98,7 +98,6 @@ public class BenchmarkHistoryService : IBenchmarkHistoryService
             var dto = _mapper.Map<BenchmarkHistoryDto>(domainHistory);
             _logger.LogInformation("Mapped domainHistory to DTO for HistoryId: {BenchmarkHistoryId}", domainHistory.BenchmarkHistoryId);
 
-            // Temporarily, let's see if it crashes before or after PopulateFilterNamesInDtoAsync
             _logger.LogInformation("Calling PopulateFilterNamesInDtoAsync for HistoryId: {BenchmarkHistoryId}", domainHistory.BenchmarkHistoryId);
             await PopulateFilterNamesInDtoAsync(dto, domainHistory);
             _logger.LogInformation("Completed PopulateFilterNamesInDtoAsync for HistoryId: {BenchmarkHistoryId}", domainHistory.BenchmarkHistoryId);

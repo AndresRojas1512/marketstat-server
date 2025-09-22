@@ -17,9 +17,9 @@ public class DimEmployerServiceIntegrationTests : IDisposable
     private DimEmployer CreateTestEmployerInstance(
         int employerId = 0,
         string employerName = "Test Default Corp",
-        string inn = "0123456789", // Min 10
-        string ogrn = "0123456789012", // 13
-        string kpp = "012345678",    // 9
+        string inn = "0123456789",
+        string ogrn = "0123456789012",
+        string kpp = "012345678",
         string legalAddress = "123 Test St, Testville",
         string website = "http://testdefault.com",
         string contactEmail = "contact@testdefault.com",
@@ -60,7 +60,6 @@ public class DimEmployerServiceIntegrationTests : IDisposable
         _dimEmployerService = new DimEmployerService(
             _accessObject.EmployerRepository, 
             NullLogger<DimEmployerService>.Instance
-            // _accessObject.MockMapper
         );
     }
     public void Dispose() => _accessObject.Dispose();

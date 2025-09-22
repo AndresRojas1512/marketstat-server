@@ -25,7 +25,6 @@ BEGIN
         RAISE EXCEPTION 'Industry Field ID (p_industry_field_id) is a mandatory parameter.';
     END IF;
 
-    -- Calculate the start and end of the "last 12 completed months" window
     v_period_end_date := (date_trunc('month', CURRENT_DATE) - INTERVAL '1 day');
     v_period_start_date := (date_trunc('month', CURRENT_DATE) - INTERVAL '12 months');
 
@@ -39,7 +38,7 @@ BEGIN
     FROM
         marketstat.fact_salaries fs
     JOIN
-        marketstat.dim_date d_filter ON fs.date_id = d_filter.date_id -- Join dim_date for date filtering
+        marketstat.dim_date d_filter ON fs.date_id = d_filter.date_id
     JOIN
         marketstat.dim_job_role jr ON fs.job_role_id = jr.job_role_id
     JOIN
@@ -52,8 +51,8 @@ BEGIN
         marketstat.dim_federal_district fd ON o.district_id = fd.district_id
     WHERE
         sjr.industry_field_id = p_industry_field_id
-        AND d_filter.full_date >= v_period_start_date -- Date filter
-        AND d_filter.full_date <= v_period_end_date   -- Date filter
+        AND d_filter.full_date >= v_period_start_date
+        AND d_filter.full_date <= v_period_end_date
         AND (p_city_id IS NULL OR fs.city_id = p_city_id)
         AND (p_oblast_id IS NULL OR c.oblast_id = p_oblast_id)
         AND (p_federal_district_id IS NULL OR fd.district_id = p_federal_district_id)
@@ -69,5 +68,3 @@ $$;
 ALTER FUNCTION marketstat.fn_public_get_roles_by_location_industry(INT, INT, INT, INT, INT) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_public_get_roles_by_location_industry(INT, INT, INT, INT, INT) TO marketstat_public_guest;
 GRANT EXECUTE ON FUNCTION marketstat.fn_public_get_roles_by_location_industry(INT, INT, INT, INT, INT) TO marketstat_analyst;
-
-\echo 'Function marketstat.fn_public_get_roles_by_location_industry (filtered for last 12 completed months) created/replaced.'

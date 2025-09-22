@@ -1,1 +1,0 @@
-SELECT jsonb_pretty(marketstat.fn_compute_benchmark_data());

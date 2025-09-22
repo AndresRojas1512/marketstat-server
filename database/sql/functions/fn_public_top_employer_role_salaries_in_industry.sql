@@ -1,10 +1,9 @@
 SET search_path = marketstat, public;
 
--- The input parameter signature (4 INTs) remains the same.
 DROP FUNCTION IF EXISTS marketstat.fn_public_top_employer_role_salaries_in_industry(INT, INT, INT, INT);
 
 CREATE OR REPLACE FUNCTION marketstat.fn_public_top_employer_role_salaries_in_industry(
-    p_industry_field_id INT, -- Mandatory
+    p_industry_field_id INT,
     p_top_n_employers INT DEFAULT 5,
     p_top_m_roles_per_employer INT DEFAULT 3,
     p_min_salary_records_for_role_at_employer INT DEFAULT 3
@@ -28,7 +27,6 @@ BEGIN
         RAISE EXCEPTION 'Industry Field ID (p_industry_field_id) is a mandatory parameter.';
     END IF;
 
-    -- Calculate the start and end of the "last 12 completed months" window
     v_period_end_date := (date_trunc('month', CURRENT_DATE) - INTERVAL '1 day');
     v_period_start_date := (date_trunc('month', CURRENT_DATE) - INTERVAL '12 months');
 
@@ -36,8 +34,6 @@ BEGIN
 
     RETURN QUERY
     WITH
-    -- 1. Get all relevant salary records with employer and standard job role details
-    --    for the given industry AND within the last 12 completed months.
     base_salary_data AS (
         SELECT
             fs.employer_id,
@@ -47,16 +43,15 @@ BEGIN
             fs.salary_amount,
             fs.salary_fact_id
         FROM marketstat.fact_salaries fs
-        JOIN marketstat.dim_date d_filter ON fs.date_id = d_filter.date_id -- Join dim_date
+        JOIN marketstat.dim_date d_filter ON fs.date_id = d_filter.date_id
         JOIN marketstat.dim_employer de ON fs.employer_id = de.employer_id
         JOIN marketstat.dim_job_role jr ON fs.job_role_id = jr.job_role_id
         JOIN marketstat.dim_standard_job_role sjr ON jr.standard_job_role_id = sjr.standard_job_role_id
         WHERE
             sjr.industry_field_id = p_industry_field_id
-            AND d_filter.full_date >= v_period_start_date -- Date filter
-            AND d_filter.full_date <= v_period_end_date   -- Date filter
+            AND d_filter.full_date >= v_period_start_date
+            AND d_filter.full_date <= v_period_end_date
     ),
-    -- 2. Rank employers based on their overall presence (number of salary records) in this industry (within the date range)
     ranked_employers AS (
         SELECT
             bsd.employer_id,
@@ -66,11 +61,9 @@ BEGIN
         FROM base_salary_data bsd
         GROUP BY bsd.employer_id, bsd.employer_name
     ),
-    -- 3. Select the top N employers
     top_employers AS (
         SELECT * FROM ranked_employers WHERE er_rank <= p_top_n_employers
     ),
-    -- 4. For these top employers, calculate stats for each standard job role they have in this industry (within the date range)
     role_stats_at_top_employers AS (
         SELECT
             bsd.employer_id,
@@ -86,7 +79,6 @@ BEGIN
         GROUP BY bsd.employer_id, bsd.standard_job_role_id, bsd.standard_job_role_title
         HAVING COUNT(bsd.salary_fact_id) >= p_min_salary_records_for_role_at_employer
     )
-    -- 5. Final selection of top M roles for each of the top N employers
     SELECT
         te.employer_name,
         rstate.standard_job_role_title,
@@ -105,9 +97,6 @@ BEGIN
 END;
 $$;
 
--- The input parameter signature (4 INTs) remains the same.
 ALTER FUNCTION marketstat.fn_public_top_employer_role_salaries_in_industry(INT, INT, INT, INT) OWNER TO marketstat_administrator;
 GRANT EXECUTE ON FUNCTION marketstat.fn_public_top_employer_role_salaries_in_industry(INT, INT, INT, INT) TO marketstat_public_guest;
 GRANT EXECUTE ON FUNCTION marketstat.fn_public_top_employer_role_salaries_in_industry(INT, INT, INT, INT) TO marketstat_analyst;
-
-\echo 'Function marketstat.fn_public_top_employer_role_salaries_in_industry (filtered for last 12 completed months) created/replaced.'
