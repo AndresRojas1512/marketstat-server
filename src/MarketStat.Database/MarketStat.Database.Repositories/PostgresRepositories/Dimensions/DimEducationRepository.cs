@@ -20,12 +20,7 @@ public class DimEducationRepository : BaseRepository, IDimEducationRepository
     
     public async Task AddEducationAsync(DimEducation education)
     {
-        var dbModel = new DimEducationDbModel(
-            educationId: 0,
-            specialty: education.Specialty,
-            specialtyCode: education.SpecialtyCode,
-            educationLevelId: education.EducationLevelId
-        );
+        var dbModel = DimEducationConverter.ToDbModel(education);
         await _dbContext.DimEducations.AddAsync(dbModel);
         try
         {

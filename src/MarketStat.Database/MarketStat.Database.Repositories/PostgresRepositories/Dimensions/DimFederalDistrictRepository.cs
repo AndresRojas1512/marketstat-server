@@ -20,10 +20,7 @@ public class DimFederalDistrictRepository : BaseRepository, IDimFederalDistrictR
     
     public async Task AddFederalDistrictAsync(DimFederalDistrict district)
     {
-        var dbModel = new DimFederalDistrictDbModel(
-            districtId: 0,
-            districtName: district.DistrictName
-        );
+        var dbModel = DimFederalDistrictConverter.ToDbModel(district);
         await _dbContext.DimFederalDistricts.AddAsync(dbModel);
         try
         {

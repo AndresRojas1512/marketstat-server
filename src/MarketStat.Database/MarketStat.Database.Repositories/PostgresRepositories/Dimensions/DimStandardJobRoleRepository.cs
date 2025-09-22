@@ -21,7 +21,6 @@ public class DimStandardJobRoleRepository : BaseRepository, IDimStandardJobRoleR
     public async Task AddStandardJobRoleAsync(DimStandardJobRole jobRole)
     {
         var dbModel = DimStandardJobRoleConverter.ToDbModel(jobRole);
-            
         await _dbContext.DimStandardJobRoles.AddAsync(dbModel);
             
         try

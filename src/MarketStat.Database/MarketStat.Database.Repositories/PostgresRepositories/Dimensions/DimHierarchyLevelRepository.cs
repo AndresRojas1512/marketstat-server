@@ -21,7 +21,6 @@ public class DimHierarchyLevelRepository : BaseRepository, IDimHierarchyLevelRep
     public async Task AddHierarchyLevelAsync(DimHierarchyLevel dimHierarchyLevel)
     {
         var dbModel = DimHierarchyLevelConverter.ToDbModel(dimHierarchyLevel);
-            
         await _dbContext.DimHierarchyLevels.AddAsync(dbModel);
         try
         {

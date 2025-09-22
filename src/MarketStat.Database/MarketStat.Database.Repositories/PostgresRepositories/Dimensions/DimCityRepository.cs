@@ -21,7 +21,6 @@ public class DimCityRepository : BaseRepository, IDimCityRepository
     public async Task AddCityAsync(DimCity city)
     {
         var dbModel = DimCityConverter.ToDbModel(city);
-        
         await _dbContext.AddAsync(dbModel);
         try
         {
@@ -66,9 +65,8 @@ public class DimCityRepository : BaseRepository, IDimCityRepository
         var dbCities = await _dbContext.DimCities
             .Where(c => c.OblastId == oblastId)
             .AsNoTracking()
-            .OrderBy(c => c.CityName) // Order for consistent dropdown display
+            .OrderBy(c => c.CityName)
             .ToListAsync();
-        
         return dbCities.Select(DimCityConverter.ToDomain);
     }
 

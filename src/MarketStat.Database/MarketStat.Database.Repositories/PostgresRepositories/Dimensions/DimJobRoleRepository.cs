@@ -20,12 +20,7 @@ public class DimJobRoleRepository : BaseRepository, IDimJobRoleRepository
     
     public async Task AddJobRoleAsync(DimJobRole jobRole)
     {
-        var dbModel = new DimJobRoleDbModel(
-            jobRoleId: 0,
-            jobRoleTitle: jobRole.JobRoleTitle,
-            standardJobRoleId: jobRole.StandardJobRoleId,
-            hierarchyLevelId: jobRole.HierarchyLevelId
-        );
+        var dbModel = DimJobRoleConverter.ToDbModel(jobRole);
         await _dbContext.DimJobRoles.AddAsync(dbModel);
         try
         {

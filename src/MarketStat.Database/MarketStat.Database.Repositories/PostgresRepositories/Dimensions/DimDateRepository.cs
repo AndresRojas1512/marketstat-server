@@ -20,15 +20,8 @@ public class DimDateRepository : BaseRepository, IDimDateRepository
     
     public async Task AddDateAsync(DimDate date)
     {
-        var dbModel = new DimDateDbModel(
-            dateId: 0,
-            fullDate: date.FullDate,
-            year: date.Year,
-            quarter: date.Quarter,
-            month: date.Month
-        );
+        var dbModel = DimDateConverter.ToDbModel(date);
         await _dbContext.DimDates.AddAsync(dbModel);
-
         try
         {
             await _dbContext.SaveChangesAsync();

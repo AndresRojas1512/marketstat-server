@@ -21,7 +21,6 @@ public class DimIndustryFieldRepository : BaseRepository, IDimIndustryFieldRepos
     public async Task AddIndustryFieldAsync(DimIndustryField industryField)
     {
         var dbModel = DimIndustryFieldConverter.ToDbModel(industryField);
-            
         await _dbContext.DimIndustryFields.AddAsync(dbModel);
         try
         {

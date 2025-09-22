@@ -20,10 +20,7 @@ public class DimEducationLevelRepository : BaseRepository, IDimEducationLevelRep
     
     public async Task AddEducationLevelAsync(DimEducationLevel educationLevel)
     {
-        var dbModel = new DimEducationLevelDbModel(
-            educationLevelId: 0,
-            educationLevelName: educationLevel.EducationLevelName
-        );
+        var dbModel = DimEducationLevelConverter.ToDbModel(educationLevel);
         await _dbContext.DimEducationLevels.AddAsync(dbModel);
         try
         {

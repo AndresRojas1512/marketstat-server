@@ -19,11 +19,7 @@ public class DimOblastRepository : BaseRepository, IDimOblastRepository
     }
     public async Task AddOblastAsync(DimOblast dimOblast)
     {
-        var dbModel = new DimOblastDbModel(
-            oblastId: 0,
-            oblastName: dimOblast.OblastName,
-            districtId: dimOblast.DistrictId
-        );
+        var dbModel = DimOblastConverter.ToDbModel(dimOblast);
         await _dbContext.DimOblasts.AddAsync(dbModel);
         try
         {

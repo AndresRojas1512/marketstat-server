@@ -21,7 +21,6 @@ public class DimEmployeeRepository : BaseRepository, IDimEmployeeRepository
     public async Task AddEmployeeAsync(DimEmployee employee)
     {
         var dbEmployee = DimEmployeeConverter.ToDbModel(employee);
-            
         await _dbContext.DimEmployees.AddAsync(dbEmployee);
         try
         {
