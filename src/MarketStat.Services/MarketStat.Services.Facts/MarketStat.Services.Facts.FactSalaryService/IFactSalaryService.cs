@@ -18,7 +18,7 @@ public interface IFactSalaryService
         int employeeId, decimal salaryAmount, decimal bonusAmount);
     Task DeleteFactSalaryAsync(long salaryFactId);
     
-    // Analytics
+    // Authorized Analytics
     Task<BenchmarkDataDto?> GetBenchmarkingReportAsync(BenchmarkQueryDto filters);
     Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters);
     Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
@@ -36,5 +36,4 @@ public interface IFactSalaryService
         PublicTopEmployerRoleSalariesQueryDto queryDto);
     
     // ETL Methods
-    Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile);
 }

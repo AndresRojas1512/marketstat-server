@@ -185,7 +185,9 @@ public class FactSalaryController : ControllerBase
         return NoContent();
     }
     
-    // --- Analytical Endpoints ---
+    // ===============================
+    // Authorized analytical endpoints
+    // ===============================
 
     /// <summary>
     /// Gets a consolidated salary benchmarking report.
@@ -319,7 +321,9 @@ public class FactSalaryController : ControllerBase
         }
     }
     
-    //  Public analytical methods
+    // ==========================
+    // Public analytical endpoints
+    // ==========================
 
     /// <summary>
     /// Gets a public view of standard job roles by location and industry, ordered by average salary.
@@ -418,54 +422,4 @@ public class FactSalaryController : ControllerBase
             return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
         }
     }
-    
-    /// <summary>
-    /// Uploads a CSV file containing salary facts for bulk processing.
-    /// Requires "EtlUser" role.
-    /// </summary>
-    /// <param name="file">The CSV file to upload.</param>
-    /// <returns>A summary of the processing result.</returns>
-    // [HttpPost("etl/upload-salary-csv")]
-    // [Authorize(Roles = "EtlUser")]
-    // [Consumes("multipart/form-data")]
-    // [ProducesResponseType(typeof(EtlProcessingResultDto), StatusCodes.Status200OK)]
-    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    // [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    // public async Task<ActionResult<EtlProcessingResultDto>> UploadSalaryFactsCsv(IFormFile file)
-    // {
-    //     _logger.LogInformation("User (EtlUser) attempting to upload salary facts CSV: {FileName}", file?.FileName ?? "No file provided");
-    //
-    //     if (file == null || file.Length == 0)
-    //     {
-    //         _logger.LogWarning("UploadSalaryFactsCsv: No file uploaded or file is empty.");
-    //         return BadRequest(new { Message = "No file uploaded or file is empty." });
-    //     }
-    //
-    //     try
-    //     {
-    //         var result = await _factSalaryService.ProcessSalaryFactsCsvUploadAsync(file);
-    //         if (result.Success)
-    //         {
-    //             _logger.LogInformation("UploadSalaryFactsCsv: File {FileName} processed successfully. Message: {Message}", file.FileName, result.Message);
-    //             return Ok(result);
-    //         }
-    //         else
-    //         {
-    //             _logger.LogWarning("UploadSalaryFactsCsv: File {FileName} processing failed. Message: {Message}, Errors: {Errors}", file.FileName, result.Message, string.Join("; ", result.Errors));
-    //             return BadRequest(result); 
-    //         }
-    //     }
-    //     catch (ArgumentException argEx)
-    //     {
-    //         _logger.LogWarning(argEx, "UploadSalaryFactsCsv: Invalid argument during processing for file {FileName}.", file.FileName);
-    //         return BadRequest(new { Message = argEx.Message });
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "UploadSalaryFactsCsv: Unexpected error processing file {FileName}.", file.FileName);
-    //         throw; 
-    //     }
-    // }
 }

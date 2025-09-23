@@ -15,23 +15,17 @@ public interface IFactSalaryRepository
     Task UpdateFactSalaryAsync(FactSalary salaryFact);
     Task DeleteFactSalaryByIdAsync(long salaryFactId);
     
-    // Auth Analytics
-    Task<string?> GetBenchmarkingReportJsonAsync(BenchmarkQueryDto filters);
+    // Authorized analytical methods
     Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters);
     Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
     Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters,
         TimeGranularity granularity, int periods);
     
-    // Public Analytical Methods
+    // Public analytical methods
     Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto);
 
     Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
         PublicSalaryByEducationQueryDto queryDto);
     Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-        PublicTopEmployerRoleSalariesQueryDto queryDto); 
-    
-    // ETL
-    Task TruncateStagingTableAsync(string stagingTableName);
-    Task BatchInsertToStagingTableAsync(string stagingTableName, IEnumerable<StagedSalaryRecordDto> records);
-    Task<(int insertedCount, int skippedCount)> CallBulkLoadFromStagingProcedureAsync(string stagingTableName);
+        PublicTopEmployerRoleSalariesQueryDto queryDto);
 }
