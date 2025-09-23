@@ -240,27 +240,193 @@ public class FactSalaryRepository : IFactSalaryRepository
 
     public async Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters)
     {
-        return await _dbContext.Set<SalaryDistributionBucketDto>()
-            .FromSqlInterpolated($"SELECT * FROM marketstat.fn_salary_distribution(p_source_temp_table_name := NULL, p_industry_field_id := {filters.IndustryFieldId}, p_standard_job_role_id := {filters.StandardJobRoleId}, p_hierarchy_level_id := {filters.HierarchyLevelId}, p_district_id := {filters.DistrictId}, p_oblast_id := {filters.OblastId}, p_city_id := {filters.CityId}, p_date_start := {filters.DateStart}, p_date_end := {filters.DateEnd})")
-            .AsNoTracking()
+        var baseQuery = GetFilteredSalariesQuery(filters);
+        var salaries = await baseQuery
+            .Select(f => f.SalaryAmount)
             .ToListAsync();
+        if (salaries.Count == 0)
+        {
+            return new List<SalaryDistributionBucketDto>();
+        }
+
+        var n = salaries.Count;
+        var minVal = salaries.Min();
+        var maxVal = salaries.Max();
+
+        if (n <= 1 || minVal == maxVal)
+        {
+            return new List<SalaryDistributionBucketDto>
+            {
+                new SalaryDistributionBucketDto { LowerBound = minVal, UpperBound = maxVal = n }
+            };
+        }
+
+        int bucketCount = (int)Math.Floor(Math.Log(n, 2)) + 2;
+        decimal delta = (maxVal - minVal) / bucketCount;
+
+        if (delta == 0)
+        {
+            return new List<SalaryDistributionBucketDto>
+            {
+                new SalaryDistributionBucketDto { LowerBound = minVal, UpperBound = maxVal, BucketCount = n }
+            };
+        }
+
+        var distribution = salaries
+            .GroupBy(salary => (int)Math.Floor((salary - minVal) / delta))
+            .Select(g =>
+            {
+                int bucketNo = Math.Clamp(g.Key, 0, bucketCount - 1);
+                var lowerBound = minVal + (bucketNo * delta);
+                var upperBound = lowerBound + delta;
+
+                return new
+                {
+                    LowerBound = lowerBound,
+                    UpperBound = upperBound,
+                    Count = g.Count()
+                };
+            })
+            .OrderBy(b => b.LowerBound)
+            .ToList();
+
+        return distribution.Select(b => new SalaryDistributionBucketDto
+        {
+            LowerBound = b.LowerBound,
+            UpperBound = b.UpperBound,
+            BucketCount = b.Count
+        }).ToList();
     }
 
     public async Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile)
     {
-        return await _dbContext.Set<SalarySummaryDto>()
-            .FromSqlInterpolated($"SELECT * FROM marketstat.fn_salary_summary(p_source_temp_table_name := NULL, p_industry_field_id := {filters.IndustryFieldId}, p_standard_job_role_id := {filters.StandardJobRoleId}, p_hierarchy_level_id := {filters.HierarchyLevelId}, p_district_id := {filters.DistrictId}, p_oblast_id := {filters.OblastId}, p_city_id := {filters.CityId}, p_date_start := {filters.DateStart}, p_date_end := {filters.DateEnd}, p_target_percentile := {targetPercentile})")
-            .AsNoTracking()
+        var baseQuery = GetFilteredSalariesQuery(filters);
+        var summaryStats = await baseQuery
+            .GroupBy(f => 1)
+            .Select(g => new
+            {
+                TotalCount = g.Count(),
+                AverageSalary = g.Average(f => f.SalaryAmount)
+            })
             .FirstOrDefaultAsync();
+        if (summaryStats == null || summaryStats.TotalCount == 0)
+        {
+            return null;
+        }
+        
+        var salariesForPercentile = await baseQuery
+            .OrderBy(f => f.SalaryAmount)
+            .Select(f => f.SalaryAmount)
+            .ToListAsync();
+
+        var result = new SalarySummaryDto
+        {
+            TotalCount = summaryStats.TotalCount,
+            AverageSalary = summaryStats.AverageSalary,
+            Percentile25 = CalculatePercentile(salariesForPercentile, 25),
+            Percentile50 = CalculatePercentile(salariesForPercentile, 50),
+            Percentile75 = CalculatePercentile(salariesForPercentile, 75),
+            PercentileTarget = CalculatePercentile(salariesForPercentile, targetPercentile),
+        };
+        return result;
+    }
+
+    private decimal? CalculatePercentile(List<decimal> sortedData, int percentile)
+    {
+        if (sortedData.Count == 0)
+        {
+            return null;
+        }
+
+        if (percentile <= 0)
+        {
+            return sortedData[0];
+        }
+
+        if (percentile >= 100)
+        {
+            return sortedData[sortedData.Count - 1];
+        }
+        
+        double index = (percentile / 100.0) * (sortedData.Count - 1);
+        int lowerIndex = (int)index;
+        int upperIndex = lowerIndex + 1;
+        
+        if (upperIndex >= sortedData.Count)
+        {
+            return sortedData[lowerIndex];
+        }
+        double weight = index - lowerIndex;
+        
+        return (decimal)((1 - weight) * (double)sortedData[lowerIndex] + weight * (double)sortedData[upperIndex]);
     }
 
     public async Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters, TimeGranularity granularity, int periods)
     {
-        string granularityString = granularity.ToString().ToLowerInvariant();
-        return await _dbContext.Set<SalaryTimeSeriesPointDto>()
-            .FromSqlInterpolated($"SELECT * FROM marketstat.fn_salary_time_series(p_source_temp_table_name := NULL, p_industry_field_id := {filters.IndustryFieldId}, p_standard_job_role_id := {filters.StandardJobRoleId}, p_hierarchy_level_id := {filters.HierarchyLevelId}, p_district_id := {filters.DistrictId}, p_oblast_id := {filters.OblastId}, p_city_id := {filters.CityId}, p_filter_date_start := {filters.DateStart}, p_filter_date_end := {filters.DateEnd}, p_granularity := {granularityString}, p_periods := {periods})")
-            .AsNoTracking()
-            .ToListAsync();
+        var referenceDate = filters.DateEnd ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var seriesEndDate = GetPeriodStartDate(referenceDate, granularity);
+        var seriesStartDate = AddPeriods(seriesEndDate, granularity, -(periods - 1));
+
+        var baseQuery = GetFilteredSalariesQuery(filters)
+            .Where(f => f.DimDate.FullDate >= seriesStartDate &&
+                        f.DimDate.FullDate < AddPeriods(seriesEndDate, granularity, 1));
+
+        var dbResults = await baseQuery
+            .GroupBy(f => GetPeriodStartDate(f.DimDate.FullDate, granularity))
+            .Select(g => new
+            {
+                PeriodStart = g.Key,
+                AvgSalary = g.Average(f => f.SalaryAmount),
+                SalaryCountInPeriod = g.Count()
+            })
+            .ToDictionaryAsync(r => r.PeriodStart);
+        
+        var allPeriods = new List<SalaryTimeSeriesPointDto>();
+        var currentPeriod = seriesStartDate;
+        for (int i = 0; i < periods; i++)
+        {
+            if (dbResults.TryGetValue(currentPeriod, out var stats))
+            {
+                allPeriods.Add(new SalaryTimeSeriesPointDto
+                {
+                    PeriodStart = currentPeriod,
+                    AvgSalary = stats.AvgSalary,
+                    SalaryCountInPeriod = stats.SalaryCountInPeriod
+                });
+            }
+            else
+            {
+                allPeriods.Add(new SalaryTimeSeriesPointDto
+                {
+                    PeriodStart = currentPeriod,
+                    AvgSalary = 0,
+                    SalaryCountInPeriod = 0
+                });
+            }
+
+            currentPeriod = AddPeriods(currentPeriod, granularity, 1);
+        }
+        return allPeriods.OrderBy(p => p.PeriodStart).ToList();
+    }
+
+    private DateOnly GetPeriodStartDate(DateOnly date, TimeGranularity granularity)
+    {
+        return granularity switch
+        {
+            TimeGranularity.Year => new DateOnly(date.Year, 1, 1),
+            TimeGranularity.Quarter => new DateOnly(date.Year, ((date.Month - 1) / 3) * 3 + 1, 1),
+            _ => new DateOnly(date.Year, date.Month, 1),
+        };
+    }
+
+    private DateOnly AddPeriods(DateOnly date, TimeGranularity granularity, int count)
+    {
+        return granularity switch
+        {
+            TimeGranularity.Year => date.AddYears(count),
+            TimeGranularity.Quarter => date.AddMonths(count * 3),
+            _ => date.AddMonths(count),
+        };
     }
     
     // Public analytics
@@ -388,19 +554,14 @@ public class FactSalaryRepository : IFactSalaryRepository
             _logger.LogInformation("Repository: No records provided for batch insert into {StagingTable}.", stagingTableName);
             return;
         }
-    
         _logger.LogInformation("Repository: Starting batch insert of {RecordCount} records into {StagingTable}.", records.Count(), stagingTableName);
-    
-        var connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection(); 
-        
+        var connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection();
         if (connection.State != ConnectionState.Open)
         {
             _logger.LogWarning("[REPO BatchInsert] Connection was not open despite expecting an active transaction. Opening now.");
             await connection.OpenAsync(); 
         }
-    
         var copyCommand = $"COPY {stagingTableName} (recorded_date_text, city_name, oblast_name, employer_name, standard_job_role_title, job_role_title, hierarchy_level_name, employee_birth_date_text, employee_career_start_date_text, salary_amount, bonus_amount) FROM STDIN (FORMAT BINARY)";
-    
         NpgsqlBinaryImporter? writer = null;
         try
         {
@@ -535,5 +696,56 @@ public class FactSalaryRepository : IFactSalaryRepository
             }
         }
         return (insertedCount, skippedCount);
+    }
+
+    private IQueryable<FactSalaryDbModel> GetFilteredSalariesQuery(SalaryFilterDto filter)
+    {
+        var query = _dbContext.FactSalaries
+            .Include(fs => fs.DimDate)
+            .Include(fs => fs.DimCity).ThenInclude(c => c.DimOblast).ThenInclude(o => o.DimFederalDistrict)
+            .Include(fs => fs.DimJobRole).ThenInclude(jr => jr.DimStandardJobRole).ThenInclude(sjr => sjr.DimIndustryField)
+            .Include(fs => fs.DimJobRole).ThenInclude(jr => jr.DimHierarchyLevel)
+            .AsQueryable();
+        if (filter.IndustryFieldId.HasValue)
+        {
+            query = query.Where(fs =>
+                fs.DimJobRole.DimStandardJobRole.IndustryFieldId == filter.IndustryFieldId.Value);
+        }
+
+        if (filter.StandardJobRoleId.HasValue)
+        {
+            query = query.Where(fs => fs.DimJobRole.StandardJobRoleId == filter.StandardJobRoleId.Value);
+        }
+
+        if (filter.HierarchyLevelId.HasValue)
+        {
+            query = query.Where(fs => fs.DimJobRole.HierarchyLevelId == filter.HierarchyLevelId.Value);
+        }
+
+        if (filter.DistrictId.HasValue)
+        {
+            query = query.Where(fs => fs.DimCity.DimOblast.DistrictId == filter.DistrictId.Value);
+        }
+
+        if (filter.OblastId.HasValue)
+        {
+            query = query.Where(fs => fs.DimCity.OblastId == filter.OblastId.Value);
+        }
+
+        if (filter.CityId.HasValue)
+        {
+            query = query.Where(fs => fs.CityId == filter.CityId.Value);
+        }
+
+        if (filter.DateStart.HasValue)
+        {
+            query = query.Where(fs => fs.DimDate.FullDate >= filter.DateStart.Value);
+        }
+
+        if (filter.DateEnd.HasValue)
+        {
+            query = query.Where(fs => fs.DimDate.FullDate <= filter.DateEnd.Value);
+        }
+        return query;
     }
 }

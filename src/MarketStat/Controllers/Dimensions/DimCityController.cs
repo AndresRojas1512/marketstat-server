@@ -79,7 +79,7 @@ public class DimCityController : ControllerBase
     /// </summary>
     /// <param name="createDto"></param>
     [HttpPost]
-    // [Authorize(Roles = "EtlUser")]
+    [Authorize(Roles = "EtlUser")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(DimCityDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
