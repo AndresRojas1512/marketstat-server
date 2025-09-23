@@ -203,6 +203,10 @@ public class FactSalaryService : IFactSalaryService
         }
     }
     
+    // ===============================
+    // Authorized analytical endpoints
+    // ===============================
+    
     public async Task<BenchmarkDataDto?> GetBenchmarkingReportAsync(BenchmarkQueryDto filters)
     {
         _logger.LogInformation("Service: Validating filters for benchmark report: {@Filters}", filters);
@@ -228,39 +232,39 @@ public class FactSalaryService : IFactSalaryService
             throw new ArgumentException("The target percentile must be between 0 and 100.", nameof(filters.TargetPercentile));
         }
 
-        _logger.LogInformation("Service: All filters are valid. Fetching benchmark report from repository.");
-        string? jsonResult = await _factSalaryRepository.GetBenchmarkingReportJsonAsync(filters);
-
-        _logger.LogInformation("Service: Raw JSON result from repository: {JsonResult}", jsonResult);
-
-        if (string.IsNullOrEmpty(jsonResult) || jsonResult.Trim() == "{}" || jsonResult.Trim() == "null")
+        var salaryFilter = new SalaryFilterDto
         {
-            _logger.LogWarning("Service: Benchmark data function returned null or effectively empty JSON for filters: {@Filters}. Raw JSON: {RawJson}", filters, jsonResult);
+            IndustryFieldId = filters.IndustryFieldId,
+            StandardJobRoleId = filters.StandardJobRoleId,
+            HierarchyLevelId = filters.HierarchyLevelId,
+            DistrictId = filters.DistrictId,
+            OblastId = filters.OblastId,
+            CityId = filters.CityId,
+            DateStart = filters.DateStart,
+            DateEnd = filters.DateEnd
+        };
+
+        var salarySummaryTask = _factSalaryRepository.GetSalarySummaryAsync(salaryFilter, filters.TargetPercentile);
+        var salaryDistributionTask = _factSalaryRepository.GetSalaryDistributionAsync(salaryFilter);
+        var salaryTimeSeriesTask = _factSalaryRepository.GetSalaryTimeSeriesAsync(salaryFilter, filters.Granularity, filters.Periods);
+        
+        await Task.WhenAll(salarySummaryTask, salaryDistributionTask, salaryTimeSeriesTask);
+
+        var salarySummary = await salarySummaryTask;
+        if (salarySummary == null)
+        {
             return new BenchmarkDataDto();
         }
-        try
-        {
-            BenchmarkDataDto? benchmarkData = JsonSerializer.Deserialize<BenchmarkDataDto>(jsonResult, _jsonSerializerOptions);
-            
-            if (benchmarkData != null) 
-            {
-                benchmarkData.SalaryDistribution ??= new List<SalaryDistributionBucketDto>();
-                benchmarkData.SalaryTimeSeries ??= new List<SalaryTimeSeriesPointDto>();
-            }
-            else
-            {
-                _logger.LogWarning("Service: Deserialized C# BenchmarkDataDto is null from JSON: {RawJson}. Filters: {@Filters}", jsonResult, filters);
-                return new BenchmarkDataDto();
-            }
 
-            _logger.LogInformation("Service: Successfully fetched and deserialized benchmark report for filters: {@Filters}", filters);
-            return benchmarkData;
-        }
-        catch (JsonException ex)
+        var reportData = new BenchmarkDataDto
         {
-            _logger.LogError(ex, "Service: Error deserializing benchmark report JSON. Raw JSON received: {RawJson}. Filters: {@Filters}", jsonResult, filters);
-            throw new ApplicationException("Error processing benchmark report results from database: Invalid data format received.", ex);
-        }
+            SalarySummary = salarySummary,
+            SalaryDistribution = await salaryDistributionTask,
+            SalaryTimeSeries = await salaryTimeSeriesTask
+        };
+        
+        _logger.LogInformation("Service: Successfully assembled benchmark report for filters: {@Filters}", filters);
+        return reportData;
     }
 
     public async Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters)
@@ -360,6 +364,10 @@ public class FactSalaryService : IFactSalaryService
         _logger.LogInformation("Service: Fetched {Count} time series points for filters: {@Filters}", result.Count, filters);
         return result;
     }
+    
+    // =========================
+    // Public analytical methods
+    // =========================
         
     public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto)
     {
@@ -486,110 +494,6 @@ public class FactSalaryService : IFactSalaryService
         {
             _logger.LogError(ex, "Service: Error retrieving public top employer role salaries for DTO: {@QueryDto}", queryDto);
             throw;
-        }
-    }
-    
-    public async Task<EtlProcessingResultDto> ProcessSalaryFactsCsvUploadAsync(IFormFile csvFile)
-    {
-        _logger.LogInformation("Service: Starting CSV upload processing for file: {FileName}, Size: {FileSize} bytes", csvFile.FileName, csvFile.Length);
-    
-        // file validation
-        if (csvFile == null || csvFile.Length == 0)
-        {
-            _logger.LogWarning("Service: No file uploaded or file is empty.");
-            return new EtlProcessingResultDto(false, "No file uploaded or file is empty.");
-        }
-        if (csvFile.Length > 10 * 1024 * 1024)
-        {
-            _logger.LogWarning("Service: File {FileName} exceeds size limit of 10MB.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, "File exceeds maximum allowed size (10MB).");
-        }
-        if (Path.GetExtension(csvFile.FileName).ToLowerInvariant() != ".csv")
-        {
-            _logger.LogWarning("Service: Invalid file type for {FileName}. Only CSV files are allowed.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, "Invalid file type. Only CSV files are allowed.");
-        }
-    
-        var recordsToStage = new List<StagedSalaryRecordDto>();
-        int csvRowsRead = 0;
-    
-        // parse CSV
-        try
-        {
-            _logger.LogInformation("Service: Parsing CSV file {FileName}", csvFile.FileName);
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                HasHeaderRecord = true,
-                MissingFieldFound = null, 
-                HeaderValidated = null,   
-                TrimOptions = TrimOptions.Trim,
-                BadDataFound = context => _logger.LogWarning("Bad data found in CSV at row number {RowNumber} (approx): {RawRecord}. Field: {Field}", 
-                                                              context.Context.Parser.RawRow, context.RawRecord, context.Field)
-            };
-    
-            using (var reader = new StreamReader(csvFile.OpenReadStream(), Encoding.UTF8))
-            using (var csv = new CsvReader(reader, config))
-            {
-                csv.Context.RegisterClassMap<StagedSalaryRecordDtoMap>();
-                await foreach (var record in csv.GetRecordsAsync<StagedSalaryRecordDto>())
-                {
-                    recordsToStage.Add(record);
-                    csvRowsRead++;
-                }
-            }
-            _logger.LogInformation("Service: Parsed {CsvRowsRead} records from CSV file {FileName}.", csvRowsRead, csvFile.FileName);
-    
-            if (csvRowsRead == 0)
-            {
-                return new EtlProcessingResultDto(false, "CSV file is empty or contains no valid records.") { CsvRowsRead = 0 };
-            }
-        }
-        catch (HeaderValidationException hvex)
-        {
-             _logger.LogError(hvex, "Service: CSV header validation error for file {FileName}.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, $"CSV header error: {hvex.Message}") { CsvRowsRead = csvRowsRead };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Service: Error parsing CSV file {FileName}.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, $"Error parsing CSV: {ex.Message}") { CsvRowsRead = csvRowsRead };
-        }
-    
-        int insertedCount = 0;
-        int skippedCount = 0;
-    
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
-        try
-        {
-            _logger.LogInformation("Service: Starting database transaction for staging and bulk load.");
-            await _factSalaryRepository.TruncateStagingTableAsync(PermanentStagingTableName);
-            await _factSalaryRepository.BatchInsertToStagingTableAsync(PermanentStagingTableName, recordsToStage);
-            var procedureResult = await _factSalaryRepository.CallBulkLoadFromStagingProcedureAsync(PermanentStagingTableName);
-            insertedCount = procedureResult.insertedCount;
-            skippedCount = procedureResult.skippedCount;
-            
-            await transaction.CommitAsync();
-            _logger.LogInformation("Service: CSV processing and bulk load completed successfully for {FileName}. {CsvRowsRead} records read, {StagedCount} records staged.", 
-                csvFile.FileName, csvRowsRead, recordsToStage.Count);
-            return new EtlProcessingResultDto(true, "Salary facts CSV processed successfully.") 
-            { 
-                CsvRowsRead = csvRowsRead, 
-                RowsStaged = recordsToStage.Count,
-                FactsInserted = insertedCount,
-                RowsSkippedOrFailedInProcedure = skippedCount
-            };
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "Service: Error during database staging or bulk load procedure for {FileName}. Transaction rolled back.", csvFile.FileName);
-            return new EtlProcessingResultDto(false, $"Database operation failed: {ex.Message}") 
-            { 
-                CsvRowsRead = csvRowsRead, 
-                RowsStaged = (ex is ApplicationException && ex.InnerException is NpgsqlException) ? 0 : recordsToStage.Count,
-                FactsInserted = -1,
-                RowsSkippedOrFailedInProcedure = -1
-            };
         }
     }
 }
