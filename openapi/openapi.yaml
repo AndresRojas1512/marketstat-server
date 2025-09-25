@@ -1,0 +1,80 @@
+openapi: 3.1.1
+
+info:
+  title: MarketStat API
+  version: 1.0.0
+  description: >
+    RESTful API for analyzing salary data in the Russian labor market.
+  
+servers:
+  - url: http://localhost:5000/api
+    description: Local Development Server
+
+tags:
+  - name: Dimensions
+    description: Operations for managing dimension data.
+
+paths:
+  /dim-employers:
+    get:
+      tags:
+        - Dimensions
+      summary: Get a list of all employers
+      description: Retrieves a paginated list of all employers.
+      security: []
+      responses:
+        '200':
+          description: A list of employers was successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEmployerDto'
+
+
+components:
+  schemas:
+    DimEmployerDto:
+      type: object
+      description: Represents an employer entity.
+      properties:
+        employerId:
+          type: integer
+          format: int32
+          description: The unique identifier for the employer.
+          readOnly: true
+        employerName:
+          type: string
+          description: The official name of the employer.
+        inn:
+          type: string
+          description: The employer's Taxpayer Identification Number (INN).
+        ogrn:
+          type: string
+          description: The employer's Primary State Registration Number (OGRN).
+        kpp:
+          type: string
+          description: The employer's Reason for Registration Code (KPP).
+        registrationDate:
+          type: string
+          format: date
+          description: The date the company was registered.
+        legalAddess:
+          type: string
+          description: The official legal address of the company.
+        website:
+          type: string
+          format: uri
+          description: The company's official website.
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT Authorization header using the Bearer scheme. Provide the token in the Authorization header.
+        Example: "Authorization: Bearer {token}"
+
+security:
+  - bearerAuth: []
