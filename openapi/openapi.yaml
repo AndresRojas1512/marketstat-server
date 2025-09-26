@@ -31,10 +31,116 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/DimEmployerDto'
-
+    
+    post:
+      tags:
+        - Dimensions
+      summary: Creates a new employer
+      description: Adds a new employer record to the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimEmployerDto'
+      responses:
+        '201':
+          description: The employer was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created employer resource.
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployerDto'
+        '400':
+          description: Bad request - The request body is invalid.
+        '401':
+          description: Unauthorized - JWT token is missin or invalid.
+        '403':
+          description: Frobidden - The user does not have the required role.
+        '409':
+          description: Conflict - An employer with the same name, INN, or OGRN already exists.
+  
+  /dim-employers/{employerId}:
+    parameters:
+      - name: employerId
+        in: path
+        required: true
+        description: The unique identifier of the employer.
+        schema:
+          type: integer
+          format: int32
+    
+    get:
+      tags:
+        - Dimensions
+      summary: Get an employer by ID
+      description: Retrieves a single employer resource by its unique identifier.
+      security: []
+      responses:
+        '200':
+          description: Employer resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployerDto'
+        '404':
+          description: Not found - An employer with the specified ID does not exist.
+    
+    put:
+      tags:
+        - Dimensions
+      summary: Update an entire employer resource
+      description: Replaces an existing employer resource with a new representation. All fields are required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimEmployerDto'
+      responses:
+        '204':
+          description: The employer was updated successfully. No content is returned.
+        '400':
+          description: Bad request - The request body is invalid.
+        '404':
+          description: Not Found - An employer with the specified ID does not exist.
+    patch:
+      tags:
+        - Dimensions
+      summary: Partially update an employer resource
+      description: Updates one or more fields of an existing employer resource. Any fields included in the request body will be updated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimEmployerDto'
+      responses:
+        '204':
+          description: The employer was partially updated successfully. No content is returned.
+        '400':
+          description: Bad request - The request body is invalid.
+        '404':
+          description: Not found - An employer with the specified ID does not exist.
+    delete:
+      tags:
+        - Dimensions
+      summary: Delete an employer
+      description: Deletes and employer resource.
+      responses:
+        '204':
+          description: The employer was deleted successfully.
+        '404':
+          description: Not Found - An employer with the specified ID does not exist.
 
 components:
   schemas:
+
     DimEmployerDto:
       type: object
       description: Represents an employer entity.
@@ -42,31 +148,88 @@ components:
         employerId:
           type: integer
           format: int32
-          description: The unique identifier for the employer.
           readOnly: true
         employerName:
           type: string
-          description: The official name of the employer.
         inn:
           type: string
-          description: The employer's Taxpayer Identification Number (INN).
         ogrn:
           type: string
-          description: The employer's Primary State Registration Number (OGRN).
         kpp:
           type: string
-          description: The employer's Reason for Registration Code (KPP).
         registrationDate:
           type: string
           format: date
-          description: The date the company was registered.
-        legalAddess:
+        legalAddress:
           type: string
-          description: The official legal address of the company.
         website:
           type: string
           format: uri
-          description: The company's official website.
+        contactEmail:
+          type: string
+          format: email
+        contactPhone:
+          type: string
+    
+    CreateDimEmployerDto:
+      type: object
+      description: The set of properites required to create a new employer.
+      required:
+        - employerName
+        - inn
+        - ogrn
+        - kpp
+        - registrationDate
+        - legalAddress
+      properties:
+        employerName:
+          type: string
+        inn:
+          type: string
+        ogrn:
+          type: string
+        kpp:
+          type: string
+        registrationDate:
+          type: string
+          format: date
+        legalAddress:
+          type: string
+        website:
+          type: string
+          format: uri
+        contactEmail:
+          type: string
+          format: email
+        contactPhone:
+          type: string
+    
+    UpdateDimEmployerDto:
+      type: object
+      description: The set of properties available for updating an employer.
+      properties:
+        employerName:
+          type: string
+        inn:
+          type: string
+        ogrn:
+          type: string
+        kpp:
+          type: string
+        registrationDate:
+          type: string
+          format: date
+        legalAddress:
+          type: string
+        website:
+          type: string
+          format: uri
+        contactEmail:
+          type: string
+          format: email
+        contactPhone:
+          type: string
+
   securitySchemes:
     bearerAuth:
       type: http
