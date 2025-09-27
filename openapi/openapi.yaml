@@ -26,8 +26,12 @@ tags:
   - name: DimStandardJobRole
   - name: DimStandardJobRoleHierarchy
   - name: FactSalary
+  - name: Analytics
 
 paths:
+
+  # Auth
+  
   /auth/register:
     post:
       tags: [Auth]
@@ -73,6 +77,8 @@ paths:
           $ref: '#/components/responses/BadRequestResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedResponse'
+
+  # BenchmarkHistory
   
   /benchmark-history:
     get:
@@ -144,15 +150,189 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundResponse'
 
+  # DimCity
+  
+  /dim-cities:
+    get:
+      tags: [DimCity]
+      summary: Get a list of all cities
+      description: Retrieves a list of all cities.
+      security: []
+    post:
+      tags: [DimCity]
+      summary: Creates a new employee
+      description: Adds a new employee record to the database.
+  
+  /dim-cities/{cityId}:
+    parameters:
+      - { name: cityId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimCity]
+      summary: Get a city by ID
+      description: Retrieves a single city resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimCity]
+      summary: Update an entire city resource
+      description: Replaces an existing city resource with a new representation.
+    patch:
+      tags: [DimCity]
+      summary: Partially update a city resource
+      description: Updates one or more fields of an existing city resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimCity]
+      summary: Delete an city
+      description: Deletes a city resource.
+
+  # DimDate
+
+  /dim-dates:
+    get:
+      tags: [DimDate]
+      summary: Get a list of all dates
+      description: Retrieves a list of all dates.
+      security: []
+    post:
+      tags: [DimDate]
+      summary: Creates a new employee
+      description: Adds a new employee record to the database.
+  
+  /dim-dates/{dateId}:
+    parameters:
+      - { name: dateId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimDate]
+      summary: Get a date by ID
+      description: Retrieves a single date resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimDate]
+      summary: Update an entire date resource
+      description: Replaces an existing date resource with a new representation.
+    patch:
+      tags: [DimDate]
+      summary: Partially update a date resource
+      description: Updates one or more fields of an existing date resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimDate]
+      summary: Delete a date
+      description: Deletes a date resource.
+
+  # DimEducation
+
+  /dim-educations:
+    get:
+      tags: [DimEducation]
+      summary: Get a list of all educations
+      description: Retrieves a list of all educations.
+      security: []
+    post:
+      tags: [DimEducation]
+      summary: Creates a new education
+      description: Adds a new education record to the database.
+  
+  /dim-educations/{educationId}:
+    parameters:
+      - { name: educationId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimEducation]
+      summary: Get an education by ID
+      description: Retrieves a single education resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimEducation]
+      summary: Update an entire education resource
+      description: Replaces an existing education resource with a new representation.
+    patch:
+      tags: [DimEducation]
+      summary: Partially update an education resource
+      description: Updates one or more fields of an existing education resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimEducation]
+      summary: Delete an education
+      description: Deletes an education resource.
+
+  # DimEducationLevel
+
+  /dim-education-levels:
+    get:
+      tags: [DimEducationLevel]
+      summary: Get a list of all education levels
+      description: Retrieves a list of all education levels.
+      security: []
+    post:
+      tags: [DimEducationLevel]
+      summary: Creates a new education level
+      description: Adds a new education level record to the database.
+  
+  /dim-education-levels/{educationLevelId}:
+    parameters:
+      - { name: educationLevelId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimEducationLevel]
+      summary: Get an education level by ID
+      description: Retrieves a single education level resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimEducationLevel]
+      summary: Update an entire education level resource
+      description: Replaces an existing education level resource with a new representation.
+    patch:
+      tags: [DimEducationLevel]
+      summary: Partially update an education level resource
+      description: Updates one or more fields of an existing education level resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimEducationLevel]
+      summary: Delete an education level
+      description: Deletes an education level resource.
+
+  # DimEmployee
+
+  /dim-employees:
+    get:
+      tags: [DimEmployee]
+      summary: Get a list of all employees
+      description: Retrieves a list of all employees.
+      security: []
+    post:
+      tags: [DimEmployee]
+      summary: Creates a new employee
+      description: Adds a new employee record to the database.
+  
+  /dim-employees/{employeeId}:
+    parameters:
+      - { name: employeeId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimEmployee]
+      summary: Get an employee by ID
+      description: Retrieves a single employee resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimEmployee]
+      summary: Update an entire employee resource
+      description: Replaces an existing employee resource with a new representation.
+    patch:
+      tags: [DimEmployee]
+      summary: Partially update an employee resource
+      description: Updates one or more fields of an existing employee resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimEmployee]
+      summary: Delete an employee
+      description: Deletes an employee resource.
+
+  # DimEmployeeEducation
+
+  # DimEmployer
+
   /dim-employers:
     get:
       tags: [DimEmployer]
       summary: Get a list of all employers
-      description: Retrieves a paginated list of all employers.
+      description: Retrieves a list of all employers.
       security: []
       responses:
         '200':
-          description: A list of employers was successfully retrieved.
+          description: List of employers successfully retrieved.
           content:
             application/json:
               schema:
@@ -209,7 +389,7 @@ paths:
     put:
       tags: [DimEmployer]
       summary: Update an entire employer resource
-      description: Replaces an existing employer resource with a new representation. All fields are required.
+      description: Replaces an existing employer resource with a new representation.
       requestBody:
         required: true
         content:
@@ -243,43 +423,225 @@ paths:
     delete:
       tags: [DimEmployer]
       summary: Delete an employer
-      description: Deletes and employer resource.
+      description: Deletes an employer resource.
       responses:
         '204':
           description: The employer was deleted successfully.
         '404':
           $ref: '#/components/responses/NotFoundResponse'
-  
-  /dim-cities:
+
+  # DimEmployerIndustryField
+
+
+
+  # DimFederalDistrict
+
+  /dim-federal-districts:
     get:
-      tags: [DimCity]
-      summary: Get a list of all cities
+      tags: [DimFederalDistrict]
+      summary: Get a list of all federal districts
+      description: Retrieves a list of all federal districts.
       security: []
-      responses:
-        '200':
-          description: A list of cities.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DimCityDto'
+    post:
+      tags: [DimFederalDistrict]
+      summary: Creates a new federal district
+      description: Adds a new federal district record to the database.
+  
+  /dim-federal-districts/{federalDistrictId}:
+    parameters:
+      - { name: hierarchyLevelId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimFederalDistrict]
+      summary: Get a federal district by ID
+      description: Retrieves a single federal district resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimFederalDistrict]
+      summary: Update an entire federal district resource
+      description: Replaces an existing federal district resource with a new representation.
+    patch:
+      tags: [DimFederalDistrict]
+      summary: Partially update a federal district resource
+      description: Updates one or more fields of an existing federal district resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimFederalDistrict]
+      summary: Delete a federal district
+      description: Deletes a federal district resource.
+
+  # DimHierarchyLevel
+
+  /dim-hierarchy-levels:
+    get:
+      tags: [DimHierarchyLevel]
+      summary: Get a list of all hierarchy levels
+      description: Retrieves a list of all hierarchy levels.
+      security: []
+    post:
+      tags: [DimHierarchyLevel]
+      summary: Creates a new hierarchy level
+      description: Adds a new hierarchy level record to the database.
+  
+  /dim-hierarchy-levels/{hierarchyLevelId}:
+    parameters:
+      - { name: hierarchyLevelId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimHierarchyLevel]
+      summary: Get a hierarchy level by ID
+      description: Retrieves a single hierarchy level resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimHierarchyLevel]
+      summary: Update an entire hierarchy level resource
+      description: Replaces an existing hierarchy level resource with a new representation.
+    patch:
+      tags: [DimHierarchyLevel]
+      summary: Partially update a hierarchy level resource
+      description: Updates one or more fields of an existing hierarchy level resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimHierarchyLevel]
+      summary: Delete a hierarchy level
+      description: Deletes a hierarchy level resource.
+
+  # DimIndustryField
+
+  /dim-industry-fields:
+    get:
+      tags: [DimIndustryField]
+      summary: Get a list of all industry fields
+      description: Retrieves a list of all industry fields.
+      security: []
+    post:
+      tags: [DimIndustryField]
+      summary: Creates a new industry field
+      description: Adds a new industry field record to the database.
+  
+  /dim-industry-fields/{industryFieldId}:
+    parameters:
+      - { name: industryFieldId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimIndustryField]
+      summary: Get an industry field by ID
+      description: Retrieves a single job role resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimIndustryField]
+      summary: Update an entire job role resource
+      description: Replaces an existing job role resource with a new representation.
+    patch:
+      tags: [DimIndustryField]
+      summary: Partially update a job role resource
+      description: Updates one or more fields of an existing job role resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimIndustryField]
+      summary: Delete an industry field
+      description: Deletes a job role resource.
+
+  # DimJobRole
     
   /dim-job-roles:
     get:
       tags: [DimJobRole]
       summary: Get a list of all job roles
+      description: Retrieves a list of all job roles.
       security: []
-      responses:
-        '200':
-          description: A list of job roles.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DimJobRoleDto'
+    post:
+      tags: [DimJobRole]
+      summary: Creates a new job role
+      description: Adds a new job role record to the database.
   
+  /dim-job-roles/{jobRoleId}:
+    parameters:
+      - { name: jobRoleId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimJobRole]
+      summary: Get a job role by ID
+      description: Retrieves a single job role resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimJobRole]
+      summary: Update an entire job role resource
+      description: Replaces an existing job role resource with a new representation.
+    patch:
+      tags: [DimJobRole]
+      summary: Partially update a job role resource
+      description: Updates one or more fields of an existing job role resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimJobRole]
+      summary: Delete a job role
+      description: Deletes a job role resource.
+
+  # DimOblast
+
+  /dim-oblast:
+    get:
+      tags: [DimOblast]
+      summary: Get a list of all oblasts
+      description: Retrieves a list of all oblasts.
+      security: []
+    post:
+      tags: [DimOblast]
+      summary: Creates a new oblast
+      description: Adds a new oblast record to the database.
+  
+  /dim-oblasts/{oblastId}:
+    parameters:
+      - { name: oblastId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimOblast]
+      summary: Get an oblast by ID
+      description: Retrieves a single oblast resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimOblast]
+      summary: Update an entire oblast resource
+      description: Replaces an existing oblast resource with a new representation.
+    patch:
+      tags: [DimOblast]
+      summary: Partially update an oblast resource
+      description: Updates one or more fields of an existing oblast resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimOblast]
+      summary: Delete an oblast
+      description: Deletes an oblast resource.
+
+  # DimStandardJobRole
+
+  /dim-standard-job-role:
+    get:
+      tags: [DimStandardJobRole]
+      summary: Get a list of all standard job roles
+      description: Retrieves a list of all standard job roles.
+      security: []
+    post:
+      tags: [DimStandardJobRole]
+      summary: Creates a new standard job role
+      description: Adds a new standard job role record to the database.
+  
+  /dim-standard-job-role/{standardJobRoleId}:
+    parameters:
+      - { name: standardJobRoleId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimStandardJobRole]
+      summary: Get a standard job role by ID
+      description: Retrieves a single standard job role resource by its unique identifier.
+      security: []
+    put:
+      tags: [DimStandardJobRole]
+      summary: Update an entire standard job role resource
+      description: Replaces an existing standard job role resource with a new representation.
+    patch:
+      tags: [DimStandardJobRole]
+      summary: Partially update a standard job role resource
+      description: Updates one or more fields of an existing standard job role resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimStandardJobRole]
+      summary: Delete a standard job role
+      description: Deletes a standard job role resource.
+
+  # DimStandardJobRoleHierarchy
+  
+  # FactSalary
+
   /fact-salaries:
     get:
       tags: [FactSalary]
@@ -325,7 +687,109 @@ paths:
           $ref: '#/components/responses/BadRequestResponse'
         '404':
           $ref: '#/components/responses/NotFoundResponse'
-
+  
+  # Analytics
+    
+  /fact-salaries/benchmarking-report:
+    get:
+      tags: [Analytics]
+      summary: Get a benchmark report
+      description: Returns a full analytical report including statistics, distribution and time series data.
+      security:
+        - bearerAuth: []
+      parameters:
+        - { name: industryFieldId, in: query, schema: { type: integer } }
+        - { name: standardJobroleId, in: query, schema: { type: integer }}
+        - { name: hierarchyLevelId, in: query, schema: { type: integer } }
+        - { name: districtId, in: query, schema: { type: integer } }
+        - { name: oblastId, in: query, schema: { type: integer } }
+        - { name: cityId, in: query, schema: { type: integer } }
+        - { name: dateStart, in: query, schema: { type: string, format: date } }
+        - { name: dateEnd, in: query, schema: { type: string, format: date } }
+        - { name: targetPercentile, in: query, schema: { type: integer, default: 90} }
+        - { name: granularity, in: query, schema: { type: string, enum: [Month, Quarter, Year] } }
+        - { name: periods, in: query, schema: { type: integer, default: 12 } }
+      responses:
+        '200':
+          description: The benchmark report was generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BenchmarkDataDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+  
+  /fact-salaries/public/roles-by-location-industry:
+    get:
+      tags: [Analytics]
+      summary: (Public) Get top roles by location and industry
+      description: Returns a public view of standard job roles for a given industry and optional location, ordered by average salary. Operates on data from the last 12 months.
+      security: []
+      parameters:
+        - { name: industryFieldId, in: query, required: true, schema: { type: integer } }
+        - { name: federalDistrictId, in: query, schema: { type: integer } }
+        - { name: oblastId, in: query, schema: { type: integer } }
+        - { name: cityId, in: query, schema: { type: integer } }
+        - { name: minSalaryRecordsForRole, in: query, schema: { type: integer, default: 3 } }
+      responses:
+        '200':
+          description: A list of top roles.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublicRoleByLocationIndustryDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+  
+  /fact-salaries/public/salary-by-education-in-industry:
+    get:
+      tags: [Analytics]
+      summary: (Public) Get salary by education in an industry
+      description: Analyzes the relationship between education and salary for the most common specialties within a given industry. Operates on data from the last 12 months.
+      security: []
+      parameters:
+        - { name: industryFieldId, in: query, required: true, schema: {type: integer} }
+        - { name: topNSpecialties, in: query, schema: { type: integer, default: 10 } }
+        - { name: minEmployeesPerSpecialty, in: query, schema: { type: integer, default: 5 } }
+        - { name: minEmployeesPerLevelInSpecialty, in: query, schema: { type: integer, default: 3 } }
+      responses:
+        '200':
+          description: A breakdown of average salaries by education.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublicSalaryByEducationInIndustryDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+  
+  /fact-salaries/public/top-employer-role-salaries:
+    get:
+      tags: [Analytics]
+      summary: (Public) Get top employer and role salaries in an industry
+      description: Identifies the top N employers in an industry and show the top M most common/highest-paying roles within each of those employers. Operates on data from the last 12 months.
+      security: []
+      parameters:
+        - { name: industryFieldId, in: query, required: true, schema: { type: integer } }
+        - { name: topNEmployers, in: query, schema: { type: integer, default: 5 } }
+        - { name: topMRolesPerEmployer, in: query, schema: { type: integer, default: 3 } }
+        - { name: minSalaryRecordsForRoleAtEmployer, in: query, schema: { type: integer, default: 3 } }
+      responses:
+        '200':
+          description: A ranked list of employers and their top roles.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublicTopEmployerRoleSalariesInIndustryDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' } 
 
 components:
   schemas:
@@ -334,7 +798,7 @@ components:
       type: object
       properties:
         userId: { type: integer, readOnly: true }
-        userName: { type: string }
+        username: { type: string }
         email: { type: string, format: email }
         fullName: { type: string }
         isEtlUser: { type: boolean }
@@ -439,6 +903,72 @@ components:
         avgSalary: { type: [number, "null"], format: double }
         salaryCountInPeriod: { type: integer, format: int64 }
 
+    PublicRoleByLocationIndustryDto:
+      type: object
+      properties:
+        standardJobRoleTitle: { type: string }
+        averageSalary: { type: number, format: double }
+        salaryRecordCount: { type: integer, format: int64 }
+    
+    PublicSalaryByEducationInIndustryDto:
+      type: object
+      properties:
+        educationSpecialty: { type: string }
+        educationLevelName: { type: string }
+        averageSalary: { type: number, format: double }
+        employeeCountForLevel: { type: integer, format: int64 }
+        overallSpecialtyEmployeeCount: { type: integer, format: int64 }
+
+    PublicTopEmployerRoleSalariesInIndustryDto:
+      type: object
+      properties:
+        employerName: { type: string }
+        standardJobRoleTitle: { type: string }
+        averageSalaryForRole: { type: number, format: double }
+        salaryRecordCountForRole: { type: integer, format: int64 }
+        employerRank: { type: integer, format: int64 }
+        roleRankWithinEmployer: { type: integer, format: int64 }
+
+    
+    DimCityDto:
+      type: object
+      properties:
+        cityId: { type: integer, readOnly: true }
+        cityName: { type: string }
+        oblastId: { type: integer }
+    
+    DimDateDto:
+      type: object
+      properties:
+        dateId: { type: integer, readOnly: true }
+        fullDate: { type: string, format: date }
+        year: { type: integer }
+        quarter: { type: integer }
+        month: { type: integer }
+    
+    DimEducationDto:
+      type: object
+      properties:
+        educationId: { type: integer, readOnly: true }
+        specialty: { type: string }
+        specialtyCode: { type: string }
+        educationLevelId: { type: integer }
+    
+    DimEducationLevelDto:
+      type: object
+      properties:
+        educationLevelId: { type: integer, readOnly: true }
+        educationLevelName: { type: string }
+    
+    DimEmployeeDto:
+      type: object
+      properties:
+        employeeId: { type: integer, readOnly: true }
+        employeeRefId: { type: string }
+        birthDate: { type: string, format: date }
+        careerStartDate: { type: string, format: date }
+        gender: { type: [string, "null"] }
+  
     DimEmployerDto:
       type: object
       description: Represents an employer entity.
@@ -482,14 +1012,27 @@ components:
         website:  { type: string, format: uri}
         contactEmail: { type: string, format: email }
         contactPhone: { type: string }
-
-    DimCityDto:
+    
+    DimFederalDistrictDto:
       type: object
       properties:
-        cityId: { type: integer, readOnly: true }
-        cityName: { type: string }
-        oblastId: { type: integer }
+        districtId: { type: integer, readOnly: true }
+        districtName: { type: string }
     
+    DimHierarchyLevelDto:
+      type: object
+      properties:
+        hierarchyLevelId: { type: integer, readOnly: true }
+        hierarchyLevelCode: { type: string }
+        hierarchyLevelName: { type: string }
+    
+    DimIndustryFieldDto:
+      type: object
+      properties:
+        industryFieldId: { type: integer, readOnly: true }
+        industryFieldCode: { type: string }
+        industryFieldName: { type: string }
+
     DimJobRoleDto:
       type: object
       properties:
@@ -497,6 +1040,21 @@ components:
         jobRoleTitle: { type: string }
         standardJobRoleId: { type: integer }
         hierarchyLevelId: { type: integer }
+    
+    DimOblastDto:
+      type: object
+      properties:
+        oblastId: { type: integer, readOnly: true }
+        oblastName: { type: string }
+        districtId: { type: integer }
+    
+    DimStandardJobRoleDto:
+      type: object
+      properties:
+        standardJobRoleId: { type: integer, readOnly: true }
+        standardJobRoleCode: { type: string }
+        standardJobRoleTitle: { type: string }
+        industryFieldId: { type: integer }
 
     FactSalaryDto:
       type: object
