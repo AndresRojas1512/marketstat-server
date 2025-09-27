@@ -3,22 +3,150 @@ openapi: 3.1.1
 info:
   title: MarketStat API
   version: 1.0.0
-  description: >
-    RESTful API for analyzing salary data in the Russian labor market.
   
 servers:
   - url: http://localhost:5000/api
-    description: Local Development Server
 
 tags:
-  - name: Dimensions
-    description: Operations for managing dimension data.
+  - name: Auth
+  - name: BenchmarkHistory
+  - name: DimCity
+  - name: DimDate
+  - name: DimEducation
+  - name: DimEducationLevel
+  - name: DimEmployee
+  - name: DimEmployeeEducation
+  - name: DimEmployer
+  - name: DimEmployerIndustryField
+  - name: DimFederalDistrict
+  - name: DimHierarchyLevel
+  - name: DimIndustryField
+  - name: DimJobRole
+  - name: DimOblast
+  - name: DimStandardJobRole
+  - name: DimStandardJobRoleHierarchy
+  - name: FactSalary
 
 paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserDto'
+      responses:
+        '201':
+          description: User registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in a user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequestDto'
+      responses:
+        '200':
+          description: Login successful. Returns a JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponseDto'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+  
+  /benchmark-history:
+    get:
+      tags: [BenchmarkHistory]
+      summary: Get user's benchmark history
+      description: Retrieves a list of all benchmark reports saved by the authenticated user.
+      responses:
+        '200':
+          description: A list of benchmark reports.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BenchmarkHistoryDto'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+    post:
+      tags: [BenchmarkHistory]
+      summary: Save a new benchmark report
+      description: Saves the result of a benchmark quert to the authenticated user's history.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveBenchmarkRequestDto'
+      responses:
+        '201':
+          description: Benchmark saved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  benchmarkHistoryId: { type: integer, format: int64 }
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+  
+  /benchmark-history/{historyId}:
+    parameters:
+      - { name: historyId, in: path, required: true, schema: { type: integer, format: int64 } }
+    get:
+      tags: [BenchmarkHistory]
+      summary: Get a specific saved benchmark
+      description: Retrieves the details of a saved benchmark report by its ID.
+      responses:
+        '200':
+          description: The benchmark history details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BenchmarkHistoryDto'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    delete:
+      tags: [BenchmarkHistory]
+      summary: Delete a saved benchmark
+      description: Deletes a benchmark report from the authenticated user's history.
+      responses:
+        '204':
+          description: The benchmark was deleted successfully.
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+
   /dim-employers:
     get:
-      tags:
-        - Dimensions
+      tags: [DimEmployer]
       summary: Get a list of all employers
       description: Retrieves a paginated list of all employers.
       security: []
@@ -31,10 +159,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/DimEmployerDto'
-    
     post:
-      tags:
-        - Dimensions
+      tags: [DimEmployer]
       summary: Creates a new employer
       description: Adds a new employer record to the database.
       requestBody:
@@ -49,35 +175,25 @@ paths:
           headers:
             Location:
               description: The URL of the newly created employer resource.
-              schema:
-                type: string
-                format: uri
+              schema: { type: string, format: uri }
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DimEmployerDto'
         '400':
-          description: Bad request - The request body is invalid.
+          $ref: '#/components/responses/BadRequestResponse'
         '401':
-          description: Unauthorized - JWT token is missin or invalid.
+          $ref: '#/components/responses/UnauthorizedResponse'
         '403':
-          description: Frobidden - The user does not have the required role.
+          $ref: '#/components/responses/ForbiddenResponse'
         '409':
-          description: Conflict - An employer with the same name, INN, or OGRN already exists.
+          $ref: '#/components/responses/ConflictResponse'
   
   /dim-employers/{employerId}:
     parameters:
-      - name: employerId
-        in: path
-        required: true
-        description: The unique identifier of the employer.
-        schema:
-          type: integer
-          format: int32
-    
+      - { name: employerId, in: path, required: true, schema: { type: integer} }
     get:
-      tags:
-        - Dimensions
+      tags: [DimEmployer]
       summary: Get an employer by ID
       description: Retrieves a single employer resource by its unique identifier.
       security: []
@@ -89,11 +205,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/DimEmployerDto'
         '404':
-          description: Not found - An employer with the specified ID does not exist.
-    
+          $ref: '#/components/responses/NotFoundResponse'
     put:
-      tags:
-        - Dimensions
+      tags: [DimEmployer]
       summary: Update an entire employer resource
       description: Replaces an existing employer resource with a new representation. All fields are required.
       requestBody:
@@ -104,14 +218,13 @@ paths:
               $ref: '#/components/schemas/UpdateDimEmployerDto'
       responses:
         '204':
-          description: The employer was updated successfully. No content is returned.
+          description: The employer was updated successfully.
         '400':
-          description: Bad request - The request body is invalid.
+          $ref: '#/components/responses/BadRequestResponse'
         '404':
-          description: Not Found - An employer with the specified ID does not exist.
+          $ref: '#/components/responses/NotFoundResponse'
     patch:
-      tags:
-        - Dimensions
+      tags: [DimEmployer]
       summary: Partially update an employer resource
       description: Updates one or more fields of an existing employer resource. Any fields included in the request body will be updated.
       requestBody:
@@ -122,113 +235,315 @@ paths:
               $ref: '#/components/schemas/UpdateDimEmployerDto'
       responses:
         '204':
-          description: The employer was partially updated successfully. No content is returned.
+          description: The employer was partially updated successfully.
         '400':
-          description: Bad request - The request body is invalid.
+          $ref: '#/components/responses/BadRequestResponse'
         '404':
-          description: Not found - An employer with the specified ID does not exist.
+          $ref: '#/components/responses/NotFoundResponse'
     delete:
-      tags:
-        - Dimensions
+      tags: [DimEmployer]
       summary: Delete an employer
       description: Deletes and employer resource.
       responses:
         '204':
           description: The employer was deleted successfully.
         '404':
-          description: Not Found - An employer with the specified ID does not exist.
+          $ref: '#/components/responses/NotFoundResponse'
+  
+  /dim-cities:
+    get:
+      tags: [DimCity]
+      summary: Get a list of all cities
+      security: []
+      responses:
+        '200':
+          description: A list of cities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimCityDto'
+    
+  /dim-job-roles:
+    get:
+      tags: [DimJobRole]
+      summary: Get a list of all job roles
+      security: []
+      responses:
+        '200':
+          description: A list of job roles.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimJobRoleDto'
+  
+  /fact-salaries:
+    get:
+      tags: [FactSalary]
+      summary: Get salary records by filter
+      parameters:
+        - { name: industryFieldId, in: query, schema: {type: integer } }
+        - { name: standardJobRoleId, in: query, schema: {type: integer } }
+        - { name: hierarchyLevelId, in: query, schema: {type: integer } }
+        - { name: districtId, in: query, schema: {type: integer } }
+        - { name: oblastId, in: query, schema: {type: integer } }
+        - { name: cityId, in: query, schema: {type: integer } }
+        - { name: dateStart, in: query, schema: {type: string, format: date } }
+        - { name: dateEnd, in: query, schema: {type: string, format: date } }
+      responses:
+        '200':
+          description: A list of salary records matching the criteria.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FactSalaryDto'
+        
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+    post:
+      tags: [FactSalary]
+      summary: Create a new salary record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFactSalaryDto'
+      responses:
+        '201':
+          description: The salary record was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactSalaryDto'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+
 
 components:
   schemas:
+
+    UserDto:
+      type: object
+      properties:
+        userId: { type: integer, readOnly: true }
+        userName: { type: string }
+        email: { type: string, format: email }
+        fullName: { type: string }
+        isEtlUser: { type: boolean }
+
+    RegisterUserDto:
+      type: object
+      required: [username, password, email, fullName]
+      properties:
+        username: { type: string }
+        password: { type: string, format: password, writeOnly: true }
+        email: { type: string, format: email }
+        fullName: { type: string }
+        isEtlUser: { type: boolean, default: false }
+    
+    LoginRequestDto:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string, format: password, writeOnly: true }
+    
+    AuthResponseDto:
+      type: object
+      properties:
+        token: { type: string }
+        expiration: { type: string, format: date-time }
+        user: { $ref: '#/components/schemas/UserDto' }
+    
+    BenchmarkHistoryDto:
+      type: object
+      description: Represents a saved benchmark report with its human-readable filters and full results.
+      properties:
+        benchmarkHistoryId: { type: integer, format: int64, readOnly: true }
+        benchmarkName: { type: [string, "null"] }
+        savedAt: { type: string, format: date-time, readOnly: true }
+        username: { type: string, readOnly: true }
+        filterIndustryFieldId: { type: [integer, "null"] }
+        filterIndustryFieldName: { type: [string, "null"], readOnly: true }
+        filterStandardJobRoleId: { type: [integer, "null"] }
+        filterStandardJobRoleTitle: { type: [string, "null"], readOnly: true }
+        filterHierarchyLevelId: { type: [integer, "null"] }
+        filterHierarchyLevelName: { type: [string, "null"], readOnly: true }
+        filterDistrictId: { type: [integer, "null"] }
+        filterDistrictName: { type: [string, "null"], readOnly: true }
+        filterOblastId: { type: [integer, "null"] }
+        filterOblastName: { type: [string, "null"], readOnly: true }
+        filterCityId: { type: [integer, "null"] }
+        filterCityName: { type: [string, "null"], readOnly: true }
+        filterDateStart: { type: [string, "null"], format: date }
+        filterDateEnd: { type: [string, "null"], format: date }
+        filterTargetPercentile: { type: [integer, "null"] }
+        filterGranularity: { type: [string, "null"] }
+        filterPeriods: { type: [integer, "null"] }
+        benchmarkResultJson: { $ref: '#/components/schemas/BenchmarkDataDto' }
+        
+    SaveBenchmarkRequestDto:
+      type: object
+      description: The data required to save a new benchmark report.
+      properties:
+        benchmarkName: { type: [string, "null"] }
+        benchmarkResultJson: { $ref: '#/components/schemas/BenchmarkDataDto'  }
+        industryFieldId: { type: [integer, "null"] }
+        standardJobRoleId: { type: [integer, "null"] }
+        hierarchyLevelId: { type: [integer, "null"] }
+        districtId: { type: [integer, "null"] }
+        oblastId: { type: [integer, "null"] }
+        cityId: { type: [integer, "null"] }
+        dateStart: { type: [string, "null"], format: date }
+        dateEnd: { type: [string, "null"], format: date }
+        targetPercentile: { type: integer }
+        granularity: { type: string, enum: [Month, Quarter, Year] }
+        periods: { type: integer }
+
+    BenchmarkDataDto:
+      type: object
+      properties:
+        salarySummary: { $ref: '#/components/schemas/SalarySummaryDto' }
+        salaryDistribution: { type: array, items: { $ref: '#/components/schemas/SalaryDistributionBucketDto' } }
+        salaryTimeSeries: { type: array, items: { $ref: '#/components/schemas/SalaryTimeSeriesPointDto' } }
+
+    SalarySummaryDto:
+      type: object
+      properties:
+        totalCount: { type: integer, format: int64 }
+        averageSalary: { type: number, format: double }
+        percentile25: { type: number, format: double }
+        percentile50: { type: number, format: double }
+        percentile75: { type: number, format: double }
+        percentileTarget: { type: number, format: double }
+    
+    SalaryDistributionBucketDto:
+      type: object
+      properties:
+        lowerBound: { type: number, format: double }
+        upperBound: { type: number, format: double }
+        bucketCount: {type: integer, format: int64}
+    
+    SalaryTimeSeriesPointDto:
+      type: object
+      properties:
+        periodStart: { type: string, format: date }
+        avgSalary: { type: [number, "null"], format: double }
+        salaryCountInPeriod: { type: integer, format: int64 }
 
     DimEmployerDto:
       type: object
       description: Represents an employer entity.
       properties:
-        employerId:
-          type: integer
-          format: int32
-          readOnly: true
-        employerName:
-          type: string
-        inn:
-          type: string
-        ogrn:
-          type: string
-        kpp:
-          type: string
-        registrationDate:
-          type: string
-          format: date
-        legalAddress:
-          type: string
-        website:
-          type: string
-          format: uri
-        contactEmail:
-          type: string
-          format: email
-        contactPhone:
-          type: string
+        employerId: { type: integer, format: int32, readOnly: true }
+        employerName: { type: string }
+        inn: { type: string }
+        ogrn: { type: string }
+        kpp: { type: string }
+        registrationDate: { type: string, format: date }
+        legalAddress: { type: string }
+        website: { type: string, format: uri }
+        contactEmail: { type: string, format: email }
+        contactPhone: { type: string }
     
     CreateDimEmployerDto:
       type: object
-      description: The set of properites required to create a new employer.
-      required:
-        - employerName
-        - inn
-        - ogrn
-        - kpp
-        - registrationDate
-        - legalAddress
+      description: The set of properties required to create a new employer.
+      required: [employerName, inn, ogrn, kpp, registrationDate, legalAddress]
       properties:
-        employerName:
-          type: string
-        inn:
-          type: string
-        ogrn:
-          type: string
-        kpp:
-          type: string
-        registrationDate:
-          type: string
-          format: date
-        legalAddress:
-          type: string
-        website:
-          type: string
-          format: uri
-        contactEmail:
-          type: string
-          format: email
-        contactPhone:
-          type: string
+        employerName: { type: string }
+        inn: { type: string }
+        ogrn: { type: string }
+        kpp: { type: string }
+        registrationDate: { type: string, format: date }
+        legalAddress: { type: string }
+        website: { type: string, format: uri }
+        contactEmail: { type: string, format: email }
+        contactPhone: { type: string }
     
     UpdateDimEmployerDto:
       type: object
       description: The set of properties available for updating an employer.
       properties:
-        employerName:
-          type: string
-        inn:
-          type: string
-        ogrn:
-          type: string
-        kpp:
-          type: string
-        registrationDate:
-          type: string
-          format: date
-        legalAddress:
-          type: string
-        website:
-          type: string
-          format: uri
-        contactEmail:
-          type: string
-          format: email
-        contactPhone:
-          type: string
+        employerName: { type: string }
+        inn: { type: string }
+        ogrn: { type: string }
+        kpp: { type: string }
+        registrationDate: { type: string, format: date}
+        legalAddress: { type: string }
+        website:  { type: string, format: uri}
+        contactEmail: { type: string, format: email }
+        contactPhone: { type: string }
+
+    DimCityDto:
+      type: object
+      properties:
+        cityId: { type: integer, readOnly: true }
+        cityName: { type: string }
+        oblastId: { type: integer }
+    
+    DimJobRoleDto:
+      type: object
+      properties:
+        jobRoleId: { type: integer, readOnly: true }
+        jobRoleTitle: { type: string }
+        standardJobRoleId: { type: integer }
+        hierarchyLevelId: { type: integer }
+
+    FactSalaryDto:
+      type: object
+      properties:
+        salaryFactId: { type: integer, format: int64, readOnly: true }
+        dateId: { type: integer }
+        cityId: { type: integer }
+        employerId: { type: integer }
+        jobRoleId: { type: integer }
+        employeeId: { type: integer }
+        salaryAmount: { type: number, format: double }
+        bonusAmount: { type: number, format: double }
+
+    CreateFactSalaryDto:
+      type: object
+      required: [dateId, cityId, employerId, jobRoleId, employeeId, salaryAmount]
+      properties:
+        dateId: { type: integer }
+        cityId: { type: integer }
+        employerId: { type: integer }
+        jobRoleId: { type: integer }
+        employeeId: { type: integer }
+        salaryAmount: { type: number, format: double }
+        bonusAmount: { type: number, format: double, default: 0 }
+    
+    UpdateFactSalaryDto:
+      type: object
+      properties:
+        dateId: { type: integer }
+        cityId: { type: integer }
+        employerId: { type: integer }
+        jobRoleId: { type: integer }
+        employeeId: { type: integer }
+        salaryAmount: { type: number, format: double }
+        bonusAmount: { type: number, format: double }
+  
+  responses:
+    BadRequestResponse:
+      description: Bad Request - The request is malformed, contains invalid syntax, or fails validation.
+    UnauthorizedResponse:
+      description: Unauthorized - The request requires authentication, and the JWT is missing or invalid.
+    ForbiddenResponse:
+      description: Forbidden - The authenticated user does not have the necessary role or permission to perform this action.
+    NotFoundResponse:
+      description: Not Found - The requested resource does not exist.
+    ConflictResponse:
+      description: Conflict - The request could not be completed due to a conflic with the current state of the resource.
 
   securitySchemes:
     bearerAuth:
