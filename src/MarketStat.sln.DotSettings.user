@@ -19,5 +19,22 @@
     &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimEducationLevelServiceIntegrationTests&lt;/TestId&gt;
     &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimEducationServiceUnitTests&lt;/TestId&gt;
     &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Facts.FactSalaryServiceUnitTests&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.CreateCityAsync_RepositoryThrows_WrapsException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.GetCityByIdAsync_Existing_ReturnsCity&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.CreateCityAsync_RepositoryThrowsConflict_PropagateException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.CreateCityAsync_ValidParameters_CallRepositoryAndReturnCity&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.GetCityByIdAsync_NotFound_ThrowsException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.GetCityByIdAsync_CityExists_ReturnsCity&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.GetAllCitiesAsync_ReturnsAllCitiesList&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.GetAllCitiesAsync_NoCities_ReturnsEmptyList&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.GetCityByIdAsync_CityExists_ReturnCity&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.GetCityByIdAsync_NotFound_ThrowException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.GetAllCitiesAsync_ReturnAllCitiesList&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.GetAllCitiesAsync_NoCities_ReturnEmptyList&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.UpdateCityAsync_ValidData_ReturnUpdatedCity&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.UpdateCityAsync_InvalidName_ThrowsArgumentException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.UpdateCityAsync_CityDoesNotExist_ThrowNotFoundException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.DeleteCityAsync_CityExists&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.DeleteCityAsync_CityDoesNotExist_ThrowNotFoundException&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

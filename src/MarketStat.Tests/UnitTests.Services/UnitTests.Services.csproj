@@ -25,9 +25,11 @@
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEducationLevelService\MarketStat.Services.Dimensions.DimEducationLevelService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService\MarketStat.Services.Dimensions.DimStandardJobRoleHierarchyService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimStandardJobRoleService\MarketStat.Services.Dimensions.DimStandardJobRoleService.csproj" />
+    <ProjectReference Include="..\MarketStat.Tests.Common\MarketStat.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="8.7.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="Moq" Version="4.20.72" />

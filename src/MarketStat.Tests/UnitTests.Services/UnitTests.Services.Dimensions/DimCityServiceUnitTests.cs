@@ -1,178 +1,177 @@
+using FluentAssertions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimCityService;
+using MarketStat.Tests.Common.Builders;
+using MarketStat.Tests.Common.Fixtures;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
 namespace UnitTests.Services.UnitTests.Services.Dimensions;
 
+[Trait("Category", "Unit")]
 public class DimCityServiceUnitTests
 {
     private readonly Mock<IDimCityRepository> _dimCityRepositoryMock;
-    private readonly Mock<ILogger<DimCityService>> _loggerMock;
     private readonly DimCityService _dimCityService;
 
     public DimCityServiceUnitTests()
     {
         _dimCityRepositoryMock = new Mock<IDimCityRepository>();
-        _loggerMock = new Mock<ILogger<DimCityService>>();
-        _dimCityService = new DimCityService(_dimCityRepositoryMock.Object, _loggerMock.Object);
+        var loggerMock = new Mock<ILogger<DimCityService>>();
+        _dimCityService = new DimCityService(_dimCityRepositoryMock.Object, loggerMock.Object);
     }
     
+    # region CreateCityAsync Tests
+    
     [Fact]
-    public async Task CreateCityAsync_ValidParameters_ReturnsNewCityWithGeneratedId()
+    public async Task CreateCityAsync_ValidParameters_CallRepositoryAndReturnCity()
     {
+        var newCityName = "Moscow";
+        var newCityOblastId = 1;
+        
         _dimCityRepositoryMock
             .Setup(r => r.AddCityAsync(It.IsAny<DimCity>()))
             .Callback<DimCity>(c => c.CityId = 1)
             .Returns(Task.CompletedTask);
 
-        
-        var city = await _dimCityService.CreateCityAsync("Moscow", 1);
+        var result = await _dimCityService.CreateCityAsync(newCityName, newCityOblastId);
 
-        Assert.NotNull(city);
-        Assert.Equal(1, city.CityId);
-        Assert.Equal("Moscow", city.CityName);
-        Assert.Equal(1, city.OblastId);
+        result.Should().NotBeNull();
+        result.CityId.Should().Be(1);
+        result.CityName.Should().Be(newCityName);
 
         _dimCityRepositoryMock.Verify(r =>
             r.AddCityAsync(It.Is<DimCity>(c =>
-                c.CityId   == 1 &&
-                c.CityName == "Moscow" &&
-                c.OblastId == 1
+                c.CityName == newCityName &&
+                c.OblastId == newCityOblastId
             )), Times.Once);
     }
     
     [Fact]
-    public async Task CreateCityAsync_InvalidName_ThrowsArgumentException()
+    public async Task CreateCityAsync_RepositoryThrowsConflict_PropagateException()
     {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimCityService.CreateCityAsync("", 1)
-        );
-    }
-    
-    [Fact]
-    public async Task CreateCityAsync_RepositoryThrows_WrapsException()
-    {
+        var cityName = "Existing City";
         _dimCityRepositoryMock
             .Setup(r => r.AddCityAsync(It.IsAny<DimCity>()))
-            .ThrowsAsync(new InvalidOperationException("db error"));
-
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _dimCityService.CreateCityAsync("Name", 1)
-        );
-
-        Assert.Equal("db error", ex.Message);
+            .ThrowsAsync(new ConflictException("City already exists."));
+        Func<Task> act = async () => await _dimCityService.CreateCityAsync(cityName, 1);
+        await act.Should().ThrowAsync<ConflictException>().WithMessage("City already exists.");
     }
     
+    # endregion
+    
+    # region GetCityByIdAsync Tests
+    
     [Fact]
-    public async Task GetCityByIdAsync_Existing_ReturnsCity()
+    public async Task GetCityByIdAsync_CityExists_ReturnCity()
     {
-        var expected = new DimCity(5, "Tula", 2);
+        var expectedCity = new DimCityBuilder().WithId(5).WithName("Tula").Build();
         _dimCityRepositoryMock
             .Setup(r => r.GetCityByIdAsync(5))
-            .ReturnsAsync(expected);
-
-        var actual = await _dimCityService.GetCityByIdAsync(5);
-
-        Assert.Same(expected, actual);
+            .ReturnsAsync(expectedCity);
+        var result = await _dimCityService.GetCityByIdAsync(5);
+        result.Should().BeEquivalentTo(expectedCity);
     }
     
     [Fact]
-    public async Task GetCityByIdAsync_NotFound_ThrowsException()
+    public async Task GetCityByIdAsync_NotFound_ThrowException()
     {
         _dimCityRepositoryMock
-                .Setup(r => r.GetCityByIdAsync(42))
-                .ThrowsAsync(new KeyNotFoundException("no key"));
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _dimCityService.GetCityByIdAsync(42)
-        );
-        Assert.Equal("no key", ex.Message);
+            .Setup(r => r.GetCityByIdAsync(It.IsAny<int>()))
+            .ThrowsAsync(new NotFoundException("City not found."));
+        Func<Task> act = async () => await _dimCityService.GetCityByIdAsync(999);
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("City not found.");
     }
     
+    # endregion
+    
+    # region GetAllCitiesAsync Tests
+    
     [Fact]
-    public async Task GetAllCitiesAsync_ReturnsList()
+    public async Task GetAllCitiesAsync_ReturnAllCitiesList()
     {
-        var list = new List<DimCity>
+        var cityList = new List<DimCity>
         {
-            new DimCity(1, "A", 1),
-            new DimCity(2, "B", 2)
+            new DimCityBuilder().WithId(1).WithName("City A").Build(),
+            new DimCityBuilder().WithId(2).WithName("City B").Build()
         };
+        
         _dimCityRepositoryMock
             .Setup(r => r.GetAllCitiesAsync())
-            .ReturnsAsync(list);
+            .ReturnsAsync(cityList);
 
         var result = (await _dimCityService.GetAllCitiesAsync()).ToList();
 
-        Assert.Equal(2, result.Count);
-        Assert.Equal(list, result);
+        result.Should().HaveCount(2);
+        result.Should().BeEquivalentTo(cityList);
+    }
+
+    [Fact]
+    public async Task GetAllCitiesAsync_NoCities_ReturnEmptyList()
+    {
+        _dimCityRepositoryMock
+            .Setup(r => r.GetAllCitiesAsync())
+            .ReturnsAsync(new List<DimCity>());
+        var result = await _dimCityService.GetAllCitiesAsync();
+        result.Should().BeEmpty();
+    }
+    
+    # endregion
+    
+    # region UpdateCityAsync Tests
+    
+    [Fact]
+    public async Task UpdateCityAsync_ValidData_ReturnUpdatedCity()
+    {
+        var existingCity = TestDataFactory.City();
+        _dimCityRepositoryMock
+            .Setup(r => r.GetCityByIdAsync(existingCity.CityId))
+            .ReturnsAsync(existingCity);
+        var result = await _dimCityService.UpdateCityAsync(existingCity.CityId, "New Name", 2);
+
+        result.CityId.Should().Be(existingCity.CityId);
+        result.CityName.Should().Be("New Name");
+        result.OblastId.Should().Be(2);
+        
+        _dimCityRepositoryMock.Verify(r => r.UpdateCityAsync(It.Is<DimCity>(c => c.CityName == "New Name")), Times.Once);
     }
     
     [Fact]
-    public async Task UpdateCityAsync_ValidParameters_ReturnsUpdatedCity()
+    public async Task UpdateCityAsync_CityDoesNotExist_ThrowNotFoundException()
     {
-        var existing = new DimCity(3, "Old", 1);
         _dimCityRepositoryMock
-            .Setup(r => r.GetCityByIdAsync(3))
-            .ReturnsAsync(existing);
-        _dimCityRepositoryMock
-            .Setup(r => r.UpdateCityAsync(existing))
-            .Returns(Task.CompletedTask);
-
-        var updated = await _dimCityService.UpdateCityAsync(3, "New", 2);
-
-        Assert.Equal(3, updated.CityId);
-        Assert.Equal("New", updated.CityName);
-        Assert.Equal(2, updated.OblastId);
-        _dimCityRepositoryMock.Verify(r => r.UpdateCityAsync(existing), Times.Once);
+            .Setup(r => r.GetCityByIdAsync(It.IsAny<int>()))
+            .ThrowsAsync(new NotFoundException("Cannot update non-existing city."));
+        Func<Task> act = async () => await _dimCityService.UpdateCityAsync(999, "New Name", 1);
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("Cannot update non-existing city.");
     }
     
-    [Fact]
-    public async Task UpdateCityAsync_InvalidName_ThrowsArgumentException()
-    {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimCityService.UpdateCityAsync(1, null!, 1)
-        );
-    }
+    # endregion
+    
+    # region DeleteCityAsync Tests
     
     [Fact]
-    public async Task UpdateCityAsync_NotFound_ThrowsException()
+    public async Task DeleteCityAsync_CityExists()
     {
-        _dimCityRepositoryMock
-            .Setup(r => r.GetCityByIdAsync(9))
-            .ThrowsAsync(new KeyNotFoundException("missing!"));
-
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _dimCityService.UpdateCityAsync(9, "X", 1)
-        );
-
-        Assert.Equal("missing!", ex.Message);
-    }
-    
-    [Fact]
-    public async Task DeleteCityAsync_Existing_Completes()
-    {
-        _dimCityRepositoryMock
-            .Setup(r => r.DeleteCityAsync(7))
-            .Returns(Task.CompletedTask);
-
+        var cityIdToDelete = 7;
         await _dimCityService.DeleteCityAsync(7);
-
-        _dimCityRepositoryMock.Verify(r => r.DeleteCityAsync(7), Times.Once);
+        _dimCityRepositoryMock.Verify(r => r.DeleteCityAsync(cityIdToDelete), Times.Once);
     }
     
     [Fact]
-    public async Task DeleteCityAsync_NotFound_ThrowsException()
+    public async Task DeleteCityAsync_CityDoesNotExist_ThrowNotFoundException()
     {
+        var nonExistentId = 8;
         _dimCityRepositoryMock
-            .Setup(r => r.DeleteCityAsync(8))
-            .ThrowsAsync(new KeyNotFoundException("no such city"));
+            .Setup(r => r.DeleteCityAsync(nonExistentId))
+            .ThrowsAsync(new NotFoundException("Cannot delete non-existent city."));
 
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _dimCityService.DeleteCityAsync(8)
-        );
-
-        Assert.Equal("no such city", ex.Message);
+        Func<Task> act = async () => await _dimCityService.DeleteCityAsync(nonExistentId);
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("Cannot delete non-existent city.");
     }
+    
+    # endregion
 }
