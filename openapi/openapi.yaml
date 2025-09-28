@@ -3,6 +3,7 @@ openapi: 3.1.1
 info:
   title: MarketStat API
   version: 1.0.0
+  description: Приложение для анализа зарплат в российском рынке труда
   
 servers:
   - url: http://localhost:5000/api
@@ -36,6 +37,7 @@ paths:
     post:
       tags: [Auth]
       summary: Register a new user
+      description: Creates a new user account.
       security: []
       requestBody:
         required: true
@@ -59,6 +61,7 @@ paths:
     post:
       tags: [Auth]
       summary: Log in a user
+      description: Authenticates a user and returns a JWT for accessing protected endpoints.
       security: []
       requestBody:
         required: true
@@ -68,7 +71,7 @@ paths:
               $ref: '#/components/schemas/LoginRequestDto'
       responses:
         '200':
-          description: Login successful. Returns a JWT
+          description: Login successful.
           content:
             application/json:
               schema:
@@ -87,7 +90,7 @@ paths:
       description: Retrieves a list of all benchmark reports saved by the authenticated user.
       responses:
         '200':
-          description: A list of benchmark reports.
+          description: A list of saved benchmark reports.
           content:
             application/json:
               schema:
@@ -99,7 +102,9 @@ paths:
     post:
       tags: [BenchmarkHistory]
       summary: Save a new benchmark report
-      description: Saves the result of a benchmark quert to the authenticated user's history.
+      description: Saves the result of a benchmark query to the authenticated user's history.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -127,6 +132,8 @@ paths:
       tags: [BenchmarkHistory]
       summary: Get a specific saved benchmark
       description: Retrieves the details of a saved benchmark report by its ID.
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: The benchmark history details.
@@ -142,6 +149,8 @@ paths:
       tags: [BenchmarkHistory]
       summary: Delete a saved benchmark
       description: Deletes a benchmark report from the authenticated user's history.
+      security:
+        - bearerAuth: []
       responses:
         '204':
           description: The benchmark was deleted successfully.
@@ -150,496 +159,6 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundResponse'
 
-  # DimCity
-  
-  /dim-cities:
-    get:
-      tags: [DimCity]
-      summary: Get a list of all cities
-      description: Retrieves a list of all cities.
-      security: []
-    post:
-      tags: [DimCity]
-      summary: Creates a new employee
-      description: Adds a new employee record to the database.
-  
-  /dim-cities/{cityId}:
-    parameters:
-      - { name: cityId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimCity]
-      summary: Get a city by ID
-      description: Retrieves a single city resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimCity]
-      summary: Update an entire city resource
-      description: Replaces an existing city resource with a new representation.
-    patch:
-      tags: [DimCity]
-      summary: Partially update a city resource
-      description: Updates one or more fields of an existing city resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimCity]
-      summary: Delete an city
-      description: Deletes a city resource.
-
-  # DimDate
-
-  /dim-dates:
-    get:
-      tags: [DimDate]
-      summary: Get a list of all dates
-      description: Retrieves a list of all dates.
-      security: []
-    post:
-      tags: [DimDate]
-      summary: Creates a new employee
-      description: Adds a new employee record to the database.
-  
-  /dim-dates/{dateId}:
-    parameters:
-      - { name: dateId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimDate]
-      summary: Get a date by ID
-      description: Retrieves a single date resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimDate]
-      summary: Update an entire date resource
-      description: Replaces an existing date resource with a new representation.
-    patch:
-      tags: [DimDate]
-      summary: Partially update a date resource
-      description: Updates one or more fields of an existing date resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimDate]
-      summary: Delete a date
-      description: Deletes a date resource.
-
-  # DimEducation
-
-  /dim-educations:
-    get:
-      tags: [DimEducation]
-      summary: Get a list of all educations
-      description: Retrieves a list of all educations.
-      security: []
-    post:
-      tags: [DimEducation]
-      summary: Creates a new education
-      description: Adds a new education record to the database.
-  
-  /dim-educations/{educationId}:
-    parameters:
-      - { name: educationId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimEducation]
-      summary: Get an education by ID
-      description: Retrieves a single education resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimEducation]
-      summary: Update an entire education resource
-      description: Replaces an existing education resource with a new representation.
-    patch:
-      tags: [DimEducation]
-      summary: Partially update an education resource
-      description: Updates one or more fields of an existing education resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimEducation]
-      summary: Delete an education
-      description: Deletes an education resource.
-
-  # DimEducationLevel
-
-  /dim-education-levels:
-    get:
-      tags: [DimEducationLevel]
-      summary: Get a list of all education levels
-      description: Retrieves a list of all education levels.
-      security: []
-    post:
-      tags: [DimEducationLevel]
-      summary: Creates a new education level
-      description: Adds a new education level record to the database.
-  
-  /dim-education-levels/{educationLevelId}:
-    parameters:
-      - { name: educationLevelId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimEducationLevel]
-      summary: Get an education level by ID
-      description: Retrieves a single education level resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimEducationLevel]
-      summary: Update an entire education level resource
-      description: Replaces an existing education level resource with a new representation.
-    patch:
-      tags: [DimEducationLevel]
-      summary: Partially update an education level resource
-      description: Updates one or more fields of an existing education level resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimEducationLevel]
-      summary: Delete an education level
-      description: Deletes an education level resource.
-
-  # DimEmployee
-
-  /dim-employees:
-    get:
-      tags: [DimEmployee]
-      summary: Get a list of all employees
-      description: Retrieves a list of all employees.
-      security: []
-    post:
-      tags: [DimEmployee]
-      summary: Creates a new employee
-      description: Adds a new employee record to the database.
-  
-  /dim-employees/{employeeId}:
-    parameters:
-      - { name: employeeId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimEmployee]
-      summary: Get an employee by ID
-      description: Retrieves a single employee resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimEmployee]
-      summary: Update an entire employee resource
-      description: Replaces an existing employee resource with a new representation.
-    patch:
-      tags: [DimEmployee]
-      summary: Partially update an employee resource
-      description: Updates one or more fields of an existing employee resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimEmployee]
-      summary: Delete an employee
-      description: Deletes an employee resource.
-
-  # DimEmployeeEducation
-
-  # DimEmployer
-
-  /dim-employers:
-    get:
-      tags: [DimEmployer]
-      summary: Get a list of all employers
-      description: Retrieves a list of all employers.
-      security: []
-      responses:
-        '200':
-          description: List of employers successfully retrieved.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DimEmployerDto'
-    post:
-      tags: [DimEmployer]
-      summary: Creates a new employer
-      description: Adds a new employer record to the database.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateDimEmployerDto'
-      responses:
-        '201':
-          description: The employer was created successfully.
-          headers:
-            Location:
-              description: The URL of the newly created employer resource.
-              schema: { type: string, format: uri }
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DimEmployerDto'
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '401':
-          $ref: '#/components/responses/UnauthorizedResponse'
-        '403':
-          $ref: '#/components/responses/ForbiddenResponse'
-        '409':
-          $ref: '#/components/responses/ConflictResponse'
-  
-  /dim-employers/{employerId}:
-    parameters:
-      - { name: employerId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimEmployer]
-      summary: Get an employer by ID
-      description: Retrieves a single employer resource by its unique identifier.
-      security: []
-      responses:
-        '200':
-          description: Employer resource was found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DimEmployerDto'
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-    put:
-      tags: [DimEmployer]
-      summary: Update an entire employer resource
-      description: Replaces an existing employer resource with a new representation.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateDimEmployerDto'
-      responses:
-        '204':
-          description: The employer was updated successfully.
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-    patch:
-      tags: [DimEmployer]
-      summary: Partially update an employer resource
-      description: Updates one or more fields of an existing employer resource. Any fields included in the request body will be updated.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateDimEmployerDto'
-      responses:
-        '204':
-          description: The employer was partially updated successfully.
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-    delete:
-      tags: [DimEmployer]
-      summary: Delete an employer
-      description: Deletes an employer resource.
-      responses:
-        '204':
-          description: The employer was deleted successfully.
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-
-  # DimEmployerIndustryField
-
-
-
-  # DimFederalDistrict
-
-  /dim-federal-districts:
-    get:
-      tags: [DimFederalDistrict]
-      summary: Get a list of all federal districts
-      description: Retrieves a list of all federal districts.
-      security: []
-    post:
-      tags: [DimFederalDistrict]
-      summary: Creates a new federal district
-      description: Adds a new federal district record to the database.
-  
-  /dim-federal-districts/{federalDistrictId}:
-    parameters:
-      - { name: hierarchyLevelId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimFederalDistrict]
-      summary: Get a federal district by ID
-      description: Retrieves a single federal district resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimFederalDistrict]
-      summary: Update an entire federal district resource
-      description: Replaces an existing federal district resource with a new representation.
-    patch:
-      tags: [DimFederalDistrict]
-      summary: Partially update a federal district resource
-      description: Updates one or more fields of an existing federal district resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimFederalDistrict]
-      summary: Delete a federal district
-      description: Deletes a federal district resource.
-
-  # DimHierarchyLevel
-
-  /dim-hierarchy-levels:
-    get:
-      tags: [DimHierarchyLevel]
-      summary: Get a list of all hierarchy levels
-      description: Retrieves a list of all hierarchy levels.
-      security: []
-    post:
-      tags: [DimHierarchyLevel]
-      summary: Creates a new hierarchy level
-      description: Adds a new hierarchy level record to the database.
-  
-  /dim-hierarchy-levels/{hierarchyLevelId}:
-    parameters:
-      - { name: hierarchyLevelId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimHierarchyLevel]
-      summary: Get a hierarchy level by ID
-      description: Retrieves a single hierarchy level resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimHierarchyLevel]
-      summary: Update an entire hierarchy level resource
-      description: Replaces an existing hierarchy level resource with a new representation.
-    patch:
-      tags: [DimHierarchyLevel]
-      summary: Partially update a hierarchy level resource
-      description: Updates one or more fields of an existing hierarchy level resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimHierarchyLevel]
-      summary: Delete a hierarchy level
-      description: Deletes a hierarchy level resource.
-
-  # DimIndustryField
-
-  /dim-industry-fields:
-    get:
-      tags: [DimIndustryField]
-      summary: Get a list of all industry fields
-      description: Retrieves a list of all industry fields.
-      security: []
-    post:
-      tags: [DimIndustryField]
-      summary: Creates a new industry field
-      description: Adds a new industry field record to the database.
-  
-  /dim-industry-fields/{industryFieldId}:
-    parameters:
-      - { name: industryFieldId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimIndustryField]
-      summary: Get an industry field by ID
-      description: Retrieves a single job role resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimIndustryField]
-      summary: Update an entire job role resource
-      description: Replaces an existing job role resource with a new representation.
-    patch:
-      tags: [DimIndustryField]
-      summary: Partially update a job role resource
-      description: Updates one or more fields of an existing job role resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimIndustryField]
-      summary: Delete an industry field
-      description: Deletes a job role resource.
-
-  # DimJobRole
-    
-  /dim-job-roles:
-    get:
-      tags: [DimJobRole]
-      summary: Get a list of all job roles
-      description: Retrieves a list of all job roles.
-      security: []
-    post:
-      tags: [DimJobRole]
-      summary: Creates a new job role
-      description: Adds a new job role record to the database.
-  
-  /dim-job-roles/{jobRoleId}:
-    parameters:
-      - { name: jobRoleId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimJobRole]
-      summary: Get a job role by ID
-      description: Retrieves a single job role resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimJobRole]
-      summary: Update an entire job role resource
-      description: Replaces an existing job role resource with a new representation.
-    patch:
-      tags: [DimJobRole]
-      summary: Partially update a job role resource
-      description: Updates one or more fields of an existing job role resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimJobRole]
-      summary: Delete a job role
-      description: Deletes a job role resource.
-
-  # DimOblast
-
-  /dim-oblast:
-    get:
-      tags: [DimOblast]
-      summary: Get a list of all oblasts
-      description: Retrieves a list of all oblasts.
-      security: []
-    post:
-      tags: [DimOblast]
-      summary: Creates a new oblast
-      description: Adds a new oblast record to the database.
-  
-  /dim-oblasts/{oblastId}:
-    parameters:
-      - { name: oblastId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimOblast]
-      summary: Get an oblast by ID
-      description: Retrieves a single oblast resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimOblast]
-      summary: Update an entire oblast resource
-      description: Replaces an existing oblast resource with a new representation.
-    patch:
-      tags: [DimOblast]
-      summary: Partially update an oblast resource
-      description: Updates one or more fields of an existing oblast resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimOblast]
-      summary: Delete an oblast
-      description: Deletes an oblast resource.
-
-  # DimStandardJobRole
-
-  /dim-standard-job-role:
-    get:
-      tags: [DimStandardJobRole]
-      summary: Get a list of all standard job roles
-      description: Retrieves a list of all standard job roles.
-      security: []
-    post:
-      tags: [DimStandardJobRole]
-      summary: Creates a new standard job role
-      description: Adds a new standard job role record to the database.
-  
-  /dim-standard-job-role/{standardJobRoleId}:
-    parameters:
-      - { name: standardJobRoleId, in: path, required: true, schema: { type: integer} }
-    get:
-      tags: [DimStandardJobRole]
-      summary: Get a standard job role by ID
-      description: Retrieves a single standard job role resource by its unique identifier.
-      security: []
-    put:
-      tags: [DimStandardJobRole]
-      summary: Update an entire standard job role resource
-      description: Replaces an existing standard job role resource with a new representation.
-    patch:
-      tags: [DimStandardJobRole]
-      summary: Partially update a standard job role resource
-      description: Updates one or more fields of an existing standard job role resource. Any fields included in the request body will be updated.
-    delete:
-      tags: [DimStandardJobRole]
-      summary: Delete a standard job role
-      description: Deletes a standard job role resource.
-
-  # DimStandardJobRoleHierarchy
-  
   # FactSalary
 
   /fact-salaries:
@@ -791,6 +310,1787 @@ paths:
         '400':
           { $ref: '#/components/responses/BadRequestResponse' } 
 
+  # DimCity
+  
+  /dim-cities:
+    get:
+      tags: [DimCity]
+      summary: Get a list of all cities
+      description: Retrieves a list of all cities.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of cities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimCityDto'
+    post:
+      tags: [DimCity]
+      summary: Creates a new city
+      description: Adds a new city record to the database.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimCityDto'
+      responses:
+        '201':
+          description: The city was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created city resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimCityDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+
+  /dim-cities/{cityId}:
+    parameters:
+      - { name: cityId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimCity]
+      summary: Get a city by ID
+      description: Retrieves a single city resource by its unique identifier.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: City resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimCityDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimCity]
+      summary: Update an entire city resource
+      description: Replaces an existing city resource with a new representation.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimCityDto'
+      
+      responses:
+        '204':
+          description: The city was updated successfully
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimCity]
+      summary: Partially update a city resource
+      description: Updates one or more fields of an existing city resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimCity]
+      summary: Delete a city
+      description: Deletes a city resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: The city was deleted successfully.
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+  
+  /dim-cities/byoblast/{oblastId}:
+    parameters:
+     - { name: oblastId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimCity]
+      summary: Get cities by oblast
+      description: Retrieves a list of cities that belong to a specific oblast.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of cities for the given oblast.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimCityDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse'}
+
+  # DimDate
+
+  /dim-dates:
+    get:
+      tags: [DimDate]
+      summary: Get a list of all dates
+      description: Retrieves a list of all dates.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of dates.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimDateDto'
+    post:
+      tags: [DimDate]
+      summary: Create a new date
+      description: Adds a new date record to the database.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimDateDto'
+      responses:
+        '201':
+          description: The date was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created date resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/BadRequestResponse'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+
+  /dim-dates/{dateId}:
+    parameters:
+      - { name: dateId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimDate]
+      summary: Get a date by ID
+      description: Retrieves a single date resource by ID.
+      security: 
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Date resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimDateDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimDate]
+      summary: Update an entire date resource
+      description: Replaces an existing date resource with a new representation.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimDateDto'
+      responses:
+        '204':
+          { description: The date was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimDate]
+      summary: Partially update a date resource
+      description: Updates one or more fields of an existing date resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimDate]
+      summary: Delete a date
+      description: Deletes a date resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The date was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+
+  # DimEducation
+
+  /dim-educations:
+    get:
+      tags: [DimEducation]
+      summary: Get a list of all educations
+      description: Retrieves a list of educations.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of educations.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEducationDto'
+    post:
+      tags: [DimEducation]
+      summary: Create a new education
+      description: Adds a new education record to the database.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimEducationDto'
+      responses:
+        '201':
+          description: The education record was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created education resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEducationDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+
+  /dim-educations/{educationId}:
+    parameters:
+      - { name: educationId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimEducation]
+      summary: Get an education by ID
+      description: Retrieves a single education resource by ID.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Education resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEducationDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimEducation]
+      summary: Update an entire education resource
+      description: Replaces an existing education resource with a new representation.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimEducationDto'
+      responses:
+        '204':
+          { description: The education record was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimEducation]
+      summary: Partially update an education resource
+      description: Updates one or more fields of an existing education resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimEducation]
+      summary: Delete an education
+      description: Deletes an education resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The education record was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+
+  # DimEducationLevel
+
+  /dim-education-levels:
+    get:
+      tags: [DimEducationLevel]
+      summary: Get a list of all education levels
+      description: Retrieves a complete list of education levels.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of education levels.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEducationLevelDto'
+    post:
+      tags: [DimEducationLevel]
+      summary: Create a new education level
+      description: Adds a new education level record to the database.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimEducationLevelDto'
+      responses:
+        '201':
+          description: The education level was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created education level resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEducationLevelDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  /dim-education-levels/{educationLevelId}:
+    parameters:
+      - { name: educationLevelId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimEducationLevel]
+      summary: Get an education level by ID
+      description: Retrieves a single education level resource by ID.
+      security: []
+      responses:
+        '200':
+          description: Education level resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEducationLevelDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimEducationLevel]
+      summary: Update an entire education level resource
+      description: Replaces an existing education level resource with a new representation.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimEducationLevelDto'
+      responses:
+        '204':
+          { description: The education level was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimEducationLevel]
+      summary: Partially update an education level resource
+      description: Updates one or more fields of an existing education level resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimEducationLevel]
+      summary: Delete an education level
+      description: Deletes an education level resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The education level was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+
+
+  # DimEmployee
+
+  /dim-employees:
+    get:
+      tags: [DimEmployee]
+      summary: Get a list of all employees
+      description: Retrieves a list of all employees.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of employees.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEmployeeDto'
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+    post:
+      tags: [DimEmployee]
+      summary: Create a new employee
+      description: Adds a new employee record to the database.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimEmployeeDto'
+      responses:
+        '201':
+          description: The employee was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created employee resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployeeDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  /dim-employees/{employeeId}:
+    parameters:
+      - { name: employeeId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimEmployee]
+      summary: Get an employee by ID
+      description: Retrieves a single employee resource by ID.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Employee resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployeeDto'
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimEmployee]
+      summary: Update an entire employee resource
+      description: Replaces an existing employee resource with a new representation.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimEmployeeDto'
+      responses:
+        '204':
+          { description: The employee was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimEmployee]
+      summary: Partially update an employee resource
+      description: Updates one or more fields of an existing employee resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimEmployee]
+      summary: Delete an employee
+      description: Deletes an employee resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The employee was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+
+  # DimEmployeeEducation
+
+  /dim-employee-educations:
+    get:
+      tags: [DimEmployeeEducation]
+      summary: Get all employee-education links
+      description: Retrieves a list of all links between employees and their educations.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of employee-education links.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEmployeeEducationDto'
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+    post:
+      tags: [DimEmployeeEducation]
+      summary: Create a new employee-education link
+      description: Links an employee to an education record.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimEmployeeEducationDto'
+      responses:
+        '201':
+          description: The link was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployeeEducationDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  /dim-employee-educations/{employeeId}/{educationId}:
+    parameters:
+      - { name: employeeId, in: path, required: true, description: "The ID of the employee.", schema: { type: integer} }
+      - { name: educationId, in: path, required: true, description: "The ID of the education.", schema: { type: integer } }
+    get:
+      tags: [DimEmployeeEducation]
+      summary: Get a specific employee-education link
+      description: Retrieves a single link by its composite key. Requires Analyst or ETL User role.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: The link was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployeeEducationDto'
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimEmployeeEducation]
+      summary: Update an employee-education link
+      description: Updates the graduation year for an existing link.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimEmployeeEducationDto'
+      responses:
+        '204':
+          { description: The link was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    delete:
+      tags: [DimEmployeeEducation]
+      summary: Delete an employee-education link
+      description: Deletes the link between an employee and an education.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The link was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+        
+  /dim-employee-educations/byemployee/{employeeId}:
+    parameters:
+      - { name: employeeId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimEmployeeEducation]
+      summary: Get all educations for an employee
+      description: Retrieves a list of all education records associated with a single employee.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of the employee's educations.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEmployeeEducationDto'
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+
+  # DimEmployer
+
+  /dim-employers:
+    get:
+      tags: [DimEmployer]
+      summary: Get a list of all employers
+      description: Retrieves a list of all employers.
+      security: []
+      responses:
+        '200':
+          description: List of employers successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEmployerDto'
+    post:
+      tags: [DimEmployer]
+      summary: Creates a new employer
+      description: Adds a new employer record to the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimEmployerDto'
+      responses:
+        '201':
+          description: The employer was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created employer resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployerDto'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+        '409':
+          $ref: '#/components/responses/ConflictResponse'
+  
+  /dim-employers/{employerId}:
+    parameters:
+      - { name: employerId, in: path, required: true, schema: { type: integer} }
+    get:
+      tags: [DimEmployer]
+      summary: Get an employer by ID
+      description: Retrieves a single employer resource by its unique identifier.
+      security: []
+      responses:
+        '200':
+          description: Employer resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployerDto'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    put:
+      tags: [DimEmployer]
+      summary: Update an entire employer resource
+      description: Replaces an existing employer resource with a new representation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimEmployerDto'
+      responses:
+        '204':
+          description: The employer was updated successfully.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    patch:
+      tags: [DimEmployer]
+      summary: Partially update an employer resource
+      description: Updates one or more fields of an existing employer resource. Any fields included in the request body will be updated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimEmployerDto'
+      responses:
+        '204':
+          description: The employer was partially updated successfully.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+    delete:
+      tags: [DimEmployer]
+      summary: Delete an employer
+      description: Deletes an employer resource.
+      responses:
+        '204':
+          description: The employer was deleted successfully.
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+
+  # DimEmployerIndustryField
+
+  /dim-employer-industry-fields:
+    get:
+      tags: [DimEmployerIndustryField]
+      summary: Get all employer-industry links
+      description: Retrieves a list of all links between employers and their industries.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of employer-industry links.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEmployerIndustryFieldDto'
+    post:
+      tags: [DimEmployerIndustryField]
+      summary: Create a new employer-industry link
+      description: Links an employer to an industry.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimEmployerIndustryFieldDto'
+      responses:
+        '201':
+          description: The link was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployerIndustryFieldDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  /dim-employer-industry-fields/{employerId}/{industryFieldId}:
+    parameters:
+      - { name: employerId, in: path, required: true, schema: { type: integer } }
+      - { name: industryFieldId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimEmployerIndustryField]
+      summary: Get a specific employer-industry link
+      description: Retrieves a single link by its composite key.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: The link was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimEmployerIndustryFieldDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    delete:
+      tags: [DimEmployerIndustryField]
+      summary: Delete an employer-industry link
+      description: Deletes the link between an employer and an industry.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The link was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+        
+  /dim-employer-industry-fields/byemployer/{employerId}:
+    parameters:
+      - { name: employerId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimEmployerIndustryField]
+      summary: Get all industries for an employer
+      description: Retrieves a list of all industry records associated with a single employer.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of the employer's industries.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEmployerIndustryFieldDto'
+
+  /dim-employer-industry-fields/byindustryfield/{industryFieldId}:
+    parameters:
+      - { name: industryFieldId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimEmployerIndustryField]
+      summary: Get all employers in an industry
+      description: Retrieves a list of all employer records associated with a single industry.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of employers in the given industry.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimEmployerIndustryFieldDto'
+
+  # DimFederalDistrict
+
+  /dim-federal-districts:
+    get:
+      tags: [DimFederalDistrict]
+      summary: Get a list of all federal districts
+      description: Retrieves a list of all federal districts.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of federal districts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimFederalDistrictDto'
+    post:
+      tags: [DimFederalDistrict]
+      summary: Create a new federal district
+      description: Adds a new federal district record.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimFederalDistrictDto'
+      responses:
+        '201':
+          description: The federal district was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimFederalDistrictDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  /dim-federal-districts/{districtId}:
+    parameters:
+      - { name: districtId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimFederalDistrict]
+      summary: Get a federal district by ID
+      description: Retrieves a single federal district by ID.
+      security: []
+      responses:
+        '200':
+          description: Federal district resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimFederalDistrictDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimFederalDistrict]
+      summary: Update a federal district
+      description: Replaces an existing federal district resource.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimFederalDistrictDto'
+      responses:
+        '204':
+          { description: The federal district was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimFederalDistrict]
+      summary: Partially update a federal district resource
+      description: Updates one or more fields of an existing federal district resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimFederalDistrict]
+      summary: Delete a federal district
+      description: Deletes a federal district resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The federal district was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+
+  # DimHierarchyLevel
+
+  /dim-hierarchy-levels:
+    get:
+      tags: [DimHierarchyLevel]
+      summary: Get a list of all hierarchy levels
+      description: Retrieves a list of all hierarchy levels.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of hierarchy levels.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimHierarchyLevelDto'
+    post:
+      tags: [DimHierarchyLevel]
+      summary: Create a new hierarchy level
+      description: Adds a new hierarchy level record.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimHierarchyLevelDto'
+      responses:
+        '201':
+          description: The hierarchy level was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimHierarchyLevelDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  /dim-hierarchy-levels/{hierarchyLevelId}:
+    parameters:
+      - { name: hierarchyLevelId, in: path, required: true, description: "The unique ID of the hierarchy level.", schema: { type: integer, example: 3 } }
+    get:
+      tags: [DimHierarchyLevel]
+      summary: Get a hierarchy level by ID
+      description: Retrieves a single hierarchy level by ID.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Hierarchy level resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimHierarchyLevelDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimHierarchyLevel]
+      summary: Update a hierarchy level
+      description: Replaces an existing hierarchy level resource.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimHierarchyLevelDto'
+      responses:
+        '204':
+          { description: The hierarchy level was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimHierarchyLevel]
+      summary: Partially update a hierarchy level resource
+      description: Updates one or more fields of an existing hierarchy level resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimHierarchyLevel]
+      summary: Delete a hierarchy level
+      description: Deletes a hierarchy level resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The hierarchy level was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+
+  # DimIndustryField
+
+  /dim-industry-fields:
+    get:
+      tags: [DimIndustryField]
+      summary: Get a list of all industry fields
+      description: Retrieves a list of all industry fields.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of industry fields.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimIndustryFieldDto'
+    post:
+      tags: [DimIndustryField]
+      summary: Create a new industry field
+      description: Adds a new industry field record.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimIndustryFieldDto'
+      responses:
+        '201':
+          description: The industry field was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimIndustryFieldDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  /dim-industry-fields/{industryFieldId}:
+    parameters:
+      - { name: industryFieldId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimIndustryField]
+      summary: Get an industry field by ID
+      description: Retrieves a single industry field by ID.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Industry field resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimIndustryFieldDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimIndustryField]
+      summary: Update an industry field
+      description: Replaces an existing industry field resource. Requires ETL User role.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimIndustryFieldDto'
+      responses:
+        '204':
+          { description: The industry field was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimIndustryField]
+      summary: Partially update a job role resource
+      description: Updates one or more fields of an existing job role resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimIndustryField]
+      summary: Delete an industry field
+      description: Deletes an industry field resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The industry field was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+
+  # DimJobRole
+    
+  /dim-job-roles:
+    get:
+      tags: [DimJobRole]
+      summary: Get a list of all job roles
+      description: Retrieves a list of all job roles.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of job roles.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimJobRoleDto'
+    post:
+      tags: [DimJobRole]
+      summary: Create a new job role
+      description: Adds a new job role record to the database.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimJobRoleDto'
+      responses:
+        '201':
+          description: The job role was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimJobRoleDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  /dim-job-roles/{jobRoleId}:
+    parameters:
+      - { name: jobRoleId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimJobRole]
+      summary: Get a job role by ID
+      description: Retrieves a single job role resource by ID.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Job role resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimJobRoleDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimJobRole]
+      summary: Update an entire job role resource
+      description: Replaces an existing job role resource with a new representation. Requires ETL User role.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimJobRoleDto'
+      responses:
+        '204':
+          { description: The job role was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimJobRole]
+      summary: Partially update a job role resource
+      description: Updates one or more fields of an existing job role resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimJobRole]
+      summary: Delete a job role
+      description: Deletes a job role resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The job role was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+
+  # DimOblast
+
+  /dim-oblasts:
+    get:
+      tags: [DimOblast]
+      summary: Get a list of all oblasts
+      description: Retrieves a complete list of oblasts.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of oblasts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimOblastDto'
+    post:
+      tags: [DimOblast]
+      summary: Create a new oblast
+      description: Adds a new oblast record to the database.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimOblastDto'
+      responses:
+        '201':
+          description: The oblast was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created oblast resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimOblastDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  /dim-oblasts/{oblastId}:
+    parameters:
+      - { name: oblastId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimOblast]
+      summary: Get an oblast by ID
+      description: Retrieves a single oblast resource by its unique identifier.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Oblast resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimOblastDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimOblast]
+      summary: Update an entire oblast resource
+      description: Replaces an existing oblast resource with a new representation.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimOblastDto'
+      responses:
+        '204':
+          { description: The oblast was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimOblast]
+      summary: Partially update an oblast resource
+      description: Updates one or more fields of an existing oblast resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimOblast]
+      summary: Delete an oblast
+      description: Deletes an oblast resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The oblast was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+  
+  /dim-oblasts/bydistrict/{districtId}:
+    parameters:
+      - { name: districtId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimOblast]
+      summary: Get oblasts by federal district
+      description: Retrieves a list of oblasts that belong to a specific federal district.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of oblasts for the given district.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimOblastDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+
+  # DimStandardJobRole
+
+  /dim-standard-job-roles:
+    get:
+      tags: [DimStandardJobRole]
+      summary: Get a list of all standard job roles
+      description: Retrieves a list of all standard job roles.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of standard job roles.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimStandardJobRoleDto'
+    post:
+      tags: [DimStandardJobRole]
+      summary: Create a new standard job role
+      description: Adds a new standard job role record.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimStandardJobRoleDto'
+      responses:
+        '201':
+          description: The standard job role was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimStandardJobRoleDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+  
+  
+  /dim-standard-job-roles/{standardJobRoleId}:
+    parameters:
+      - { name: standardJobRoleId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimStandardJobRole]
+      summary: Get a standard job role by ID
+      description: Retrieves a single standard job role by its unique identifier.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Standard job role resource was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimStandardJobRoleDto'
+        '404': { $ref: '#/components/responses/NotFoundResponse' }
+    put:
+      tags: [DimStandardJobRole]
+      summary: Update a standard job role
+      description: Replaces an existing standard job role resource.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDimStandardJobRoleDto'
+      responses:
+        '204':
+          { description: The standard job role was updated successfully. }
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    patch:
+      tags: [DimStandardJobRole]
+      summary: Partially update a standard job role resource
+      description: Updates one or more fields of an existing standard job role resource. Any fields included in the request body will be updated.
+    delete:
+      tags: [DimStandardJobRole]
+      summary: Delete a standard job role
+      description: Deletes a standard job role resource.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          { description: The standard job role was deleted successfully. }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+  
+  /dim-standard-job-roles/byindustry/{industryFieldId}:
+    parameters:
+      - { name: industryFieldId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimStandardJobRole]
+      summary: Get standard job roles by industry
+      description: Retrieves a list of standard job roles that belong to a specific industry.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of standard job roles for the given industry.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimStandardJobRoleDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+
+  # DimStandardJobRoleHierarchy
+
+  /dim-standard-job-role-hierarchies:
+    get:
+      tags: [DimStandardJobRoleHierarchy]
+      summary: Get all standard job role to hierarchy links
+      description: Retrieves a list of all links between standard job roles and their applicable hierarchy levels.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of links.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimStandardJobRoleHierarchyDto'
+    post:
+      tags: [DimStandardJobRoleHierarchy]
+      summary: Create a new standard job role to hierarchy link
+      description: Links a standard job role to a hierarchy level.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDimStandardJobRoleHierarchyDto'
+      responses:
+        '201':
+          description: The link was created successfully.
+          headers:
+            Location:
+              description: The URL of the newly created resource.
+              schema: { type: string, format: uri }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimStandardJobRoleHierarchyDto'
+        '400':
+          { $ref: '#/components/responses/BadRequestResponse' }
+        '401':
+          { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403':
+          { $ref: '#/components/responses/ForbiddenResponse' }
+        '409':
+          { $ref: '#/components/responses/ConflictResponse' }
+        
+  /dim-standard-job-role-hierarchies/{jobRoleId}/{levelId}:
+    parameters:
+      - { name: jobRoleId, in: path, required: true, schema: { type: integer } }
+      - { name: levelId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimStandardJobRoleHierarchy]
+      summary: Get a specific link by composite key
+      description: Retrieves a single link by its composite key (jobRoleId and levelId).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: The link was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DimStandardJobRoleHierarchyDto'
+        '404':
+          { $ref: '#/components/responses/NotFoundResponse' }
+    delete:
+      tags: [DimStandardJobRoleHierarchy]
+      summary: Delete a link by composite key
+      description: Deletes the link between a standard job role and a hierarchy level.
+      security:
+        - bearerAuth: []
+      responses:
+        '204': { description: The link was deleted successfully. }
+        '401': { $ref: '#/components/responses/UnauthorizedResponse' }
+        '403': { $ref: '#/components/responses/ForbiddenResponse' }
+        '404': { $ref: '#/components/responses/NotFoundResponse' }
+
+  /dim-standard-job-role-hierarchies/byjobrole/{jobRoleId}:
+    parameters:
+      - { name: jobRoleId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimStandardJobRoleHierarchy]
+      summary: Get hierarchy levels by standard job role
+      description: Retrieves a list of all hierarchy levels associated with a single standard job role.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of the job role's hierarchy levels.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimStandardJobRoleHierarchyDto'
+
+  /dim-standard-job-role-hierarchies/bylevel/{levelId}:
+    parameters:
+      - { name: levelId, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [DimStandardJobRoleHierarchy]
+      summary: Get standard job roles by hierarchy level
+      description: Retrieves a list of all standard job roles associated with a single hierarchy level.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of job roles for the given hierarchy level.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DimStandardJobRoleHierarchyDto'
+
 components:
   schemas:
 
@@ -929,13 +2229,24 @@ components:
         employerRank: { type: integer, format: int64 }
         roleRankWithinEmployer: { type: integer, format: int64 }
 
-    
+
     DimCityDto:
       type: object
       properties:
         cityId: { type: integer, readOnly: true }
         cityName: { type: string }
         oblastId: { type: integer }
+    CreateDimCityDto:
+      type: object
+      properties:
+        cityName: { type: string }
+        oblastId: { type: integer }
+    UpdateDimCityDto:
+      type: object
+      properties:
+        cityName: { type: string }
+        oblastId: {type: integer}
+
     
     DimDateDto:
       type: object
@@ -945,7 +2256,18 @@ components:
         year: { type: integer }
         quarter: { type: integer }
         month: { type: integer }
+    CreateDimDateDto:
+      type: object
+      required: [fullDate]
+      properties:
+        fullDate: { type: string, format: date }
+    UpdateDimDateDto:
+      type: object
+      required: [fullDate]
+      properties:
+        fullDate: { type: string, format: date }
     
+
     DimEducationDto:
       type: object
       properties:
@@ -953,13 +2275,39 @@ components:
         specialty: { type: string }
         specialtyCode: { type: string }
         educationLevelId: { type: integer }
-    
+    CreateDimEducationDto:
+      type: object
+      required: [specialty, specialtyCode, educationLevelId]
+      properties:
+        specialty: { type: string }
+        specialtyCode: { type: string }
+        educationLevelId: { type: integer }
+    UpdateDimEducationDto:
+      type: object
+      required: [specialty, specialtyCode, educationLevelId]
+      properties:
+        specialty: { type: string }
+        specialtyCode: { type: string }
+        educationLevelId: { type: integer }
+
+
     DimEducationLevelDto:
       type: object
       properties:
         educationLevelId: { type: integer, readOnly: true }
         educationLevelName: { type: string }
+    CreateDimEducationLevelDto:
+      type: object
+      required: [educationLevelName]
+      properties:
+        educationLevelName: { type: string }
+    UpdateDimEducationLevelDto:
+      type: object
+      required: [educationLevelName]
+      properties:
+        educationLevelName: { type: string }
     
+
     DimEmployeeDto:
       type: object
       properties:
@@ -968,7 +2316,44 @@ components:
         birthDate: { type: string, format: date }
         careerStartDate: { type: string, format: date }
         gender: { type: [string, "null"] }
-  
+    CreateDimEmployeeDto:
+      type: object
+      required: [employeeRefId, birthDate, careerStartDate]
+      properties:
+        employeeRefId: { type: string }
+        birthDate: { type: string, format: date }
+        careerStartDate: { type: string, format: date }
+        gender: { type: [string, "null"] }
+    UpdateDimEmployeeDto:
+      type: object
+      required: [employeeRefId, birthDate, careerStartDate]
+      properties:
+        employeeRefId: { type: string }
+        birthDate: { type: string, format: date }
+        careerStartDate: { type: string, format: date }
+        gender: { type: [string, "null"] }
+    
+
+    DimEmployeeEducationDto:
+      type: object
+      properties:
+        employeeId: { type: integer }
+        educationId: { type: integer }
+        graduationYear: { type: integer }
+    CreateDimEmployeeEducationDto:
+      type: object
+      required: [employeeId, educationId, graduationYear]
+      properties:
+        employeeId: { type: integer }
+        educationId: { type: integer }
+        graduationYear: { type: integer }
+    UpdateDimEmployeeEducationDto:
+      type: object
+      required: [graduationYear]
+      properties:
+        graduationYear: { type: integer }
+
+
     DimEmployerDto:
       type: object
       description: Represents an employer entity.
@@ -983,7 +2368,6 @@ components:
         website: { type: string, format: uri }
         contactEmail: { type: string, format: email }
         contactPhone: { type: string }
-    
     CreateDimEmployerDto:
       type: object
       description: The set of properties required to create a new employer.
@@ -998,7 +2382,6 @@ components:
         website: { type: string, format: uri }
         contactEmail: { type: string, format: email }
         contactPhone: { type: string }
-    
     UpdateDimEmployerDto:
       type: object
       description: The set of properties available for updating an employer.
@@ -1012,12 +2395,37 @@ components:
         website:  { type: string, format: uri}
         contactEmail: { type: string, format: email }
         contactPhone: { type: string }
+
     
+    DimEmployerIndustryFieldDto:
+      type: object
+      properties:
+        employerId: { type: integer }
+        industryFieldId: { type: integer }
+    CreateDimEmployerIndustryFieldDto:
+      type: object
+      required: [employerId, industryFieldId]
+      properties:
+        employerId: { type: integer }
+        industryFieldId: { type: integer }
+    
+
     DimFederalDistrictDto:
       type: object
       properties:
         districtId: { type: integer, readOnly: true }
         districtName: { type: string }
+    CreateDimFederalDistrictDto:
+      type: object
+      required: [districtName]
+      properties:
+        districtName: { type: string }
+    UpdateDimFederalDistrictDto:
+      type: object
+      required: [districtName]
+      properties:
+        districtName: { type: string }
+
     
     DimHierarchyLevelDto:
       type: object
@@ -1025,6 +2433,19 @@ components:
         hierarchyLevelId: { type: integer, readOnly: true }
         hierarchyLevelCode: { type: string }
         hierarchyLevelName: { type: string }
+    CreateDimHierarchyLevelDto:
+      type: object
+      required: [hierarchyLevelCode, hierarchyLevelName]
+      properties:
+        hierarchyLevelCode: { type: string }
+        hierarchyLevelName: { type: string }
+    UpdateDimHierarchyLevelDto:
+      type: object
+      required: [hierarchyLevelCode, hierarchyLevelName]
+      properties:
+        hierarchyLevelCode: { type: string }
+        hierarchyLevelName: { type: string }
+
     
     DimIndustryFieldDto:
       type: object
@@ -1032,6 +2453,19 @@ components:
         industryFieldId: { type: integer, readOnly: true }
         industryFieldCode: { type: string }
         industryFieldName: { type: string }
+    CreateDimIndustryFieldDto:
+      type: object
+      required: [industryFieldCode, industryFieldName]
+      properties:
+        industryFieldCode: { type: string }
+        industryFieldName: { type: string }
+    UpdateDimIndustryFieldDto:
+      type: object
+      required: [industryFieldCode, industryFieldName]
+      properties:
+        industryFieldCode: { type: string }
+        industryFieldName: { type: string }
+
 
     DimJobRoleDto:
       type: object
@@ -1040,14 +2474,42 @@ components:
         jobRoleTitle: { type: string }
         standardJobRoleId: { type: integer }
         hierarchyLevelId: { type: integer }
+    CreateDimJobRoleDto:
+      type: object
+      required: [jobRoleTitle, standardJobRoleId, hierarchyLevelId]
+      properties:
+        jobRoleTitle: { type: string }
+        standardJobRoleId: { type: integer }
+        hierarchyLevelId: { type: integer }
+    UpdateDimJobRoleDto:
+      type: object
+      required: [jobRoleTitle, standardJobRoleId, hierarchyLevelId]
+      properties:
+        jobRoleTitle: { type: string }
+        standardJobRoleId: { type: integer }
+        hierarchyLevelId: { type: integer }
     
+
     DimOblastDto:
       type: object
       properties:
         oblastId: { type: integer, readOnly: true }
         oblastName: { type: string }
         districtId: { type: integer }
+    CreateDimOblastDto:
+      type: object
+      required: [oblastName, districtId]
+      properties:
+        oblastName: { type: string }
+        districtId: { type: integer }
+    UpdateDimOblastDto:
+      type: object
+      required: [oblastName, districtId]
+      properties:
+        oblastName: { type: string }
+        districtId: { type: integer }
     
+
     DimStandardJobRoleDto:
       type: object
       properties:
@@ -1055,6 +2517,34 @@ components:
         standardJobRoleCode: { type: string }
         standardJobRoleTitle: { type: string }
         industryFieldId: { type: integer }
+    CreateDimStandardJobRoleDto:
+      type: object
+      required: [standardJobRoleCode, standardJobRoleTitle, industryFieldId]
+      properties:
+        standardJobRoleCode: { type: string }
+        standardJobRoleTitle: { type: string }
+        industryFieldId: { type: integer }
+    UpdateDimStandardJobRoleDto:
+      type: object
+      required: [standardJobRoleCode, standardJobRoleTitle, industryFieldId]
+      properties:
+        standardJobRoleCode: { type: string }
+        standardJobRoleTitle: { type: string }
+        industryFieldId: { type: integer }
+    
+
+    DimStandardJobRoleHierarchyDto:
+      type: object
+      properties:
+        standardJobRoleId: { type: integer }
+        hierarchyLevelId: { type: integer }
+    CreateDimStandardJobRoleHierarchyDto:
+      type: object
+      required: [standardJobRoleId, hierarchyLevelId]
+      properties:
+        standardJobRoleId: { type: integer }
+        hierarchyLevelId: { type: integer }
+
 
     FactSalaryDto:
       type: object
