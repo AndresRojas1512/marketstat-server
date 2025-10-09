@@ -2,7 +2,6 @@ CREATE SCHEMA IF NOT EXISTS marketstat;
 SET search_path = marketstat, public;
 
 
-
 CREATE TABLE IF NOT EXISTS dim_date (
     date_id     INT GENERATED ALWAYS AS IDENTITY
                     CONSTRAINT pk_dim_date PRIMARY KEY,
@@ -17,39 +16,14 @@ CREATE TABLE IF NOT EXISTS dim_date (
 );
 
 
-
-CREATE TABLE IF NOT EXISTS dim_federal_district (
-    district_id     INT GENERATED ALWAYS AS IDENTITY
-                        CONSTRAINT pk_dim_federal_district PRIMARY KEY,
-    district_name   VARCHAR(255) NOT NULL,
-                        CONSTRAINT uq_dim_federal_district_name UNIQUE (district_name)
+CREATE TABLE IF NOT EXISTS dim_industry_field (
+    industry_field_id   INT GENERATED ALWAYS AS IDENTITY
+                            CONSTRAINT pk_dim_industry_field PRIMARY KEY,
+    industry_field_code VARCHAR(10) NOT NULL
+                            CONSTRAINT uq_dim_industry_field_code UNIQUE,
+    industry_field_name VARCHAR(255) NOT NULL
+                            CONSTRAINT uq_dim_industry_field_name UNIQUE
 );
-
-
-
-CREATE TABLE IF NOT EXISTS dim_oblast (
-    oblast_id   INT GENERATED ALWAYS AS IDENTITY
-                    CONSTRAINT pk_dim_oblast PRIMARY KEY,
-    oblast_name VARCHAR(255) NOT NULL,
-    district_id INT NOT NULL,
-    CONSTRAINT fk_dim_oblast_district FOREIGN KEY (district_id) REFERENCES dim_federal_district(district_id),
-    CONSTRAINT uq_dim_oblast_name UNIQUE (oblast_name)
-);
-CREATE INDEX IF NOT EXISTS idx_dim_oblast_district_id
-    ON dim_oblast (district_id);
-
-
-
-CREATE TABLE IF NOT EXISTS dim_city (
-    city_id     INT GENERATED ALWAYS AS IDENTITY
-                    CONSTRAINT pk_dim_city PRIMARY KEY,
-    city_name   VARCHAR(255) NOT NULL,
-    oblast_id   INT NOT NULL,
-    CONSTRAINT fk_dim_city_oblast FOREIGN KEY (oblast_id) REFERENCES dim_oblast(oblast_id),
-    CONSTRAINT uq_dim_city_oblast UNIQUE (city_name, oblast_id)
-);
-CREATE INDEX IF NOT EXISTS idx_dim_city_oblast_id
-    ON dim_city (oblast_id);
 
 
 CREATE TABLE IF NOT EXISTS dim_employer (
@@ -64,205 +38,125 @@ CREATE TABLE IF NOT EXISTS dim_employer (
     kpp                 VARCHAR(9) NOT NULL,
     registration_date   DATE NOT NULL,
     legal_address       TEXT NOT NULL,
-    website             VARCHAR(255) NOT NULL,
     contact_email       VARCHAR(255) NOT NULL,
-    contact_phone       VARCHAR(50) NOT NULL
-);
-
-
-
-CREATE TABLE IF NOT EXISTS dim_industry_field (
-    industry_field_id   INT GENERATED ALWAYS AS IDENTITY
-                            CONSTRAINT pk_dim_industry_field PRIMARY KEY,
-    industry_field_code VARCHAR(10) NOT NULL
-                            CONSTRAINT uq_dim_industry_field_code UNIQUE,
-    industry_field_name VARCHAR(255) NOT NULL
-                            CONSTRAINT uq_dim_industry_field_name UNIQUE
-);
-
-
-
-CREATE TABLE IF NOT EXISTS dim_employer_industry_field (
-    employer_id         INT NOT NULL,
+    contact_phone       VARCHAR(50) NOT NULL,
     industry_field_id   INT NOT NULL,
-    CONSTRAINT pk_dim_employer_industry_field PRIMARY KEY (employer_id, industry_field_id),
-    CONSTRAINT fk_dim_eif_employer FOREIGN KEY (employer_id) REFERENCES dim_employer(employer_id),
-    CONSTRAINT fk_dim_eif_field    FOREIGN KEY (industry_field_id) REFERENCES dim_industry_field(industry_field_id)
-);
-CREATE INDEX IF NOT EXISTS idx_dim_eif_field
-    ON dim_employer_industry_field (industry_field_id);
-
-
-
-CREATE TABLE IF NOT EXISTS dim_hierarchy_level (
-    hierarchy_level_id      INT GENERATED ALWAYS AS IDENTITY
-                                CONSTRAINT pk_dim_hierarchy_level PRIMARY KEY,
-    hierarchy_level_code    VARCHAR(10) NOT NULL
-                                CONSTRAINT uq_dim_hierarchy_level_code UNIQUE,
-    hierarchy_level_name    VARCHAR(255) NOT NULL
-                                CONSTRAINT uq_dim_hierarchy_level_name UNIQUE
+                            CONSTRAINT fk_dim_employer_industry FOREIGN KEY (industry_field_id) REFERENCES dim_industry_field(industry_field_id)
 );
 
 
-
-CREATE TABLE IF NOT EXISTS dim_standard_job_role (
-    standard_job_role_id    INT GENERATED ALWAYS AS IDENTITY
-                                CONSTRAINT pk_dim_standard_job_role PRIMARY KEY,
-    standard_job_role_code  VARCHAR(20) NOT NULL
-                                CONSTRAINT uq_dim_sjr_code UNIQUE,
-    standard_job_role_title VARCHAR(255) NOT NULL
-                                CONSTRAINT uq_dim_sjr_title UNIQUE,
-    industry_field_id       INT NOT NULL,
-                                CONSTRAINT fk_dim_sjr_field FOREIGN KEY (industry_field_id) REFERENCES dim_industry_field(industry_field_id)
-);
-CREATE INDEX IF NOT EXISTS idx_dim_sjr_field
-    ON dim_standard_job_role (industry_field_id);
+CREATE TABLE IF NOT EXISTS dim_location (
+    location_id     INT GENERATED ALWAYS AS IDENTITY
+                        CONSTRAINT pk_dim_location PRIMARY KEY,
+    city_name       VARCHAR(255) NOT NULL,
+    oblast_name     VARCHAR(255) NOT NULL,
+    district_name   VARCHAR(255) NOT NULL,
+    CONSTRAINT uq_dim_location UNIQUE (city_name, oblast_name, district_name)
+)
 
 
-
-CREATE TABLE IF NOT EXISTS dim_standard_job_role_hierarchy (
-    standard_job_role_id INT NOT NULL,
-    hierarchy_level_id   INT NOT NULL,
-    CONSTRAINT pk_dim_sjrh PRIMARY KEY (standard_job_role_id, hierarchy_level_id),
-    CONSTRAINT fk_dim_sjrh_sjr FOREIGN KEY (standard_job_role_id) REFERENCES dim_standard_job_role(standard_job_role_id),
-    CONSTRAINT fk_dim_sjrh_hl  FOREIGN KEY (hierarchy_level_id) REFERENCES dim_hierarchy_level(hierarchy_level_id)
-);
-
-
-
-CREATE TABLE IF NOT EXISTS dim_job_role (
-    job_role_id             INT GENERATED ALWAYS AS IDENTITY
-                                CONSTRAINT pk_dim_job_role PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS dim_job (
+    job_id                  INT GENERATED ALWAYS AS IDENTITY
+                                CONSTRAINT pk_dim_job PRIMARY KEY,
     job_role_title          VARCHAR(255) NOT NULL,
-    standard_job_role_id    INT NOT NULL,
-    hierarchy_level_id      INT NOT NULL,
-    CONSTRAINT fk_dim_jr_sjr FOREIGN KEY (standard_job_role_id) REFERENCES dim_standard_job_role(standard_job_role_id),
-    CONSTRAINT fk_dim_jr_hl  FOREIGN KEY (hierarchy_level_id) REFERENCES dim_hierarchy_level(hierarchy_level_id),
-    CONSTRAINT uq_dim_job_role_natural_key UNIQUE (job_role_title, standard_job_role_id, hierarchy_level_id)
+    standard_job_role_title VARCHAR(255) NOT NULL,
+    hierarchy_level_name    VARCHAR(255) NOT NULL,
+    industry_field_id       INT NOT NULL,
+    CONSTRAINT fk_dim_job_industry FOREIGN KEY (industry_field_id) REFERENCES dim_industry_field(industry_field_id),
+    CONSTRAINT uq_dim_job UNIQUE (job_role_title, standard_job_role_title, hierarchy_level_name, industry_field_id)
 
 );
-CREATE INDEX IF NOT EXISTS idx_dim_jr_sjr
-    ON dim_job_role (standard_job_role_id);
-CREATE INDEX IF NOT EXISTS idx_dim_jr_hl
-    ON dim_job_role (hierarchy_level_id);
-
-
-
-CREATE TABLE IF NOT EXISTS dim_education_level (
-    education_level_id      INT GENERATED ALWAYS AS IDENTITY
-                                CONSTRAINT pk_dim_education_level PRIMARY KEY,
-    education_level_name    VARCHAR(255) NOT NULL,
-    CONSTRAINT uq_education_level UNIQUE (education_level_name)
-);
-
+CREATE INDEX IF NOT EXISTS idx_dim_job_industry_field_id ON dim_job(industry_field_id);
 
 
 CREATE TABLE IF NOT EXISTS dim_education (
-    education_id        INT GENERATED ALWAYS AS IDENTITY
-                            CONSTRAINT pk_dim_education PRIMARY KEY,
-    specialty           VARCHAR(255) NOT NULL,
-    specialty_code      VARCHAR(255) NOT NULL
-                            CONSTRAINT uq_dim_education_specialty_code UNIQUE,
-    education_level_id  INT NOT NULL,
-                            CONSTRAINT fk_dim_edu_lvl FOREIGN KEY (education_level_id) REFERENCES dim_education_level(education_level_id)
+    education_id            INT GENERATED ALWAYS AS IDENTITY
+                                CONSTRAINT pk_dim_education PRIMARY KEY,
+    specialty_name          VARCHAR(255) NOT NULL,
+    specialty_code          VARCHAR(255) NOT NULL
+                                CONSTRAINT uq_dim_education_specialty_code UNIQUE,
+    education_level_name    VARCHAR(255) NOT NULL,
+                                CONSTRAINT uq_dim_education UNIQUE (specialty_name, education_level_name)
 );
-CREATE INDEX IF NOT EXISTS idx_dim_edu_lvl
-    ON dim_education (education_level_id);
-
 
 
 CREATE TABLE IF NOT EXISTS dim_employee (
     employee_id         INT GENERATED ALWAYS AS IDENTITY
                             CONSTRAINT pk_dim_employee PRIMARY KEY,
-    employee_ref_id VARCHAR(255) NOT NULL
+    employee_ref_id     VARCHAR(255) NOT NULL
                             CONSTRAINT uq_dim_employee_ref_id UNIQUE,
     birth_date          DATE NOT NULL,
                             CONSTRAINT ck_dim_emp_birth_date CHECK (birth_date <= CURRENT_DATE),
     career_start_date   DATE NOT NULL
                             CONSTRAINT ck_dim_emp_career_start CHECK (career_start_date <= CURRENT_DATE),
-    gender              VARCHAR(50) NULL,
+    graduation_year     SMALLINT NULL,
+    education_id        INT NULL,
+    CONSTRAINT fk_dim_employee_education FOREIGN KEY (education_id) REFERENCES dim_education(education_id),
     CONSTRAINT ck_career_after_birth CHECK (career_start_date > birth_date),
     CONSTRAINT ck_career_min_age CHECK (career_start_date >= birth_date + INTERVAL '16 years')
 );
-
-
-
-CREATE TABLE IF NOT EXISTS dim_employee_education (
-    employee_id     INT NOT NULL,
-    education_id    INT NOT NULL,
-    graduation_year SMALLINT NOT NULL
-                        CONSTRAINT ck_dim_ee_grad_year CHECK (graduation_year BETWEEN 1900 AND EXTRACT(YEAR FROM CURRENT_DATE)),
-    CONSTRAINT pk_dim_ee PRIMARY KEY (employee_id, education_id),
-    CONSTRAINT fk_dim_ee_emp FOREIGN KEY (employee_id) REFERENCES dim_employee(employee_id),
-    CONSTRAINT fk_dim_ee_edu FOREIGN KEY (education_id) REFERENCES dim_education(education_id)
-);
-CREATE INDEX IF NOT EXISTS idx_dim_ee_edu
-    ON dim_employee_education (education_id);
-
+CREATE INDEX IF NOT EXISTS idx_dim_employee_education ON dim_employee(education_id);
 
 
 CREATE TABLE IF NOT EXISTS fact_salaries (
     salary_fact_id  BIGINT GENERATED ALWAYS AS IDENTITY
                         CONSTRAINT pk_fact_salaries PRIMARY KEY,
     date_id         INT NOT NULL,
-    city_id         INT NOT NULL,
+    location_id     INT NOT NULL,
     employer_id     INT NOT NULL,
-    job_role_id     INT NOT NULL,
+    job_id          INT NOT NULL,
     employee_id     INT NOT NULL,
     salary_amount   NUMERIC(18,2) NOT NULL
                         CONSTRAINT ck_fact_salary_amt CHECK (salary_amount >= 0),
-    bonus_amount    NUMERIC(18,2) NOT NULL DEFAULT 0
-                        CONSTRAINT ck_fact_bonus_amt CHECK (bonus_amount >= 0),
-    CONSTRAINT fk_fact_date     FOREIGN KEY (date_id)     REFERENCES dim_date(date_id),
-    CONSTRAINT fk_fact_city     FOREIGN KEY (city_id)     REFERENCES dim_city(city_id),
-    CONSTRAINT fk_fact_emp      FOREIGN KEY (employer_id) REFERENCES dim_employer(employer_id),
-    CONSTRAINT fk_fact_jrole    FOREIGN KEY (job_role_id) REFERENCES dim_job_role(job_role_id),
-    CONSTRAINT fk_fact_employee FOREIGN KEY (employee_id) REFERENCES dim_employee(employee_id)
+    CONSTRAINT fk_fact_date         FOREIGN KEY (date_id)       REFERENCES dim_date(date_id),
+    CONSTRAINT fk_fact_location     FOREIGN KEY (location_id)   REFERENCES dim_location(location_id),
+    CONSTRAINT fk_fact_employer     FOREIGN KEY (employer_id)   REFERENCES dim_employer(employer_id),
+    CONSTRAINT fk_fact_job          FOREIGN KEY (job_id)        REFERENCES dim_job(job_id),
+    CONSTRAINT fk_fact_employee     FOREIGN KEY (employee_id)   REFERENCES dim_employee(employee_id)
 );
-CREATE INDEX IF NOT EXISTS idx_fact_date      ON fact_salaries (date_id);
-CREATE INDEX IF NOT EXISTS idx_fact_city      ON fact_salaries (city_id);
-CREATE INDEX IF NOT EXISTS idx_fact_employer  ON fact_salaries (employer_id);
-CREATE INDEX IF NOT EXISTS idx_fact_jrole     ON fact_salaries (job_role_id);
-CREATE INDEX IF NOT EXISTS idx_fact_employee  ON fact_salaries (employee_id);
+CREATE INDEX IF NOT EXISTS idx_fact_date        ON fact_salaries (date_id);
+CREATE INDEX IF NOT EXISTS idx_fact_location    ON fact_salaries (location_id);
+CREATE INDEX IF NOT EXISTS idx_fact_employer    ON fact_salaries (employer_id);
+CREATE INDEX IF NOT EXISTS idx_fact_job         ON fact_salaries (job_id);
+CREATE INDEX IF NOT EXISTS idx_fact_employee    ON fact_salaries (employee_id);
 
 
 CREATE TABLE IF NOT EXISTS users (
-    user_id                 INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    username                VARCHAR(100) NOT NULL UNIQUE,
+    user_id                 INT GENERATED ALWAYS AS IDENTITY
+                                CONSTRAINT pk_users PRIMARY KEY,
+    username                VARCHAR(100) NOT NULL
+                                CONSTRAINT uq_users_username UNIQUE,
     password_hash           TEXT NOT NULL,
-    email                   VARCHAR(255) NOT NULL UNIQUE,
+    email                   VARCHAR(255) NOT NULL
+                                CONSTRAINT uq_users_email UNIQUE,
     full_name               VARCHAR(255) NOT NULL,
     is_active               BOOLEAN NOT NULL DEFAULT TRUE,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at           TIMESTAMPTZ NULL,
-    saved_benchmarks_count  INT NOT NULL DEFAULT 0,
     is_etl_user             BOOLEAN NOT NULL DEFAULT FALSE
 );
+
 
 CREATE TABLE IF NOT EXISTS benchmark_history (
     benchmark_history_id        BIGINT GENERATED ALWAYS AS IDENTITY
                                     CONSTRAINT pk_benchmark_history PRIMARY KEY,
-    user_id                     INT NOT NULL REFERENCES marketstat.users(user_id) ON DELETE CASCADE,
+    user_id                     INT NOT NULL,
+                                    CONSTRAINT fk_benchmark_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     benchmark_name              VARCHAR(255) NULL,
     saved_at                    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    filter_industry_field_id    INT NULL REFERENCES marketstat.dim_industry_field(industry_field_id) ON DELETE SET NULL,
-    filter_standard_job_role_id INT NULL REFERENCES marketstat.dim_standard_job_role(standard_job_role_id) ON DELETE SET NULL,
-    filter_hierarchy_level_id   INT NULL REFERENCES marketstat.dim_hierarchy_level(hierarchy_level_id) ON DELETE SET NULL,
-    filter_district_id          INT NULL REFERENCES marketstat.dim_federal_district(district_id) ON DELETE SET NULL,
-    filter_oblast_id            INT NULL REFERENCES marketstat.dim_oblast(oblast_id) ON DELETE SET NULL,
-    filter_city_id              INT NULL REFERENCES marketstat.dim_city(city_id) ON DELETE SET NULL,
-    filter_date_start           DATE NULL,
-    filter_date_end             DATE NULL,
-
-    filter_target_percentile    INT NULL,
-    filter_granularity          TEXT NULL,
-    filter_periods              INT NULL,
+    filter _location_id         INT NULL,
+    filter _job_id              INT NULL,
+    filter _industry_field_id   INT NULL,
+    filter _date_start          DATE NULL,
+    filter _date_end            DATE NULL,
+    filter _target_percentile   INT NULL,
+    filter _granularity         TEXT NULL,
+    filter _periods             INT NULL,
 
     benchmark_result_json       JSONB NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_benchmark_history_user_id ON marketstat.benchmark_history(user_id);
-CREATE INDEX IF NOT EXISTS idx_benchmark_history_saved_at ON marketstat.benchmark_history(saved_at DESC);
+CREATE INDEX IF NOT EXISTS idx_benchmark_history_user_id ON benchmark_history(user_id);
 
 
 CREATE TABLE IF NOT EXISTS failed_salary_facts_load (
