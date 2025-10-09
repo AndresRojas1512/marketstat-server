@@ -1,153 +1,146 @@
+using FluentAssertions;
 using IntegrationTests.Services.AccessObject;
+using IntegrationTests.Services.Fixtures;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
+using MarketStat.Database.Context;
+using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimCityService;
+using MarketStat.Tests.Common.Builders;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace IntegrationTests.Services.InMemory.Dimensions;
 
-public class DimCityServiceIntegrationTests : IDisposable
+[Trait("Category", "Integration")]
+public class DimCityServiceIntegrationTests : IClassFixture<DimCityTestFixture>
 {
-    private readonly MarketStatAccessObjectInMemory _accessObject;
     private readonly IDimCityService _dimCityService;
+    private readonly MarketStatDbContext _dbContext;
 
-    public DimCityServiceIntegrationTests()
+    public DimCityServiceIntegrationTests(DimCityTestFixture fixture)
     {
-        _accessObject = new MarketStatAccessObjectInMemory();
-        _dimCityService = new DimCityService(_accessObject.DimCityRepository, NullLogger<DimCityService>.Instance);
-    }
-    public void Dispose() => _accessObject.Dispose();
-    
-    [Fact]
-    public async Task GetAllCities_Empty_ReturnsEmpty()
-    {
-        var all = await _dimCityService.GetAllCitiesAsync();
-        Assert.Empty(all);
+        _dimCityService = fixture.DimCityService;
+        _dbContext = fixture.DbContext;
     }
     
-    [Fact]
-    public async Task CreateCity_PersistsAndGeneratesId()
-    {
-        await _accessObject.SeedFederalDistrictAsync(new[]
-        {
-            new DimFederalDistrict(1, "North District")
-        });
-        await _accessObject.SeedOblastAsync(new[]
-        {
-            new DimOblast(1, "Test Oblast", districtId: 1)
-        });
-
-        var created = await _dimCityService.CreateCityAsync("Springfield", oblastId: 1);
-        Assert.True(created.CityId > 0);
-        Assert.Equal("Springfield", created.CityName);
-        Assert.Equal(1, created.OblastId);
-
-        var fetched = await _dimCityService.GetCityByIdAsync(created.CityId);
-        Assert.Equal(created.CityId, fetched.CityId);
-        Assert.Equal("Springfield", fetched.CityName);
-        Assert.Equal(1, fetched.OblastId);
-    }
+    # region CreateCityAsync Tests
     
     [Fact]
-    public async Task GetCityById_Nonexistent_Throws()
+    public async Task CreateCityAsync_ValidData_PersistAndGenerateId()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimCityService.GetCityByIdAsync(9999)
-        );
+        var newCityName = "Moscow";
+        var oblastId = 1;
+        var created = await _dimCityService.CreateCityAsync(newCityName, oblastId);
+        created.CityId.Should().BeGreaterThan(0);
+        var fetched = await _dbContext.DimCities.FindAsync(created.CityId);
+        fetched.Should().NotBeNull();
+        fetched?.CityName.Should().Be(newCityName);
+    }
+
+    [Fact]
+    public async Task CreateCityAsync_DuplicateNameInSameOblast_ThrowConflictException()
+    {
+        var city = new DimCityBuilder().WithName("Tula").WithOblastId(1).Build();
+        _dbContext.DimCities.Add(new() { CityName = city.CityName, OblastId = city.OblastId });
+        await _dbContext.SaveChangesAsync();
+
+        Func<Task> act = async () => await _dimCityService.CreateCityAsync(city.CityName, city.OblastId);
+        await act.Should().ThrowAsync<ConflictException>();
     }
     
-    [Fact]
-    public async Task GetAllCities_Seeded_ReturnsSeeded()
-    {
-        await _accessObject.SeedFederalDistrictAsync(new[]
-        {
-            new DimFederalDistrict(1, "District A")
-        });
-        await _accessObject.SeedOblastAsync(new[]
-        {
-            new DimOblast(1, "Oblast A", districtId: 1)
-        });
-        await _accessObject.SeedCityAsync(new[]
-        {
-            new DimCity(1, "Alpha City", 1),
-            new DimCity(2, "Beta Town",  1)
-        });
-
-        var all = (await _dimCityService.GetAllCitiesAsync()).ToList();
-        Assert.Equal(2, all.Count);
-        Assert.Contains(all, c => c.CityName == "Alpha City" && c.CityId == 1);
-        Assert.Contains(all, c => c.CityName == "Beta Town"  && c.CityId == 2);
-    }
+    # endregion
+    
+    #region GetCityByIdAsync Tests
     
     [Fact]
-    public async Task UpdateCity_PersistsChanges()
+    public async Task GetCityByIdAsync_CityExists()
     {
-        await _accessObject.SeedFederalDistrictAsync(new[]
-        {
-            new DimFederalDistrict(1, "District X")
-        });
-        await _accessObject.SeedOblastAsync(new[]
-        {
-            new DimOblast(1, "Oblast X", districtId: 1)
-        });
+        var cityToFind = new DimCityBuilder().WithName("Sochi").WithOblastId(1).Build();
+        _dbContext.DimCities.Add(new() { CityName = cityToFind.CityName, OblastId = cityToFind.OblastId });
+        await _dbContext.SaveChangesAsync();
+        
+        var result = await _dimCityService.GetCityByIdAsync(cityToFind.CityId);
+        result.Should().NotBeNull();
+        result.CityName.Should().Be(cityToFind.CityName);
+    }
 
-        var city = await _dimCityService.CreateCityAsync("OldName", oblastId: 1);
-        var updated = await _dimCityService.UpdateCityAsync(
-            city.CityId,
-            "NewName",
-            oblastId: 1
-        );
-
-        Assert.Equal(city.CityId, updated.CityId);
-        Assert.Equal("NewName", updated.CityName);
-        Assert.Equal(1, updated.OblastId);
-
-        var fetched = await _dimCityService.GetCityByIdAsync(city.CityId);
-        Assert.Equal("NewName", fetched.CityName);
+    [Fact]
+    public async Task GetCityByIdAsync_CityDoesNotExist_ThrowNotFoundException()
+    {
+        var nonExistentId = 9999;
+        Func<Task> act = async () => await _dimCityService.GetCityByIdAsync(nonExistentId);
+        await act.Should().ThrowAsync<NotFoundException>();
     }
     
-    [Fact]
-    public async Task UpdateCity_InvalidId_ThrowsArgumentException()
-    {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _dimCityService.UpdateCityAsync(0, "Name", 1)
-        );
-    }
+    #endregion
+    
+    #region GetAllCitiesAsync Tests
     
     [Fact]
-    public async Task UpdateCity_NotFound_Throws()
+    public async Task GetAllCitiesAsync_CitiesExist_ReturnsSeededCities()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimCityService.UpdateCityAsync(9999, "Name", 1)
-        );
+        var city1 = new DimCityBuilder().WithName("City A").WithOblastId(1).Build();
+        var city2 = new DimCityBuilder().WithName("City B").WithOblastId(1).Build();
+        _dbContext.DimCities.AddRange(new() { CityName = city1.CityName, OblastId = city1.OblastId }, 
+            new() { CityName = city2.CityName, OblastId = city2.OblastId });
+        await _dbContext.SaveChangesAsync();
+        
+        var result = (await _dimCityService.GetAllCitiesAsync()).ToList();
+        
+        result.Should().HaveCount(2);
+        result.Should().Contain(c => c.CityName == "City A");
+        result.Should().Contain(c => c.CityName == "City B");
     }
     
+    #endregion
+    
+    #region UpdateCityAsync Tests
+
     [Fact]
-    public async Task DeleteCity_RemovesIt()
+    public async Task UpdateCityAsync_CityExists_PersistChanges()
     {
-        await _accessObject.SeedFederalDistrictAsync(new[]
-        {
-            new DimFederalDistrict(1, "District Y")
-        });
-        await _accessObject.SeedOblastAsync(new[]
-        {
-            new DimOblast(1, "Oblast Y", districtId: 1)
-        });
+        var cityToUpdate = new DimCityBuilder().WithName("OldName").WithOblastId(1).Build();
+        _dbContext.DimCities.Add(new() { CityName = cityToUpdate.CityName, OblastId = cityToUpdate.OblastId });
+        await _dbContext.SaveChangesAsync();
 
-        var city = await _dimCityService.CreateCityAsync("ToDelete", oblastId: 1);
-        await _dimCityService.DeleteCityAsync(city.CityId);
-
-        await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimCityService.GetCityByIdAsync(city.CityId)
-        );
+        var updated = await _dimCityService.UpdateCityAsync(cityToUpdate.CityId, "NewName", 1);
+        updated.CityName.Should().Be("NewName");
+        var fetched = await _dbContext.DimCities.FindAsync(updated.CityId);
+        fetched?.CityName.Should().Be("NewName");
     }
 
     [Fact]
-    public async Task DeleteCity_NotFound_Throws()
+    public async Task UpdateCityAsync_CityDoesNotExist_ThrowNotFoundException()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() =>
-            _dimCityService.DeleteCityAsync(9999)
-        );
+        var nonExistentId = 9999;
+        Func<Task> act = async () => await _dimCityService.UpdateCityAsync(nonExistentId, "Name", 1);
+        await act.Should().ThrowAsync<NotFoundException>();
     }
+    
+    #endregion
+    
+    #region DeleteCityAsync Tests
+
+    [Fact]
+    public async Task DeleteCityAsync_CityExists()
+    {
+        var cityToDelete = new DimCityBuilder().WithName("ToDelete").WithOblastId(1).Build();
+        _dbContext.DimCities.Add(new() { CityName = cityToDelete.CityName, OblastId = cityToDelete.OblastId });
+        await _dbContext.SaveChangesAsync();
+
+        await _dimCityService.DeleteCityAsync(cityToDelete.CityId);
+        var fetched = await _dbContext.DimCities.FindAsync(cityToDelete.CityId);
+        fetched.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DeleteCityAsync_CityDoesNotExist_ThrowNotFoundException()
+    {
+        var nonExistentId = 9999;
+        Func<Task> act = async () => await _dimCityService.DeleteCityAsync(nonExistentId);
+        await act.Should().ThrowAsync<NotFoundException>();
+    }
+    
+    #endregion
 }

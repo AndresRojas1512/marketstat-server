@@ -36,5 +36,15 @@
     &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.UpdateCityAsync_CityDoesNotExist_ThrowNotFoundException&lt;/TestId&gt;
     &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.DeleteCityAsync_CityExists&lt;/TestId&gt;
     &lt;TestId&gt;xUnit::1831B72C-C4E4-49A8-ABB9-A68ED517042D::net8.0::UnitTests.Services.UnitTests.Services.Dimensions.DimCityServiceUnitTests.DeleteCityAsync_CityDoesNotExist_ThrowNotFoundException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.CreateCityAsync_ValidData_PersistAndGenerateId&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.CreateCityAsync_DuplicateNameInSameOblast_ThrowConflictException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.GetCityById_CityExists&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.GetCityByIdAsync_CityExists&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.GetCityByIdAsync_CityDoesNotExist_ThrowNotFoundException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.GetAllCitiesAsync_CitiesExist_ReturnsSeededCities&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.UpdateCityAsync_CityExists_PersistChanges&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.UpdateCityAsync_CityDoesNotExist_ThrowNotFoundException&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.DeleteCityAsync_CityExists&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::5EA5B4DE-A380-4A3B-A525-E7CC0BEDBE5D::net8.0::IntegrationTests.Services.InMemory.Dimensions.DimCityServiceIntegrationTests.DeleteCityAsync_CityDoesNotExist_ThrowNotFoundException&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

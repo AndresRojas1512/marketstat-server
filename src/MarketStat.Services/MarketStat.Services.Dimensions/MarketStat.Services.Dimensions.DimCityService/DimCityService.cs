@@ -20,6 +20,11 @@ public class DimCityService : IDimCityService
     public async Task<DimCity> CreateCityAsync(string cityName, int oblastId)
     {
         DimCityValidator.ValidateForCreate(cityName, oblastId);
+        var existingCitiesInOblast = await _dimCityRepository.GetCitiesByOblastIdAsync(oblastId);
+        if (existingCitiesInOblast.Any(c => c.CityName.Equals(cityName, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new ConflictException($"A city named '{cityName}' already exists in this oblast.");
+        }
         var city = new DimCity(0, cityName, oblastId);
 
         try
