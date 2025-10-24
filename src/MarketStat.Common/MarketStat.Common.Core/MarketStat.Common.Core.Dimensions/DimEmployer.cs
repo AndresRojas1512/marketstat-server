@@ -11,12 +11,12 @@ public class DimEmployer
     public string Kpp { get; set; } 
     public DateOnly RegistrationDate { get; set; } 
     public string LegalAddress { get; set; } 
-    public string Website { get; set; } 
     public string ContactEmail { get; set; } 
-    public string ContactPhone { get; set; }
+    public string ContactPhone { get; set; } 
+    public int IndustryFieldId { get; set; } 
     
-    public virtual ICollection<DimEmployerIndustryField> EmployerIndustryFields { get; set; }
-    public virtual ICollection<FactSalary> FactSalaries { get; set; }
+    public virtual DimIndustryField? DimIndustryField { get; set; } 
+    public virtual ICollection<FactSalary> FactSalaries { get; set; } 
 
     public DimEmployer()
     {
@@ -25,10 +25,8 @@ public class DimEmployer
         Ogrn = string.Empty;
         Kpp = string.Empty;
         LegalAddress = string.Empty;
-        Website = string.Empty;
         ContactEmail = string.Empty;
         ContactPhone = string.Empty;
-        EmployerIndustryFields = new List<DimEmployerIndustryField>();
         FactSalaries = new List<FactSalary>();
     }
     
@@ -40,9 +38,9 @@ public class DimEmployer
         string kpp,
         DateOnly registrationDate, 
         string legalAddress, 
-        string website, 
         string contactEmail, 
-        string contactPhone)
+        string contactPhone,
+        int industryFieldId)
     {
         EmployerId = employerId;
         EmployerName = employerName ?? throw new ArgumentNullException(nameof(employerName));
@@ -51,11 +49,10 @@ public class DimEmployer
         Kpp = kpp ?? throw new ArgumentNullException(nameof(kpp));
         RegistrationDate = registrationDate;
         LegalAddress = legalAddress ?? throw new ArgumentNullException(nameof(legalAddress));
-        Website = website ?? throw new ArgumentNullException(nameof(website));
         ContactEmail = contactEmail ?? throw new ArgumentNullException(nameof(contactEmail));
         ContactPhone = contactPhone ?? throw new ArgumentNullException(nameof(contactPhone));
+        IndustryFieldId = industryFieldId;
             
-        EmployerIndustryFields = new List<DimEmployerIndustryField>();
         FactSalaries = new List<FactSalary>();
     }
 }
