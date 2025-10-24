@@ -26,7 +26,6 @@ public class DimEmployerController : ControllerBase
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<DimEmployerDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DimEmployerDto>>> GetAll()
     {
         var list = await _dimEmployerService.GetAllEmployersAsync();
@@ -43,7 +42,6 @@ public class DimEmployerController : ControllerBase
     [ProducesResponseType(typeof(DimEmployerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<DimEmployerDto>> GetById(int id)
     {
         if (id <= 0)
@@ -79,9 +77,9 @@ public class DimEmployerController : ControllerBase
             createDto.Kpp,
             createDto.RegistrationDate,
             createDto.LegalAddress,
-            createDto.Website,
             createDto.ContactEmail,
-            createDto.ContactPhone
+            createDto.ContactPhone,
+            createDto.IndustryFieldId
         );
         var dto = _mapper.Map<DimEmployerDto>(created);
         return CreatedAtAction(nameof(GetById), new { id = dto.EmployerId }, dto);
@@ -118,9 +116,9 @@ public class DimEmployerController : ControllerBase
             updateDto.Kpp,
             updateDto.RegistrationDate,
             updateDto.LegalAddress,
-            updateDto.Website,
             updateDto.ContactEmail,
-            updateDto.ContactPhone
+            updateDto.ContactPhone,
+            updateDto.IndustryFieldId
         );
         return NoContent();
     }

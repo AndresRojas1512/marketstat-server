@@ -16,19 +16,11 @@ public class MarketStatDbContext : DbContext
     
     public DbSet<DimEmployerDbModel> DimEmployers { get; set; }
     public DbSet<DimIndustryFieldDbModel> DimIndustryFields { get; set; }
-    public DbSet<DimJobRoleDbModel> DimJobRoles { get; set; }
+    public DbSet<DimJobDbModel> DimJobs { get; set; }
     public DbSet<DimDateDbModel> DimDates { get; set; }
     public DbSet<DimEducationDbModel> DimEducations { get; set; }
     public DbSet<DimEmployeeDbModel> DimEmployees { get; set; }
-    public DbSet<DimEmployeeEducationDbModel> DimEmployeeEducations { get; set; }
-    public DbSet<DimHierarchyLevelDbModel> DimHierarchyLevels { get; set; }
-    public DbSet<DimEmployerIndustryFieldDbModel> DimEmployerIndustryFields { get; set; }
-    public DbSet<DimFederalDistrictDbModel> DimFederalDistricts { get; set; }
-    public DbSet<DimOblastDbModel> DimOblasts { get; set; }
-    public DbSet<DimCityDbModel> DimCities { get; set; }
-    public DbSet<DimEducationLevelDbModel> DimEducationLevels { get; set; }
-    public DbSet<DimStandardJobRoleHierarchyDbModel> DimStandardJobRoleHierarchies { get; set; }
-    public DbSet<DimStandardJobRoleDbModel> DimStandardJobRoles { get; set; }
+    public DbSet<DimLocationDbModel> DimLocations { get; set; }
     
     public DbSet<FactSalaryDbModel> FactSalaries { get; set; }
     
@@ -87,11 +79,6 @@ public class MarketStatDbContext : DbContext
                 .HasColumnType("text")
                 .IsRequired();
 
-            b.Property(e => e.Website)
-                .HasColumnName("website")
-                .HasMaxLength(255)
-                .IsRequired();
-
             b.Property(e => e.ContactEmail)
                 .HasColumnName("contact_email")
                 .HasMaxLength(255)
@@ -101,6 +88,16 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("contact_phone")
                 .HasMaxLength(50)
                 .IsRequired();
+
+            b.Property(e => e.IndustryFieldId)
+                .HasColumnName("industry_field_id")
+                .IsRequired();
+            
+            b.HasOne(e => e.DimIndustryField)
+                .WithMany(i => i.DimEmployers)
+                .HasForeignKey(e => e.IndustryFieldId)
+                .HasConstraintName("fk_dim_employer_industry")
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<DimIndustryFieldDbModel>(b =>
@@ -299,26 +296,6 @@ public class MarketStatDbContext : DbContext
             b.HasIndex(h => h.HierarchyLevelName)
                 .IsUnique()
                 .HasDatabaseName("uq_dim_hierarchy_level_name");
-        });
-
-        modelBuilder.Entity<DimEmployerIndustryFieldDbModel>(b =>
-        {
-            b.ToTable("dim_employer_industry_field");
-            b.HasKey(eif => new { eif.EmployerId, eif.IndustryFieldId });
-            b.Property(eif => eif.EmployerId)
-                .HasColumnName("employer_id")
-                .ValueGeneratedNever();
-            b.Property(eif => eif.IndustryFieldId)
-                .HasColumnName("industry_field_id")
-                .ValueGeneratedNever();
-            b.HasOne(eif => eif.Employer)
-                .WithMany(e => e.EmployerIndustryFields)
-                .HasForeignKey(eif => eif.EmployerId)
-                .OnDelete(DeleteBehavior.Restrict);
-            b.HasOne(eif => eif.IndustryField)
-                .WithMany(i => i.EmployerIndustryFields)
-                .HasForeignKey(eif => eif.IndustryFieldId)
-                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<DimFederalDistrictDbModel>(b =>

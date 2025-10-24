@@ -26,11 +26,6 @@ public class UpdateDimEmployerDto
     [Required(ErrorMessage = "Legal address is required.")]
     public string LegalAddress { get; set; } = string.Empty;
         
-    [Required(ErrorMessage = "Website is required.")]
-    [StringLength(255, ErrorMessage = "Website URL cannot exceed 255 characters.")]
-    [Url(ErrorMessage = "Invalid website URL format.")]
-    public string Website { get; set; } = string.Empty;
-        
     [Required(ErrorMessage = "Contact email is required.")]
     [StringLength(255, ErrorMessage = "Contact email cannot exceed 255 characters.")]
     [EmailAddress(ErrorMessage = "Invalid contact email format.")]
@@ -39,4 +34,8 @@ public class UpdateDimEmployerDto
     [Required(ErrorMessage = "Contact phone is required.")]
     [StringLength(50, ErrorMessage = "Contact phone cannot exceed 50 characters.")]
     public string ContactPhone { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "IndustryFieldId is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "IndustryFieldId must be a positive number.")]
+    public int IndustryFieldId { get; set; }
 }

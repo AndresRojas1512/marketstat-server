@@ -17,34 +17,24 @@ public class DimEmployerService : IDimEmployerService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<DimEmployer> CreateEmployerAsync(
-        string employerName, 
-        string inn, 
-        string ogrn, 
-        string kpp,
-        DateOnly registrationDate, 
-        string legalAddress, 
-        string website, 
-        string contactEmail, 
-        string contactPhone)
+    public async Task<DimEmployer> CreateEmployerAsync(string employerName, string inn, string ogrn, string kpp, DateOnly registrationDate, string legalAddress, string contactEmail, string contactPhone, int industryFieldId)
     {
-        DimEmployerValidator.ValidateForCreate(employerName, inn, ogrn, kpp, registrationDate, legalAddress, website,
-            contactEmail, contactPhone); 
+        DimEmployerValidator.ValidateForCreate(employerName, inn, ogrn, kpp, registrationDate, legalAddress, contactEmail, contactPhone, industryFieldId);
         _logger.LogInformation("Attempting to create employer: {EmployerName}", employerName);
 
-        var employerDomain = new DimEmployer(
-            employerId: 0,
-            employerName: employerName,
-            inn: inn,
-            ogrn: ogrn,
-            kpp: kpp,
-            registrationDate: registrationDate,
-            legalAddress: legalAddress,
-            website: website,
-            contactEmail: contactEmail,
-            contactPhone: contactPhone
-        );
-            
+        var employerDomain = new DimEmployer
+        {
+            EmployerName = employerName,
+            Inn = inn,
+            Ogrn = ogrn,
+            Kpp = kpp,
+            RegistrationDate = registrationDate,
+            LegalAddress = legalAddress,
+            ContactEmail = contactEmail,
+            ContactPhone = contactPhone,
+            IndustryFieldId = industryFieldId
+        };
+        
         try
         {
             await _dimEmployerRepository.AddEmployerAsync(employerDomain);
@@ -78,20 +68,10 @@ public class DimEmployerService : IDimEmployerService
         return employers;
     }
 
-    public async Task<DimEmployer> UpdateEmployerAsync(
-        int employerId, 
-        string employerName, 
-        string inn, 
-        string ogrn, 
-        string kpp,
-        DateOnly registrationDate, 
-        string legalAddress, 
-        string website, 
-        string contactEmail, 
-        string contactPhone)
+    public async Task<DimEmployer> UpdateEmployerAsync(int employerId, string employerName, string inn, string ogrn, string kpp, DateOnly registrationDate, string legalAddress, string contactEmail, string contactPhone, int industryFieldId)
     {
-        DimEmployerValidator.ValidateForUpdate(employerId, employerName, inn, ogrn, kpp, registrationDate, legalAddress,
-            website, contactEmail, contactPhone);
+        DimEmployerValidator.ValidateForUpdate(employerId, employerName, inn, ogrn, kpp, registrationDate, legalAddress, contactEmail, contactPhone, industryFieldId);
+        
         _logger.LogInformation("Attempting to update DimEmployer {EmployerId}", employerId);
 
         try
@@ -103,9 +83,9 @@ public class DimEmployerService : IDimEmployerService
             existingEmployer.Kpp = kpp;
             existingEmployer.RegistrationDate = registrationDate;
             existingEmployer.LegalAddress = legalAddress;
-            existingEmployer.Website = website;
             existingEmployer.ContactEmail = contactEmail;
             existingEmployer.ContactPhone = contactPhone;
+            existingEmployer.IndustryFieldId = industryFieldId;
 
             await _dimEmployerRepository.UpdateEmployerAsync(existingEmployer);
             _logger.LogInformation("Updated DimEmployer {EmployerId}", employerId);

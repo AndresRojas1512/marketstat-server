@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimIndustryField;
 
 namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions;
 
@@ -25,12 +26,15 @@ public class DimEmployerDto
     [JsonPropertyName("legalAddress")]
     public string LegalAddress { get; init; } = string.Empty;
 
-    [JsonPropertyName("website")]
-    public string Website { get; init; } = string.Empty;
-
     [JsonPropertyName("contactEmail")]
     public string ContactEmail { get; init; } = string.Empty;
 
     [JsonPropertyName("contactPhone")]
     public string ContactPhone { get; init; } = string.Empty;
+    
+    [JsonPropertyName("industryFieldId")]
+    public int IndustryFieldId { get; init; }
+    
+    [JsonPropertyName("industryField")]
+    public DimIndustryFieldDto? IndustryField { get; init; }
 }
