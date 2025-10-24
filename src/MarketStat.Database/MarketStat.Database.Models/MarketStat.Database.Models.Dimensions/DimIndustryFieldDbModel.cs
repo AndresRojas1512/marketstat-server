@@ -20,12 +20,12 @@ public class DimIndustryFieldDbModel
     [StringLength(255)]
     public string IndustryFieldName { get; set; } = string.Empty;
     
-    public virtual ICollection<DimEmployerIndustryFieldDbModel> EmployerIndustryFields { get; set; }
-    public virtual ICollection<DimStandardJobRoleDbModel> DimStandardJobRoles { get; set; }
+    public virtual ICollection<DimEmployerDbModel> DimEmployers { get; set; }
+    public virtual ICollection<DimJobDbModel> DimJobs { get; set; }
     
     public DimIndustryFieldDbModel() 
     {
-        EmployerIndustryFields = new List<DimEmployerIndustryFieldDbModel>();
-        DimStandardJobRoles = new List<DimStandardJobRoleDbModel>();
+        DimEmployers = new List<DimEmployerDbModel>();
+        DimJobs = new List<DimJobDbModel>();
     }
 }
