@@ -2,7 +2,7 @@ namespace MarketStat.Services.Dimensions.DimEducationService.Validators;
 
 public class DimEducationValidator
 {
-    public static void ValidateForCreate(string specialty, string specialtyCode, int educationLevelId)
+    public static void ValidateForCreate(string specialty, string specialtyCode, string educationLevelName)
     {
         
         if (string.IsNullOrWhiteSpace(specialty))
@@ -15,14 +15,16 @@ public class DimEducationValidator
         if (specialtyCode.Length > 255)
             throw new ArgumentException("SpecialtyCode cannot exceed 255 characters.");
 
-        if (educationLevelId <= 0)
-            throw new ArgumentException("EducationLevelId must be a positiver integer.");
+        if (string.IsNullOrWhiteSpace(educationLevelName))
+            throw new ArgumentException("EducationLevelName is required.");
+        if (educationLevelName.Length > 255)
+            throw new ArgumentException("EducationLevelName cannot exceed 255 characters.");
     }
 
-    public static void ValidateForUpdate(int educationId, string specialty, string specialtyCode, int educationLevelId)
+    public static void ValidateForUpdate(int educationId, string specialty, string specialtyCode, string educationLevelName)
     {
         if (educationId <= 0)
             throw new ArgumentException("EducationId must be a positive integer.");
-        ValidateForCreate(specialty, specialtyCode, educationLevelId);
+        ValidateForCreate(specialty, specialtyCode, educationLevelName);
     }
 }

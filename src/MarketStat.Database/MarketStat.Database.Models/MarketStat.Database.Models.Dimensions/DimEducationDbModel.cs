@@ -11,34 +11,17 @@ public class DimEducationDbModel
     public int EducationId { get; set; }
 
     [Required]
-    [Column("specialty")]
+    [Column("specialty_name")]
     [StringLength(255)]
-    public string Specialty { get; set; } = string.Empty;
+    public string SpecialtyName { get; set; } = string.Empty;
 
     [Required]
     [Column("specialty_code")]
     [StringLength(255)]
     public string SpecialtyCode { get; set; } = string.Empty;
-    
-    [Required]
-    [Column("education_level_id")]
-    public int EducationLevelId { get; set; }
-    
-    [ForeignKey(nameof(EducationLevelId))]
-    public virtual DimEducationLevelDbModel? DimEducationLevel { get; set; }
-    
-    public virtual ICollection<DimEmployeeEducationDbModel> DimEmployeeEducations { get; set; }
 
-    public DimEducationDbModel() 
-    {
-        DimEmployeeEducations = new List<DimEmployeeEducationDbModel>();
-    }
-    
-    public DimEducationDbModel(int educationId, string specialty, string specialtyCode, int educationLevelId)
-    {
-        EducationId = educationId;
-        Specialty = specialty;
-        SpecialtyCode = specialtyCode;
-        EducationLevelId = educationLevelId;
-    }
+    [Required]
+    [Column("education_level_name")]
+    [StringLength(255)]
+    public string EducationLevelName { get; set; } = string.Empty;
 }

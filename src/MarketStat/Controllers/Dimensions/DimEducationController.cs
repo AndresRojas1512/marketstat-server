@@ -75,9 +75,9 @@ public class DimEducationController : ControllerBase
             return BadRequest(ModelState);
         }
         var created = await _dimEducationService.CreateEducationAsync(
-            createDto.Specialty,
+            createDto.SpecialtyName,
             createDto.SpecialtyCode,
-            createDto.EducationLevelId
+            createDto.EducationLevelName
         );
         var dto = _mapper.Map<DimEducationDto>(created);
         return CreatedAtAction(nameof(GetById), new { id = dto.EducationId }, dto);
@@ -108,9 +108,9 @@ public class DimEducationController : ControllerBase
         }
         await _dimEducationService.UpdateEducationAsync(
             id,
-            updateDto.Specialty,
+            updateDto.SpecialtyName,
             updateDto.SpecialtyCode,
-            updateDto.EducationLevelId
+            updateDto.EducationLevelName
         );
         return NoContent();
     }

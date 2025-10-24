@@ -196,22 +196,21 @@ public class MarketStatDbContext : DbContext
             b.Property(e => e.EducationId)
                 .HasColumnName("education_id")
                 .UseIdentityByDefaultColumn();
-            b.Property(e => e.Specialty)
-                .HasColumnName("specialty")
+            b.Property(e => e.SpecialtyName)
+                .HasColumnName("specialty_name")
                 .HasMaxLength(255)
                 .IsRequired();
             b.Property(e => e.SpecialtyCode)
                 .HasColumnName("specialty_code")
                 .HasMaxLength(255)
                 .IsRequired();
-            b.Property(e => e.EducationLevelId)
-                .HasColumnName("education_level_id")
+            b.Property(e => e.EducationLevelName)
+                .HasColumnName("education_level_name")
+                .HasMaxLength(255)
                 .IsRequired();
-            b.HasOne(edu => edu.DimEducationLevel)
-                .WithMany(el => el.DimEducations)
-                .HasForeignKey(edu => edu.EducationLevelId)
-                .HasConstraintName("fk_dim_edu_lvl")
-                .OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(e => new { e.SpecialtyName, e.EducationLevelName })
+                .IsUnique()
+                .HasDatabaseName("uq_dim_education");
         });
 
         modelBuilder.Entity<DimEmployeeDbModel>(b =>
@@ -244,191 +243,6 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("gender")
                 .HasMaxLength(50)
                 .IsRequired(false);
-        });
-
-        modelBuilder.Entity<DimEmployeeEducationDbModel>(b =>
-        {
-            b.ToTable("dim_employee_education");
-            b.HasKey(ee => new { ee.EmployeeId, ee.EducationId })
-                .HasName("pk_dim_ee");
-            b.Property(ee => ee.EmployeeId)
-                .HasColumnName("employee_id")
-                .ValueGeneratedNever(); 
-            b.Property(ee => ee.EducationId)
-                .HasColumnName("education_id")
-                .ValueGeneratedNever(); 
-            b.Property(ee => ee.GraduationYear)
-                .HasColumnName("graduation_year")
-                .IsRequired();
-            b.HasOne(ee => ee.Employee)
-                .WithMany(e => e.DimEmployeeEducations)
-                .HasForeignKey(ee => ee.EmployeeId)
-                .HasConstraintName("fk_dim_ee_emp")
-                .OnDelete(DeleteBehavior.Restrict);
-            b.HasOne(ee => ee.Education)
-                .WithMany(edu => edu.DimEmployeeEducations)
-                .HasForeignKey(ee => ee.EducationId)
-                .HasConstraintName("fk_dim_ee_edu")
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        modelBuilder.Entity<DimHierarchyLevelDbModel>(b =>
-        {
-            b.ToTable("dim_hierarchy_level");
-            b.HasKey(h => h.HierarchyLevelId);
-
-            b.Property(h => h.HierarchyLevelId)
-                .HasColumnName("hierarchy_level_id")
-                .UseIdentityByDefaultColumn();
-
-            b.Property(h => h.HierarchyLevelCode)
-                .HasColumnName("hierarchy_level_code")
-                .HasMaxLength(10)
-                .IsRequired();
-            b.HasIndex(h => h.HierarchyLevelCode)
-                .IsUnique()
-                .HasDatabaseName("uq_dim_hierarchy_level_code");
-
-            b.Property(h => h.HierarchyLevelName)
-                .HasColumnName("hierarchy_level_name")
-                .HasMaxLength(255)
-                .IsRequired();
-            b.HasIndex(h => h.HierarchyLevelName)
-                .IsUnique()
-                .HasDatabaseName("uq_dim_hierarchy_level_name");
-        });
-
-        modelBuilder.Entity<DimFederalDistrictDbModel>(b =>
-        {
-            b.ToTable("dim_federal_district");
-            b.HasKey(f => f.DistrictId);
-            b.Property(f => f.DistrictId)
-                .HasColumnName("district_id")
-                .UseIdentityByDefaultColumn();
-            b.Property(f => f.DistrictName)
-                .HasColumnName("district_name")
-                .HasMaxLength(255)
-                .IsRequired();
-            b.HasIndex(f => f.DistrictName).IsUnique();
-        });
-
-        modelBuilder.Entity<DimOblastDbModel>(b =>
-        {
-            b.ToTable("dim_oblast");
-            b.HasKey(o => o.OblastId);
-            b.Property(o => o.OblastId)
-                .HasColumnName("oblast_id")
-                .UseIdentityByDefaultColumn();
-            b.Property(o => o.OblastName)
-                .HasColumnName("oblast_name")
-                .HasMaxLength(255)
-                .IsRequired();
-            b.HasIndex(o => o.OblastName).IsUnique();
-            b.Property(o => o.DistrictId)
-                .HasColumnName("district_id")
-                .IsRequired();
-            b.HasOne(o => o.DimFederalDistrict)
-                .WithMany(federalDistrict => federalDistrict.DimOblasts)
-                .HasForeignKey(o => o.DistrictId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        modelBuilder.Entity<DimCityDbModel>(b =>
-        {
-            b.ToTable("dim_city");
-            b.HasKey(c => c.CityId);
-            b.Property(c => c.CityId)
-                .HasColumnName("city_id")
-                .UseIdentityByDefaultColumn();
-            b.Property(c => c.CityName)
-                .HasColumnName("city_name")
-                .HasMaxLength(255)
-                .IsRequired();
-            b.Property(c => c.OblastId)
-                .HasColumnName("oblast_id")
-                .IsRequired();
-            b.HasIndex(c => new { c.CityName, c.OblastId })
-                .IsUnique()
-                .HasDatabaseName("uq_dim_city_oblast");
-            b.HasOne(city => city.DimOblast)
-                .WithMany(oblast => oblast.DimCities)
-                .HasForeignKey(c => c.OblastId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        modelBuilder.Entity<DimEducationLevelDbModel>(b =>
-        {
-            b.ToTable("dim_education_level");
-            b.HasKey(e => e.EducationLevelId);
-            b.Property(e => e.EducationLevelId)
-                .HasColumnName("education_level_id")
-                .UseIdentityByDefaultColumn();
-            b.Property(e => e.EducationLevelName)
-                .HasColumnName("education_level_name")
-                .HasMaxLength(255)
-                .IsRequired();
-            b.HasIndex(e => e.EducationLevelName)
-                .IsUnique()
-                .HasDatabaseName("uq_education_level");
-        });
-
-        modelBuilder.Entity<DimStandardJobRoleDbModel>(b =>
-        {
-            b.ToTable("dim_standard_job_role");
-            b.HasKey(j => j.StandardJobRoleId);
-        
-            b.Property(j => j.StandardJobRoleId)
-                .HasColumnName("standard_job_role_id")
-                .UseIdentityByDefaultColumn();
-        
-            b.Property(j => j.StandardJobRoleCode)
-                .HasColumnName("standard_job_role_code")
-                .HasMaxLength(20)
-                .IsRequired();
-            b.HasIndex(j => j.StandardJobRoleCode)
-                .IsUnique()
-                .HasDatabaseName("uq_dim_sjr_code");
-        
-            b.Property(j => j.StandardJobRoleTitle)
-                .HasColumnName("standard_job_role_title")
-                .HasMaxLength(255)
-                .IsRequired();
-            b.HasIndex(j => j.StandardJobRoleTitle)
-                .IsUnique()
-                .HasDatabaseName("uq_dim_sjr_title");
-                
-            b.Property(j => j.IndustryFieldId)
-                .HasColumnName("industry_field_id")
-                .IsRequired();
-        
-            b.HasOne(sjr => sjr.DimIndustryField)
-                .WithMany(ifield => ifield.DimStandardJobRoles)
-                .HasForeignKey(sjr => sjr.IndustryFieldId)
-                .HasConstraintName("fk_dim_sjr_field")
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        modelBuilder.Entity<DimStandardJobRoleHierarchyDbModel>(b =>
-        {
-            b.ToTable("dim_standard_job_role_hierarchy");
-            b.HasKey(sjh => new { sjh.StandardJobRoleId, sjh.HierarchyLevelId })
-                .HasName("pk_dim_sjrh");
-            b.Property(sjh => sjh.StandardJobRoleId)
-                .HasColumnName("standard_job_role_id")
-                .ValueGeneratedNever(); 
-            b.Property(sjh => sjh.HierarchyLevelId)
-                .HasColumnName("hierarchy_level_id")
-                .ValueGeneratedNever(); 
-            b.HasOne(sjh => sjh.StandardJobRole)
-                .WithMany(sjr => sjr.DimStandardJobRoleHierarchies)
-                .HasForeignKey(sjh => sjh.StandardJobRoleId)
-                .HasConstraintName("fk_dim_sjrh_sjr")
-                .OnDelete(DeleteBehavior.Restrict);
-            b.HasOne(sjh => sjh.HierarchyLevel)
-                .WithMany(hl => hl.DimStandardJobRoleHierarchies)
-                .HasForeignKey(sjh => sjh.HierarchyLevelId)
-                .HasConstraintName("fk_dim_sjrh_hl")
-                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<FactSalaryDbModel>(b =>

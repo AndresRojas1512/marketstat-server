@@ -17,10 +17,10 @@ public class DimEducationService : IDimEducationService
         _logger = logger;
     }
     
-    public async Task<DimEducation> CreateEducationAsync(string specialty, string specialtyCode, int educationLevelId)
+    public async Task<DimEducation> CreateEducationAsync(string specialtyName, string specialtyCode, string educationLevelName)
     {
-        DimEducationValidator.ValidateForCreate(specialty, specialtyCode, educationLevelId);
-        var education = new DimEducation(0, specialty, specialtyCode, educationLevelId);
+        DimEducationValidator.ValidateForCreate(specialtyName, specialtyCode, educationLevelName);
+        var education = new DimEducation(0, specialtyName, specialtyCode, educationLevelName);
         try
         {
             await _dimEducationRepository.AddEducationAsync(education);
@@ -60,16 +60,16 @@ public class DimEducationService : IDimEducationService
         return list;
     }
     
-    public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialty, string specialtyCode, int educationLevelId)
+    public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialtyName, string specialtyCode, string educationLevelName)
     {
-        DimEducationValidator.ValidateForUpdate(educationId, specialty, specialtyCode, educationLevelId);
+        DimEducationValidator.ValidateForUpdate(educationId, specialtyName, specialtyCode, educationLevelName);
         try
         {
             var existing = await _dimEducationRepository.GetEducationByIdAsync(educationId);
 
-            existing.Specialty = specialty;
+            existing.SpecialtyName = specialtyName;
             existing.SpecialtyCode = specialtyCode;
-            existing.EducationLevelId = educationLevelId;
+            existing.EducationLevelName = educationLevelName;
 
             await _dimEducationRepository.UpdateEducationAsync(existing);
             _logger.LogInformation("Updated education {Id}", educationId);

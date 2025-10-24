@@ -6,12 +6,13 @@ public record CreateDimEducationDto
 {
     [Required]
     [MaxLength(255)]
-    public string Specialty { get; init; } = default!;
+    public string SpecialtyName { get; init; } = default!;
     
     [Required]
     [MaxLength(255)]
     public string SpecialtyCode { get; init; } = default!;
     
     [Required]
-    public int EducationLevelId { get; init; }
+    [MaxLength(255)]
+    public string EducationLevelName { get; init; } = default!;
 }

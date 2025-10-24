@@ -5,13 +5,16 @@ public class DimEducation
     public int EducationId { get; set; }
     public string SpecialtyName { get; set; }
     public string SpecialtyCode { get; set; }
-    public int EducationLevelName { get; set; }
+    public string EducationLevelName { get; set; }
 
     public DimEducation()
     {
+        SpecialtyName = string.Empty;
+        SpecialtyCode = string.Empty;
+        EducationLevelName = string.Empty;
     }
 
-    public DimEducation(int educationId, string specialtyName, string specialtyCode, int educationLevelName)
+    public DimEducation(int educationId, string specialtyName, string specialtyCode, string educationLevelName)
     {
         EducationId = educationId;
         SpecialtyName = specialtyName;
