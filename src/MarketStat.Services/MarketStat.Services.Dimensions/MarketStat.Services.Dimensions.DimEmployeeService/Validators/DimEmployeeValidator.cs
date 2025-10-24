@@ -6,11 +6,7 @@ public static class DimEmployeeValidator
     private const int MaxGenderLength = 50;
     private const int MinCareerAgeYears = 16;
 
-    public static void ValidateForCreate(
-        string employeeRefId, 
-        DateOnly birthDate, 
-        DateOnly careerStartDate, 
-        string? gender)
+    public static void ValidateForCreate(string employeeRefId, DateOnly birthDate, DateOnly careerStartDate, string? gender, int? educationId, short? graduationYear)
     {
         if (string.IsNullOrWhiteSpace(employeeRefId))
             throw new ArgumentException("EmployeeRefId is required.", nameof(employeeRefId));
@@ -34,18 +30,21 @@ public static class DimEmployeeValidator
 
         if (gender != null && gender.Length > MaxGenderLength)
             throw new ArgumentException($"Gender must be {MaxGenderLength} characters or fewer.", nameof(gender));
+        
+        if (educationId.HasValue && !graduationYear.HasValue)
+            throw new ArgumentException("If EducationId is provided, GraduationYear is also required", nameof(graduationYear));
+        if (graduationYear.HasValue && !educationId.HasValue)
+            throw new ArgumentException("If GraduationYear is provided, EducationId is also required", nameof(educationId));
+        if (graduationYear.HasValue && (graduationYear < 1900 || graduationYear > DateTime.Now.Year))
+            throw new ArgumentException("GraduationYear must be a valid year.", nameof(graduationYear));
+
     }
 
-    public static void ValidateForUpdate(
-        int employeeId, 
-        string employeeRefId, 
-        DateOnly birthDate, 
-        DateOnly careerStartDate, 
-        string? gender)
+    public static void ValidateForUpdate(int employeeId, string employeeRefId, DateOnly birthDate, DateOnly careerStartDate, string? gender, int? educationId, short? graduationYear)
     {
         if (employeeId <= 0)
             throw new ArgumentException("EmployeeId must be a positive integer for update.", nameof(employeeId));
         
-        ValidateForCreate(employeeRefId, birthDate, careerStartDate, gender);
+        ValidateForCreate(employeeRefId, birthDate, careerStartDate, gender, educationId, graduationYear);
     }
 }

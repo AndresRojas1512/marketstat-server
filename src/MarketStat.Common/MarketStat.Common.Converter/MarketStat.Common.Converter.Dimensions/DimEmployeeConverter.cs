@@ -16,7 +16,9 @@ public static class DimEmployeeConverter
             EmployeeRefId = domainEmployee.EmployeeRefId,
             BirthDate = domainEmployee.BirthDate,
             CareerStartDate = domainEmployee.CareerStartDate,
-            Gender = domainEmployee.Gender
+            Gender = domainEmployee.Gender,
+            EducationId = domainEmployee.EducationId,
+            GraduationYear = domainEmployee.GraduationYear
         };
     }
     
@@ -31,7 +33,9 @@ public static class DimEmployeeConverter
             EmployeeRefId = dbEmployee.EmployeeRefId,
             BirthDate = dbEmployee.BirthDate,
             CareerStartDate = dbEmployee.CareerStartDate,
-            Gender = dbEmployee.Gender
+            Gender = dbEmployee.Gender,
+            EducationId = dbEmployee.EducationId,
+            GraduationYear = dbEmployee.GraduationYear
         };
     }
 }

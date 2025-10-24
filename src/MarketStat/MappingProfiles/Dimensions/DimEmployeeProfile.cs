@@ -12,12 +12,10 @@ public class DimEmployeeProfile : Profile
 
         CreateMap<CreateDimEmployeeDto, DimEmployee>()
             .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
-            .ForMember(dest => dest.DimEmployeeEducations, opt => opt.Ignore())
             .ForMember(dest => dest.FactSalaries, opt => opt.Ignore());
             
         CreateMap<UpdateDimEmployeeDto, DimEmployee>()
             .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
-            .ForMember(dest => dest.DimEmployeeEducations, opt => opt.Ignore())
             .ForMember(dest => dest.FactSalaries, opt => opt.Ignore());
     }
 }

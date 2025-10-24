@@ -17,19 +17,11 @@ public class DimEmployeeService : IDimEmployeeService
         _logger = logger;
     }
     
-    public async Task<DimEmployee> CreateEmployeeAsync(string employeeRefId, DateOnly birthDate, DateOnly careerStartDate, string? gender)
+    public async Task<DimEmployee> CreateEmployeeAsync(string employeeRefId, DateOnly birthDate, DateOnly careerStartDate, string? gender, int? educationId, short? graduationYear)
     {
-        DimEmployeeValidator.ValidateForCreate(employeeRefId, birthDate, careerStartDate, gender);
+        DimEmployeeValidator.ValidateForCreate(employeeRefId, birthDate, careerStartDate, gender, educationId, graduationYear);
         _logger.LogInformation("Service: Attempting to create employee with RefId: {EmployeeRefId}", employeeRefId);
-
-        var employee = new DimEmployee(
-            employeeId: 0,
-            employeeRefId: employeeRefId,
-            birthDate: birthDate,
-            careerStartDate: careerStartDate,
-            gender: gender
-        );
-
+        var employee = new DimEmployee(0, employeeRefId, birthDate, careerStartDate, gender, educationId, graduationYear);
         try
         {
             await _dimEmployeeRepository.AddEmployeeAsync(employee);
@@ -57,9 +49,9 @@ public class DimEmployeeService : IDimEmployeeService
         return list;
     }
     
-    public async Task<DimEmployee> UpdateEmployeeAsync(int employeeId, string employeeRefId, DateOnly birthDate, DateOnly careerStartDate, string? gender)
+    public async Task<DimEmployee> UpdateEmployeeAsync(int employeeId, string employeeRefId, DateOnly birthDate, DateOnly careerStartDate, string? gender, int? educationId, short? graduationYear)
     {
-        DimEmployeeValidator.ValidateForUpdate(employeeId, employeeRefId, birthDate, careerStartDate, gender);
+        DimEmployeeValidator.ValidateForUpdate(employeeId, employeeRefId, birthDate, careerStartDate, gender, educationId, graduationYear);
         _logger.LogInformation("Service: Attempting to update DimEmployee {EmployeeId}", employeeId);
             
         try
@@ -70,6 +62,8 @@ public class DimEmployeeService : IDimEmployeeService
             existingEmployee.BirthDate = birthDate;
             existingEmployee.CareerStartDate = careerStartDate;
             existingEmployee.Gender = gender;
+            existingEmployee.EducationId = educationId;
+            existingEmployee.GraduationYear = graduationYear;
                 
             await _dimEmployeeRepository.UpdateEmployeeAsync(existingEmployee);
             _logger.LogInformation("Service: Updated DimEmployee {EmployeeId}", employeeId);

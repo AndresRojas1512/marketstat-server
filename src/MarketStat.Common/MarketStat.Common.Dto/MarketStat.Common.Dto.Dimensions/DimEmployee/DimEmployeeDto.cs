@@ -18,4 +18,10 @@ public record DimEmployeeDto
 
     [JsonPropertyName("gender")]
     public string? Gender { get; init; }
+    
+    [JsonPropertyName("educationId")]
+    public int? EducationId { get; init; }
+    
+    [JsonPropertyName("graduationYear")]
+    public short? GraduationYear { get; init; }
 }

@@ -16,4 +16,10 @@ public class CreateDimEmployeeDto
 
     [StringLength(50, ErrorMessage = "Gender cannot exceed 50 characters.")]
     public string? Gender { get; set; }
+    
+    [Range(1, int.MaxValue, ErrorMessage = "EducationId must be a positive number if provided.")]
+    public int? EducationId { get; set; }
+    
+    [Range(1900, 2100, ErrorMessage = "GraduationYear must be a valid year if provided.")]
+    public short? GraduationYear { get; set; }
 }

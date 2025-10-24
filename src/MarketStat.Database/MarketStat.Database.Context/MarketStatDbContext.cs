@@ -126,7 +126,7 @@ public class MarketStatDbContext : DbContext
                 .HasDatabaseName("uq_dim_industry_field_name");
         });
 
-        modelBuilder.Entity<DimJobRoleDbModel>(b =>
+        modelBuilder.Entity<DimJobDbModel>(b =>
         {
             b.ToTable("dim_job_role");
             b.HasKey(j => j.JobRoleId);
@@ -215,7 +215,14 @@ public class MarketStatDbContext : DbContext
 
         modelBuilder.Entity<DimEmployeeDbModel>(b =>
         {
-            b.ToTable("dim_employee");
+            b.ToTable("dim_employee", tb =>
+            {
+                tb.HasCheckConstraint("ck_career_after_birth", "\"career_start_date\" > \"birth_date\"");
+                tb.HasCheckConstraint("ck_career_min_age",
+                    "\"career_start_date\" >= \"birth_date\" + INTERVAL '16 years'");
+                tb.HasCheckConstraint("ck_dim_emp_birth_date", "\"birth_date\" <= CURRENT_DATE");
+                tb.HasCheckConstraint("ck_dim_emp_career_start", "\"career_start_date\" <= CURRENT_DATE");
+            });
             b.HasKey(e => e.EmployeeId);
 
             b.Property(e => e.EmployeeId)
@@ -234,6 +241,7 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("birth_date")
                 .HasColumnType("date")
                 .IsRequired();
+            
             b.Property(e => e.CareerStartDate)
                 .HasColumnName("career_start_date")
                 .HasColumnType("date")
@@ -243,6 +251,20 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("gender")
                 .HasMaxLength(50)
                 .IsRequired(false);
+            
+            b.Property(e => e.GraduationYear)
+                .HasColumnName("graduation_year")
+                .IsRequired(false);
+
+            b.Property(e => e.EducationId)
+                .HasColumnName("education_id")
+                .IsRequired(false);
+            
+            b.HasOne(e => e.Education)
+                .WithMany()
+                .HasForeignKey(e => e.EducationId)
+                .HasConstraintName("fk_dim_employee_education")
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<FactSalaryDbModel>(b =>
@@ -283,12 +305,6 @@ public class MarketStatDbContext : DbContext
                 .WithMany(d => d.FactSalaries)
                 .HasForeignKey(fs => fs.DateId)
                 .HasConstraintName("fk_fact_date")
-                .OnDelete(DeleteBehavior.Restrict);
-
-            b.HasOne(fs => fs.DimCity)
-                .WithMany(c => c.FactSalaries)
-                .HasForeignKey(fs => fs.CityId)
-                .HasConstraintName("fk_fact_city")
                 .OnDelete(DeleteBehavior.Restrict);
 
             b.HasOne(fs => fs.DimEmployer)

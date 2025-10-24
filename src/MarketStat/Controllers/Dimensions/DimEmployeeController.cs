@@ -80,7 +80,9 @@ public class DimEmployeeController : ControllerBase
             createDto.EmployeeRefId,
             createDto.BirthDate,
             createDto.CareerStartDate,
-            createDto.Gender
+            createDto.Gender,
+            createDto.EducationId,
+            createDto.GraduationYear
         );
         var dto = _mapper.Map<DimEmployeeDto>(created);
 
@@ -116,7 +118,9 @@ public class DimEmployeeController : ControllerBase
             updateDto.EmployeeRefId,
             updateDto.BirthDate,
             updateDto.CareerStartDate,
-            updateDto.Gender
+            updateDto.Gender,
+            updateDto.EducationId,
+            updateDto.GraduationYear
         );
 
         return NoContent();

@@ -27,13 +27,19 @@ public class DimEmployeeDbModel
     [Column("gender")]
     [StringLength(50)]
     public string? Gender { get; set; }
-
-    public virtual ICollection<DimEmployeeEducationDbModel> DimEmployeeEducations { get; set; }
+    
+    [Column("education_id")]
+    public int? EducationId { get; set; }
+    
+    [Column("graduation_year")]
+    public short? GraduationYear { get; set; }
+    
+    [ForeignKey(nameof(EducationId))]
+    public virtual DimEducationDbModel? Education { get; set; }
     public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; }
 
     public DimEmployeeDbModel() 
     {
-        DimEmployeeEducations = new List<DimEmployeeEducationDbModel>();
         FactSalaries = new List<FactSalaryDbModel>();
     }
 }
