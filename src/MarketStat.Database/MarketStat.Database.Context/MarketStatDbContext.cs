@@ -128,33 +128,22 @@ public class MarketStatDbContext : DbContext
 
         modelBuilder.Entity<DimJobDbModel>(b =>
         {
-            b.ToTable("dim_job_role");
-            b.HasKey(j => j.JobRoleId);
-            b.Property(j => j.JobRoleId)
-                .HasColumnName("job_role_id")
-                .UseIdentityByDefaultColumn();
-            b.Property(j => j.JobRoleTitle)
-                .HasColumnName("job_role_title")
-                .HasMaxLength(255)
-                .IsRequired();
-            b.Property(j => j.StandardJobRoleId)
-                .HasColumnName("standard_job_role_id")
-                .IsRequired();
-            b.Property(j => j.HierarchyLevelId)
-                .HasColumnName("hierarchy_level_id")
-                .IsRequired();
-            b.HasIndex(j => new { j.JobRoleTitle, j.StandardJobRoleId, j.HierarchyLevelId })
+            b.ToTable("dim_job");
+            b.HasKey(j => j.JobId);
+            b.Property(j => j.JobId).HasColumnName("job_id").UseIdentityByDefaultColumn();
+            b.Property(j => j.JobRoleTitle).HasColumnName("job_role_title").HasMaxLength(255).IsRequired();
+            b.Property(j => j.StandardJobRoleTitle).HasColumnName("standard_job_role_title").HasMaxLength(255).IsRequired();
+            b.Property(j => j.HierarchyLevelName).HasColumnName("hierarchy_level_name").HasMaxLength(255).IsRequired();
+            b.Property(j => j.IndustryFieldId).HasColumnName("industry_field_id").IsRequired();
+
+            b.HasIndex(j => new { j.JobRoleTitle, j.StandardJobRoleTitle, j.HierarchyLevelName, j.IndustryFieldId })
                 .IsUnique()
-                .HasDatabaseName("uq_dim_job_role_natural_key");
-            b.HasOne(jr => jr.DimStandardJobRole)
-                .WithMany(sjr => sjr.DimJobRoles)
-                .HasForeignKey(jr => jr.StandardJobRoleId)
-                .HasConstraintName("fk_dim_jr_sjr")
-                .OnDelete(DeleteBehavior.Restrict);
-            b.HasOne(jr => jr.DimHierarchyLevel)
-                .WithMany(hl => hl.DimJobRoles)
-                .HasForeignKey(jr => jr.HierarchyLevelId)
-                .HasConstraintName("fk_dim_jr_hl")
+                .HasDatabaseName("uq_dim_job");
+            
+            b.HasOne(j => j.IndustryField)
+                .WithMany(i => i.DimJobs)
+                .HasForeignKey(j => j.IndustryFieldId)
+                .HasConstraintName("fk_dim_job_industry")
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -265,6 +254,19 @@ public class MarketStatDbContext : DbContext
                 .HasForeignKey(e => e.EducationId)
                 .HasConstraintName("fk_dim_employee_education")
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<DimLocationDbModel>(b =>
+        {
+            b.ToTable("dim_location");
+            b.HasKey(l => l.LocationId);
+            b.Property(l => l.LocationId).HasColumnName("location_id").UseIdentityByDefaultColumn();
+            b.Property(l => l.CityName).HasColumnName("city_name").HasMaxLength(255).IsRequired();
+            b.Property(l => l.OblastName).HasColumnName("oblast_name").HasMaxLength(255).IsRequired();
+            b.Property(l => l.DistrictName).HasColumnName("district_name").HasMaxLength(255).IsRequired();
+            b.HasIndex(l => new { l.CityName, l.OblastName, l.DistrictName })
+                .IsUnique()
+                .HasDatabaseName("uq_dim_location");
         });
 
         modelBuilder.Entity<FactSalaryDbModel>(b =>

@@ -9,6 +9,9 @@ public class DimLocation
 
     public DimLocation()
     {
+        CityName = string.Empty;
+        OblastName = string.Empty;
+        DistrictName = string.Empty;
     }
 
     public DimLocation(int locationId, string cityName, string oblastName, string districtName)
