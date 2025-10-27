@@ -7,9 +7,13 @@ public class DimJob
     public string StandardJobRoleTitle { get; set; }
     public string HierarchyLevelName { get; set; }
     public int IndustryFieldId { get; set; }
+    public virtual DimIndustryField? IndustryField { get; set; }
 
     public DimJob()
     {
+        JobRoleTitle = string.Empty;
+        StandardJobRoleTitle = string.Empty;
+        HierarchyLevelName = string.Empty;
     }
 
     public DimJob(int jobId, string jobRoleTitle, string standardJobRoleTitle, string hierarchyLevelName,
