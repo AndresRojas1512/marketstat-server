@@ -15,16 +15,16 @@ public class FactSalaryDbModel
     public int DateId { get; set; }
     
     [Required]
-    [Column("city_id")]
-    public int CityId { get; set; }
+    [Column("location_id")]
+    public int LocationId { get; set; }
     
     [Required]
     [Column("employer_id")]
     public int EmployerId { get; set; }
     
     [Required]
-    [Column("job_role_id")]
-    public int JobRoleId { get; set; }
+    [Column("job_id")]
+    public int JobId { get; set; }
     
     [Required]
     [Column("employee_id")]
@@ -34,47 +34,19 @@ public class FactSalaryDbModel
     [Column("salary_amount", TypeName = "numeric(18, 2)")]
     public decimal SalaryAmount { get; set; }
     
-    [Required]
-    [Column("bonus_amount", TypeName = "numeric(18, 2)")]
-    public decimal BonusAmount { get; set; }
     
     [ForeignKey(nameof(DateId))]
     public virtual DimDateDbModel? DimDate { get; set; }
 
-    [ForeignKey(nameof(CityId))]
-    public virtual DimCityDbModel? DimCity { get; set; }
+    [ForeignKey(nameof(LocationId))]
+    public virtual DimLocationDbModel? DimLocation { get; set; }
 
     [ForeignKey(nameof(EmployerId))]
     public virtual DimEmployerDbModel? DimEmployer { get; set; }
 
-    [ForeignKey(nameof(JobRoleId))]
-    public virtual DimJobRoleDbModel? DimJobRole { get; set; }
+    [ForeignKey(nameof(JobId))]
+    public virtual DimJobDbModel? DimJob { get; set; }
 
     [ForeignKey(nameof(EmployeeId))]
     public virtual DimEmployeeDbModel? DimEmployee { get; set; }
-
-    public FactSalaryDbModel() 
-    {
-    }
-
-    public FactSalaryDbModel(
-        int dateId,
-        int cityId,
-        int employerId,
-        int jobRoleId,
-        int employeeId,
-        decimal salaryAmount,
-        decimal bonusAmount,
-        long salaryFactId = 0
-    )
-    {
-        SalaryFactId = salaryFactId;
-        DateId = dateId;
-        CityId = cityId;
-        EmployerId = employerId;
-        JobRoleId = jobRoleId;
-        EmployeeId = employeeId;
-        SalaryAmount = salaryAmount;
-        BonusAmount = bonusAmount;
-    }
 }

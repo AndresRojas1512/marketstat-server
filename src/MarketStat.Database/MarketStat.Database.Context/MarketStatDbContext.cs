@@ -280,14 +280,14 @@ public class MarketStatDbContext : DbContext
             b.Property(x => x.DateId)
                 .HasColumnName("date_id")
                 .IsRequired();
-            b.Property(x => x.CityId)
-                .HasColumnName("city_id")
+            b.Property(x => x.LocationId)
+                .HasColumnName("location_id")
                 .IsRequired();
             b.Property(x => x.EmployerId)
                 .HasColumnName("employer_id")
                 .IsRequired();
-            b.Property(x => x.JobRoleId)
-                .HasColumnName("job_role_id")
+            b.Property(x => x.JobId)
+                .HasColumnName("job_id")
                 .IsRequired();
             b.Property(x => x.EmployeeId)
                 .HasColumnName("employee_id")
@@ -297,28 +297,29 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("salary_amount")
                 .HasColumnType("numeric(18,2)")
                 .IsRequired();
-            b.Property(x => x.BonusAmount)
-                .HasColumnName("bonus_amount")
-                .HasColumnType("numeric(18,2)")
-                .HasDefaultValue(0m)
-                .IsRequired();
 
             b.HasOne(fs => fs.DimDate)
-                .WithMany(d => d.FactSalaries)
+                .WithMany()
                 .HasForeignKey(fs => fs.DateId)
                 .HasConstraintName("fk_fact_date")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(fs => fs.DimLocation)
+                .WithMany()
+                .HasForeignKey(fs => fs.LocationId)
+                .HasConstraintName("fk_fact_location")
                 .OnDelete(DeleteBehavior.Restrict);
 
             b.HasOne(fs => fs.DimEmployer)
                 .WithMany(e => e.FactSalaries)
                 .HasForeignKey(fs => fs.EmployerId)
-                .HasConstraintName("fk_fact_emp")
+                .HasConstraintName("fk_fact_employer")
                 .OnDelete(DeleteBehavior.Restrict);
 
-            b.HasOne(fs => fs.DimJobRole)
+            b.HasOne(fs => fs.DimJob)
                 .WithMany(jr => jr.FactSalaries)
-                .HasForeignKey(fs => fs.JobRoleId)
-                .HasConstraintName("fk_fact_jrole")
+                .HasForeignKey(fs => fs.JobId)
+                .HasConstraintName("fk_fact_job")
                 .OnDelete(DeleteBehavior.Restrict);
 
             b.HasOne(fs => fs.DimEmployee)
@@ -328,9 +329,9 @@ public class MarketStatDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
             
             b.HasIndex(fs => fs.DateId).HasDatabaseName("idx_fact_date");
-            b.HasIndex(fs => fs.CityId).HasDatabaseName("idx_fact_city");
+            b.HasIndex(fs => fs.LocationId).HasDatabaseName("idx_fact_location");
             b.HasIndex(fs => fs.EmployerId).HasDatabaseName("idx_fact_employer");
-            b.HasIndex(fs => fs.JobRoleId).HasDatabaseName("idx_fact_jrole");
+            b.HasIndex(fs => fs.JobId).HasDatabaseName("idx_fact_job");
             b.HasIndex(fs => fs.EmployeeId).HasDatabaseName("idx_fact_employee");
         });
 

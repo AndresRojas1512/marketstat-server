@@ -10,16 +10,16 @@ public static class FactSalaryConverter
         if (salary == null)
             throw new ArgumentNullException(nameof(salary));
 
-        return new FactSalaryDbModel(
-            dateId: salary.DateId,
-            cityId: salary.CityId,
-            employerId: salary.EmployerId,
-            jobRoleId: salary.JobRoleId,
-            employeeId: salary.EmployeeId,
-            salaryAmount: salary.SalaryAmount,
-            bonusAmount: salary.BonusAmount,
-            salaryFactId: salary.SalaryFactId
-        );
+        return new FactSalaryDbModel
+        {
+            SalaryFactId = salary.SalaryFactId,
+            DateId = salary.DateId,
+            LocationId = salary.LocationId,
+            EmployerId = salary.EmployerId,
+            JobId = salary.JobId,
+            EmployeeId = salary.EmployeeId,
+            SalaryAmount = salary.SalaryAmount
+        };
     }
 
     public static FactSalary ToDomain(FactSalaryDbModel dbSalary)
@@ -30,12 +30,11 @@ public static class FactSalaryConverter
         return new FactSalary(
             salaryFactId: dbSalary.SalaryFactId,
             dateId: dbSalary.DateId,
-            cityId: dbSalary.CityId,
+            locationId: dbSalary.LocationId,
             employerId: dbSalary.EmployerId,
-            jobRoleId: dbSalary.JobRoleId,
+            jobId: dbSalary.JobId,
             employeeId: dbSalary.EmployeeId,
-            salaryAmount: dbSalary.SalaryAmount,
-            bonusAmount: dbSalary.BonusAmount
+            salaryAmount: dbSalary.SalaryAmount
         );
     }
 
