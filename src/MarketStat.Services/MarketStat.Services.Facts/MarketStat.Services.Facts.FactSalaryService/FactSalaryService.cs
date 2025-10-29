@@ -1,26 +1,12 @@
-using System.Data;
-using System.Text.Json;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Etl;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
-using MarketStat.Common.Enums;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Services.Facts.FactSalaryService.Validators;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
-using CsvHelper;
-using CsvHelper.Configuration;
-using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
-using Npgsql;
 
 
 namespace MarketStat.Services.Facts.FactSalaryService;

@@ -24,7 +24,4 @@ public class UserDto
 
     [JsonPropertyName("lastLoginAt")]
     public DateTimeOffset? LastLoginAt { get; set; }
-
-    [JsonPropertyName("savedBenchmarksCount")]
-    public int SavedBenchmarksCount { get; set; }
 }

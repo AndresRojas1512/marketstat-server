@@ -1,14 +1,10 @@
 using System.Collections;
 using System.Security.Claims;
 using AutoMapper;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Etl;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
-using MarketStat.Common.Enums;
-using MarketStat.Common.Exceptions;
 using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace MarketStat.Controllers.Facts;
 

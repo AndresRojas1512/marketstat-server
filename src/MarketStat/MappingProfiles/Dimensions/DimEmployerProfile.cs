@@ -8,16 +8,15 @@ public class DimEmployerProfile : Profile
 {
     public DimEmployerProfile()
     {
-        CreateMap<DimEmployer, DimEmployerDto>();
+        CreateMap<DimEmployer, DimEmployerDto>()
+            .ForMember(dest => dest.IndustryField, opt => opt.MapFrom(src => src.DimIndustryField));
 
         CreateMap<CreateDimEmployerDto, DimEmployer>()
             .ForMember(dest => dest.EmployerId, opt => opt.Ignore())
-            .ForMember(dest => dest.EmployerIndustryFields, opt => opt.Ignore())
             .ForMember(dest => dest.FactSalaries, opt => opt.Ignore());
 
         CreateMap<UpdateDimEmployerDto, DimEmployer>()
-            .ForMember(dest => dest.EmployerId, opt => opt.Ignore()) // ID is typically from the route/existing entity, not DTO
-            .ForMember(dest => dest.EmployerIndustryFields, opt => opt.Ignore())
+            .ForMember(dest => dest.EmployerId, opt => opt.Ignore())
             .ForMember(dest => dest.FactSalaries, opt => opt.Ignore());
     }
 }

@@ -31,7 +31,7 @@ public class DimJobDbModel
     public int IndustryFieldId { get; set; }
     
     [ForeignKey(nameof(IndustryFieldId))]
-    public virtual DimIndustryFieldDbModel IndustryField { get; set; }
+    public virtual DimIndustryFieldDbModel? IndustryField { get; set; }
     
     public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; } = new List<FactSalaryDbModel>();
 }

@@ -37,9 +37,6 @@ public class UserDbModel
 
     [Column("last_login_at")]
     public DateTimeOffset? LastLoginAt { get; set; }
-
-    [Column("saved_benchmarks_count")]
-    public int SavedBenchmarksCount { get; set; }
     
     [Required]
     [Column("is_etl_user")]

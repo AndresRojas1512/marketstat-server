@@ -10,7 +10,6 @@ public class User
     public bool IsActive { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? LastLoginAt { get; set; }
-    public int SavedBenchmarksCount { get; set; }
     public bool IsEtlUser { get; set; }
 
     public virtual ICollection<BenchmarkHistory> BenchmarkHistories { get; set; }
@@ -28,7 +27,7 @@ public class User
     }
 
     public User(int userId, string username, string passwordHash, string email, string fullName,
-        bool isActive, DateTimeOffset createdAt, DateTimeOffset? lastLoginAt, int savedBenchmarksCount, bool isEtlUser)
+        bool isActive, DateTimeOffset createdAt, DateTimeOffset? lastLoginAt, bool isEtlUser)
     {
         UserId = userId;
         Username = username ?? throw new ArgumentNullException(nameof(username));
@@ -38,7 +37,6 @@ public class User
         IsActive = isActive;
         CreatedAt = createdAt;
         LastLoginAt = lastLoginAt;
-        SavedBenchmarksCount = savedBenchmarksCount;
         IsEtlUser = isEtlUser;
         BenchmarkHistories = new List<BenchmarkHistory>();
     }

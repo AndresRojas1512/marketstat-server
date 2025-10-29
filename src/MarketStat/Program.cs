@@ -1,7 +1,6 @@
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Core.Repositories.Facts;
-using MarketStat.Database.Models;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Database.Repositories.PostgresRepositories.Facts;
 using MarketStat.Services.Dimensions.DimDateService;
@@ -11,9 +10,7 @@ using MarketStat.Services.Dimensions.DimEmployerService;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using MarketStat.Database.Core.Repositories.Account;
@@ -27,8 +24,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
-using Microsoft.EntityFrameworkCore;
-using MongoDB.Driver;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -193,7 +188,7 @@ try
         options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms User: {User} ClientIP: {ClientIP}";
         options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
         {
-            diagnosticContext.Set("ClientIP", httpContext.Connection.RemoteIpAddress?.ToString());
+            diagnosticContext.Set("ClientIP", httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
             diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
             // Get User.Identity.Name which should be populated based on NameClaimType in JWT options
             diagnosticContext.Set("User", httpContext.User.Identity?.Name ?? "(anonymous)"); 

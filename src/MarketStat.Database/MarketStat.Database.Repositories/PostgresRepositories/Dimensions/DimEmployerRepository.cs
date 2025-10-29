@@ -3,7 +3,6 @@ using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
-using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -68,7 +67,6 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
         dbEmployer.Kpp = employer.Kpp;
         dbEmployer.RegistrationDate = employer.RegistrationDate;
         dbEmployer.LegalAddress = employer.LegalAddress;
-        dbEmployer.Website = employer.Website;
         dbEmployer.ContactEmail = employer.ContactEmail;
         dbEmployer.ContactPhone = employer.ContactPhone;
         

@@ -19,7 +19,6 @@ public static class DimEmployerConverter
             Kpp = domainEmployer.Kpp,
             RegistrationDate = domainEmployer.RegistrationDate,
             LegalAddress = domainEmployer.LegalAddress,
-            Website = domainEmployer.Website,
             ContactEmail = domainEmployer.ContactEmail,
             ContactPhone = domainEmployer.ContactPhone
         };
@@ -39,7 +38,6 @@ public static class DimEmployerConverter
             Kpp = dbEmployer.Kpp,
             RegistrationDate = dbEmployer.RegistrationDate,
             LegalAddress = dbEmployer.LegalAddress,
-            Website = dbEmployer.Website,
             ContactEmail = dbEmployer.ContactEmail,
             ContactPhone = dbEmployer.ContactPhone
         };

@@ -7,21 +7,27 @@ public class DimEducationConverter
 {
     public static DimEducationDbModel ToDbModel(DimEducation dimEducation)
     {
-        return new DimEducationDbModel(
-            dimEducation.EducationId,
-            dimEducation.Specialty,
-            dimEducation.SpecialtyCode,
-            dimEducation.EducationLevelId
-        );
+        if (dimEducation == null)
+            throw new ArgumentNullException(nameof(dimEducation));
+        return new DimEducationDbModel
+        {
+            EducationId = dimEducation.EducationId,
+            SpecialtyName = dimEducation.SpecialtyName,
+            SpecialtyCode = dimEducation.SpecialtyCode,
+            EducationLevelName = dimEducation.EducationLevelName
+        };
     }
 
     public static DimEducation ToDomain(DimEducationDbModel dbEducation)
     {
+        if (dbEducation == null)
+            throw new ArgumentNullException(nameof(dbEducation));
+        
         return new DimEducation(
             dbEducation.EducationId,
-            dbEducation.Specialty,
+            dbEducation.SpecialtyName,
             dbEducation.SpecialtyCode,
-            dbEducation.EducationLevelId
+            dbEducation.EducationLevelName
         );
     }
 }

@@ -14,7 +14,6 @@ using NpgsqlTypes;
 using System.Linq;
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Etl;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Storage;

@@ -3,7 +3,6 @@ using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
-using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -56,9 +55,9 @@ public class DimEducationRepository : BaseRepository, IDimEducationRepository
         if (dbEducation is null)
             throw new NotFoundException($"Education with ID {education.EducationId} not found.");
         
-        dbEducation.Specialty = education.Specialty;
+        dbEducation.SpecialtyName = education.SpecialtyName;
         dbEducation.SpecialtyCode = education.SpecialtyCode;
-        dbEducation.EducationLevelId = education.EducationLevelId;
+        dbEducation.EducationLevelName = education.EducationLevelName;
         
         try
         {

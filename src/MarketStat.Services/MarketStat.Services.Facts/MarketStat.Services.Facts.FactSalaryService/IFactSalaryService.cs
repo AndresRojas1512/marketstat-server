@@ -1,5 +1,4 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Etl;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Enums;
 using Microsoft.AspNetCore.Http;

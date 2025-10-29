@@ -56,7 +56,6 @@ public class AuthService : IAuthService
             FullName = registerDto.FullName,
             IsActive = true,
             CreatedAt = DateTimeOffset.UtcNow,
-            SavedBenchmarksCount = 0,
             IsEtlUser = registerDto.IsEtlUser
         };
 

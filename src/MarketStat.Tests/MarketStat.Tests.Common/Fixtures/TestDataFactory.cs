@@ -4,5 +4,4 @@ namespace MarketStat.Tests.Common.Fixtures;
 
 public static class TestDataFactory
 {
-    public static DimCity City() => new DimCity(1, "Moscow", 1);
 }
