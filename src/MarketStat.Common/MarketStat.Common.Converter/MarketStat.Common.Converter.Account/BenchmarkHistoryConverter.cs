@@ -10,7 +10,7 @@ public static class BenchmarkHistoryConverter
         if (domainHistory == null)
             throw new ArgumentNullException(nameof(domainHistory));
 
-        var dbModel = new BenchmarkHistoryDbModel
+        return new BenchmarkHistoryDbModel
         {
             BenchmarkHistoryId = domainHistory.BenchmarkHistoryId,
             UserId = domainHistory.UserId,
@@ -18,11 +18,11 @@ public static class BenchmarkHistoryConverter
             SavedAt = domainHistory.SavedAt,
 
             FilterIndustryFieldId = domainHistory.FilterIndustryFieldId,
-            FilterStandardJobRoleId = domainHistory.FilterStandardJobRoleId,
-            FilterHierarchyLevelId = domainHistory.FilterHierarchyLevelId,
-            FilterDistrictId = domainHistory.FilterDistrictId,
-            FilterOblastId = domainHistory.FilterOblastId,
-            FilterCityId = domainHistory.FilterCityId,
+            FilterStandardJobRoleTitle = domainHistory.FilterStandardJobRoleTitle,
+            FilterHierarchyLevelName = domainHistory.FilterHierarchyLevelName,
+            FilterDistrictName = domainHistory.FilterDistrictName,
+            FilterOblastName = domainHistory.FilterOblastName,
+            FilterCityName = domainHistory.FilterCityName,
             FilterDateStart = domainHistory.FilterDateStart,
             FilterDateEnd = domainHistory.FilterDateEnd,
             FilterTargetPercentile = domainHistory.FilterTargetPercentile,
@@ -31,7 +31,6 @@ public static class BenchmarkHistoryConverter
 
             BenchmarkResultJson = domainHistory.BenchmarkResultJson
         };
-        return dbModel;
     }
     
     public static BenchmarkHistory ToDomain(BenchmarkHistoryDbModel dbHistory)
@@ -46,11 +45,12 @@ public static class BenchmarkHistoryConverter
             savedAt: dbHistory.SavedAt,
 
             filterIndustryFieldId: dbHistory.FilterIndustryFieldId,
-            filterStandardJobRoleId: dbHistory.FilterStandardJobRoleId,
-            filterHierarchyLevelId: dbHistory.FilterHierarchyLevelId,
-            filterDistrictId: dbHistory.FilterDistrictId,
-            filterOblastId: dbHistory.FilterOblastId,
-            filterCityId: dbHistory.FilterCityId,
+            filterStandardJobRoleTitle: dbHistory.FilterStandardJobRoleTitle,
+            filterHierarchyLevelName: dbHistory.FilterHierarchyLevelName,
+            filterDistrictName: dbHistory.FilterDistrictName,
+            filterOblastName: dbHistory.FilterOblastName,
+            filterCityName: dbHistory.FilterCityName,
+            
             filterDateStart: dbHistory.FilterDateStart,
             filterDateEnd: dbHistory.FilterDateEnd,
             filterTargetPercentile: dbHistory.FilterTargetPercentile,
@@ -70,9 +70,6 @@ public static class BenchmarkHistoryConverter
     
     public static List<BenchmarkHistory> ToDomainList(IEnumerable<BenchmarkHistoryDbModel> dbHistories)
     {
-        if (dbHistories == null)
-            return new List<BenchmarkHistory>();
-
-        return dbHistories.Select(ToDomain).ToList();
+        return dbHistories?.Select(ToDomain).ToList() ?? new List<BenchmarkHistory>();
     }
 }

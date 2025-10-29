@@ -25,57 +25,19 @@ public class BenchmarkHistoryController : ControllerBase
 
     private int GetCurrentUserId()
     {
-        _logger.LogInformation("--- Attempting to retrieve User ID from claims. All Claims for Current User Principal ---");
-        var allClaims = User.Claims.ToList();
-        foreach (var claim in allClaims)
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("nameid");
+        _logger.LogDebug(
+            "Attempting to resolve User ID from claims. Found NameIdentifier/nameid value: '{UserIdClaimValue}'",
+            userIdClaim);
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId) || userId <= 0)
         {
-            _logger.LogInformation("Claim Type: [{ClaimType}], Value: [{ClaimValue}]", claim.Type, claim.Value);
+            var allClaims = User.Claims.Select(c => $"Type=[{c.Type}], Value=[{c.Value}]").ToList();
+            _logger.LogError(
+                "User ID claim could not be resolved to a valid positive integer from token. Claims present: {AllClaims}",
+                string.Join("; ", allClaims));
+            throw new UnauthorizedAccessException("User ID claim not be determined or is invalid from the token.");
         }
-        _logger.LogInformation("--- End of Claims ---");
-
-        var nameIdClaims = allClaims.Where(c => c.Type == ClaimTypes.NameIdentifier).ToList();
-
-        string? userIdString = null;
-        int userId = 0;
-
-        if (nameIdClaims.Count == 1)
-        {
-            userIdString = nameIdClaims[0].Value;
-            _logger.LogInformation("Found single ClaimTypes.NameIdentifier: {UserIdString}", userIdString);
-        }
-        else if (nameIdClaims.Count > 1)
-        {
-            _logger.LogInformation("Multiple ClaimTypes.NameIdentifier claims found. Attempting to find the numeric one.");
-            userIdString = nameIdClaims.FirstOrDefault(c => int.TryParse(c.Value, out int _))?.Value;
-            if (!string.IsNullOrEmpty(userIdString))
-            {
-                 _logger.LogInformation("Found numeric ClaimTypes.NameIdentifier among multiple: {UserIdString}", userIdString);
-            }
-            else
-            {
-                _logger.LogInformation("None of the multiple ClaimTypes.NameIdentifier claims were numeric. This is unexpected.");
-                var directNameIdClaim = allClaims.FirstOrDefault(c => c.Type == "nameid" && int.TryParse(c.Value, out int _));
-                if(directNameIdClaim != null) {
-                    userIdString = directNameIdClaim.Value;
-                    _logger.LogInformation("Using direct 'nameid' claim as fallback: {UserIdString}", userIdString);
-                }
-            }
-        } else {
-             _logger.LogInformation("No ClaimTypes.NameIdentifier claim found. Checking direct 'nameid'.");
-             var directNameIdClaim = allClaims.FirstOrDefault(c => c.Type == "nameid" && int.TryParse(c.Value, out int _));
-             if(directNameIdClaim != null) {
-                userIdString = directNameIdClaim.Value;
-                _logger.LogInformation("Using direct 'nameid' claim: {UserIdString}", userIdString);
-             }
-        }
-        
-        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out userId) || userId <= 0)
-        {
-            _logger.LogInformation("User ID claim could not be resolved to a valid positive integer. Final userIdString attempt: '{UserIdString}'", userIdString);
-            throw new UnauthorizedAccessException("User ID could not be determined or is invalid from the token.");
-        }
-
-        _logger.LogInformation("Successfully resolved current UserId: {UserId} from claim string: '{UserIdString}'", userId, userIdString);
+        _logger.LogInformation("Successfully resolved current UserId: {UserId}", userId);
         return userId;
     }
 
@@ -88,23 +50,31 @@ public class BenchmarkHistoryController : ControllerBase
     [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)] 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]   
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SaveBenchmark([FromBody] SaveBenchmarkRequestDto saveRequestDto)
     {
         if (!ModelState.IsValid)
         {
+            _logger.LogWarning("SaveBenchmark called with invalid model state: {@ModelState}", ModelState);
             return BadRequest(ModelState);
         }
 
         int currentUserId = GetCurrentUserId();
-        _logger.LogInformation("User {UserId} attempting to save benchmark with name: {BenchmarkName}", currentUserId, saveRequestDto.BenchmarkName);
-
-        long newBenchmarkHistoryId = await _benchmarkHistoryService.SaveCurrentUserBenchmarkAsync(saveRequestDto, currentUserId);
-
-        _logger.LogInformation("Benchmark saved successfully with ID {BenchmarkHistoryId} for User {UserId}", newBenchmarkHistoryId, currentUserId);
-        
-        return CreatedAtAction(nameof(GetBenchmarkHistoryById), new { id = newBenchmarkHistoryId }, new { benchmarkHistoryId = newBenchmarkHistoryId });
+        _logger.LogInformation("User {UserId} attempting to save benchmark with name: {BenchmarkName}", currentUserId,
+            saveRequestDto.BenchmarkName);
+        try
+        {
+            long newBenchmarkHistoryId =
+                await _benchmarkHistoryService.SaveCurrentUserBenchmarkAsync(saveRequestDto, currentUserId);
+            _logger.LogInformation("Benchmark saved successfully with ID {BenchmarkHistoryId} for User {UserId}",
+                newBenchmarkHistoryId, currentUserId);
+            return CreatedAtAction(nameof(GetBenchmarkHistoryById), new { id = newBenchmarkHistoryId },
+                new { benchmarkHistoryId = newBenchmarkHistoryId });
+        }
+        catch (ArgumentException argEx)
+        {
+            _logger.LogWarning(argEx, "Invalid data provided when saving benchmark for user {UserId}.", currentUserId);
+            return BadRequest(new { Message = "Invalid input data.", Detail = argEx.Message });
+        }
     }
 
     /// <summary>
@@ -114,7 +84,6 @@ public class BenchmarkHistoryController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<BenchmarkHistoryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)] 
     public async Task<ActionResult<IEnumerable<BenchmarkHistoryDto>>> GetCurrentUserBenchmarks()
     {
         int currentUserId = GetCurrentUserId();
@@ -133,13 +102,19 @@ public class BenchmarkHistoryController : ControllerBase
     /// <returns>The requested benchmark history details with resolved filter names.</returns>
     [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(BenchmarkHistoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)] 
     [ProducesResponseType(StatusCodes.Status404NotFound)] 
     public async Task<ActionResult<BenchmarkHistoryDto>> GetBenchmarkHistoryById(long id)
     {
+        if (id <= 0)
+        {
+            _logger.LogWarning("GetBenchmarkHistoryById called with invalid ID: {BenchmarkHistoryId}", id);
+            return BadRequest(new { Message = "Invalid BenchmarkHistoryId" });
+        }
         int currentUserId = GetCurrentUserId();
-        _logger.LogInformation("User {UserId} attempting to fetch benchmark history ID {BenchmarkHistoryId}", currentUserId, id);
+        _logger.LogInformation("User {UserId} attempting to fetch benchmark history ID {BenchmarkHistoryId}",
+            currentUserId, id);
 
         var benchmarkDetails = await _benchmarkHistoryService.GetBenchmarkDetailsAsync(id, currentUserId);
 
@@ -153,13 +128,18 @@ public class BenchmarkHistoryController : ControllerBase
     /// <param name="id">The ID of the benchmark history record to delete.</param>
     [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)] 
     [ProducesResponseType(StatusCodes.Status404NotFound)] 
     public async Task<IActionResult> DeleteBenchmarkHistory(long id)
     {
+        if (id <= 0)
+        {
+            _logger.LogWarning("DeleteBenchmarkHistory called with invalid ID: {BenchmarkHistoryId}", id);
+            return BadRequest(new { Message = "Invalid BenchmarkHistoryId." });
+        }
         int currentUserId = GetCurrentUserId();
-        _logger.LogInformation("User {UserId} attempting to delete benchmark history ID {BenchmarkHistoryId}", currentUserId, id);
+        _logger.LogInformation("User {UserId} deleting benchmark history ID {BenchmarkHistoryId}", currentUserId, id);
 
         await _benchmarkHistoryService.DeleteCurrentUserBenchmarkAsync(id, currentUserId);
 

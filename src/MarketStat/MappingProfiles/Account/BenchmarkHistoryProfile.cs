@@ -14,7 +14,7 @@ public class BenchmarkHistoryProfile : Profile
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.BenchmarkName, opt => opt.MapFrom(src => src.BenchmarkName))
             .ForMember(dest => dest.SavedAt, opt => opt.MapFrom(src => src.SavedAt))
-            
+
             .ForMember(dest => dest.FilterDateStart, opt => opt.MapFrom(src => src.FilterDateStart))
             .ForMember(dest => dest.FilterDateEnd, opt => opt.MapFrom(src => src.FilterDateEnd))
             .ForMember(dest => dest.FilterTargetPercentile, opt => opt.MapFrom(src => src.FilterTargetPercentile))
@@ -26,13 +26,20 @@ public class BenchmarkHistoryProfile : Profile
                 dest => dest.Username,
                 opt => opt.MapFrom(src => (src.User != null) ? src.User.Username : null)
             )
-            
-            .ForMember(dest => dest.FilterIndustryFieldName, opt => opt.Ignore())
-            .ForMember(dest => dest.FilterStandardJobRoleTitle, opt => opt.Ignore())
-            .ForMember(dest => dest.FilterHierarchyLevelName, opt => opt.Ignore())
-            .ForMember(dest => dest.FilterDistrictName, opt => opt.Ignore())
-            .ForMember(dest => dest.FilterOblastName, opt => opt.Ignore())
-            .ForMember(dest => dest.FilterCityName, opt => opt.Ignore());
+
+            .ForMember(dest => dest.FilterIndustryFieldId, opt => opt.MapFrom(src => src.FilterIndustryFieldId))
+            .ForMember(dest => dest.FilterStandardJobRoleTitle,
+                opt => opt.MapFrom(src => src.FilterStandardJobRoleTitle))
+            .ForMember(dest => dest.FilterHierarchyLevelName, opt => opt.MapFrom(src => src.FilterHierarchyLevelName))
+            .ForMember(dest => dest.FilterDistrictName, opt => opt.MapFrom(src => src.FilterDistrictName))
+            .ForMember(dest => dest.FilterOblastName, opt => opt.MapFrom(src => src.FilterOblastName))
+            .ForMember(dest => dest.FilterCityName, opt => opt.MapFrom(src => src.FilterCityName));
+
+        CreateMap<SaveBenchmarkRequestDto, BenchmarkHistory>()
+            .ForMember(dest => dest.BenchmarkHistoryId, opt => opt.Ignore())
+            .ForMember(dest => dest.UserId, opt => opt.Ignore())
+            .ForMember(dest => dest.SavedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore());
         
         CreateMap<User, UserDto>();
     }

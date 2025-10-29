@@ -7,12 +7,25 @@ public class SaveBenchmarkRequestDto
     [StringLength(255, ErrorMessage = "Benchmark name cannot exceed 255 characters.")]
     public string? BenchmarkName { get; set; }
 
+    [Range(1, int.MaxValue)]
     public int? FilterIndustryFieldId { get; set; }
-    public int? FilterStandardJobRoleId { get; set; }
-    public int? FilterHierarchyLevelId { get; set; }
-    public int? FilterDistrictId { get; set; }
-    public int? FilterOblastId { get; set; }
-    public int? FilterCityId { get; set; }
+    
+    [StringLength(255)]
+    public string? FilterStandardJobRoleTitle { get; set; }
+    
+    [StringLength(255)]
+    public string? FilterHierarchyLevelName { get; set; }
+    
+    [StringLength(255)]
+    public string? FilterDistrictName { get; set; }
+    
+    [StringLength(255)]
+    public string? FilterOblastName { get; set; }
+    
+    [StringLength(255)]
+    public string? FilterCityName { get; set; }
+    
+    
     public DateOnly? FilterDateStart { get; set; }
     public DateOnly? FilterDateEnd { get; set; }
         

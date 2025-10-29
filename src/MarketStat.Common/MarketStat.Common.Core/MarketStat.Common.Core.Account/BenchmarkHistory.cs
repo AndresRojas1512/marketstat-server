@@ -4,16 +4,16 @@ public class BenchmarkHistory
 {
     public long BenchmarkHistoryId { get; set; }
     public int UserId { get; set; }
-
     public string? BenchmarkName { get; set; }
     public DateTimeOffset SavedAt { get; set; }
 
     public int? FilterIndustryFieldId { get; set; }
-    public int? FilterStandardJobRoleId { get; set; }
-    public int? FilterHierarchyLevelId { get; set; }
-    public int? FilterDistrictId { get; set; }
-    public int? FilterOblastId { get; set; }
-    public int? FilterCityId { get; set; }
+    public string? FilterStandardJobRoleTitle { get; set; }
+    public string? FilterHierarchyLevelName { get; set; }
+    public string? FilterDistrictName { get; set; }
+    public string? FilterOblastName { get; set; }
+    public string? FilterCityName { get; set; }
+    
     public DateOnly? FilterDateStart { get; set; }
     public DateOnly? FilterDateEnd { get; set; }
     
@@ -38,11 +38,11 @@ public class BenchmarkHistory
         DateTimeOffset savedAt,
         // ID-based filters
         int? filterIndustryFieldId,
-        int? filterStandardJobRoleId,
-        int? filterHierarchyLevelId,
-        int? filterDistrictId,
-        int? filterOblastId,
-        int? filterCityId,
+        string? filterStandardJobRoleTitle,
+        string? filterHierarchyLevelName,
+        string? filterDistrictName,
+        string? filterOblastName,
+        string? filterCityName,
         DateOnly? filterDateStart,
         DateOnly? filterDateEnd,
         int? filterTargetPercentile,
@@ -55,11 +55,11 @@ public class BenchmarkHistory
         BenchmarkName = benchmarkName;
         SavedAt = savedAt;
         FilterIndustryFieldId = filterIndustryFieldId;
-        FilterStandardJobRoleId = filterStandardJobRoleId;
-        FilterHierarchyLevelId = filterHierarchyLevelId;
-        FilterDistrictId = filterDistrictId;
-        FilterOblastId = filterOblastId;
-        FilterCityId = filterCityId;
+        FilterStandardJobRoleTitle = filterStandardJobRoleTitle;
+        FilterHierarchyLevelName = filterHierarchyLevelName;
+        FilterDistrictName = filterDistrictName;
+        FilterOblastName = filterOblastName;
+        FilterCityName = filterCityName;
         FilterDateStart = filterDateStart;
         FilterDateEnd = filterDateEnd;
         FilterTargetPercentile = filterTargetPercentile;
