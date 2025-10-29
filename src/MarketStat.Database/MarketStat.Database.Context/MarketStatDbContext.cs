@@ -420,20 +420,25 @@ public class MarketStatDbContext : DbContext
             b.Property(bh => bh.FilterIndustryFieldId)
                 .HasColumnName("filter_industry_field_id")
                 .IsRequired(false);
-            b.Property(bh => bh.FilterStandardJobRoleId)
-                .HasColumnName("filter_standard_job_role_id")
+            b.Property(bh => bh.FilterStandardJobRoleTitle)
+                .HasColumnName("filter_standard_job_role_title")
+                .HasMaxLength(255)
                 .IsRequired(false);
-            b.Property(bh => bh.FilterHierarchyLevelId)
-                .HasColumnName("filter_hierarchy_level_id")
+            b.Property(bh => bh.FilterHierarchyLevelName)
+                .HasColumnName("filter_hierarchy_level_name")
+                .HasMaxLength(255)
                 .IsRequired(false);
-            b.Property(bh => bh.FilterDistrictId)
-                .HasColumnName("filter_district_id")
+            b.Property(bh => bh.FilterDistrictName)
+                .HasColumnName("filter_district_name")
+                .HasMaxLength(255)
                 .IsRequired(false);
-            b.Property(bh => bh.FilterOblastId)
-                .HasColumnName("filter_oblast_id")
+            b.Property(bh => bh.FilterOblastName)
+                .HasColumnName("filter_oblast_name")
+                .HasMaxLength(255)
                 .IsRequired(false);
-            b.Property(bh => bh.FilterCityId)
-                .HasColumnName("filter_city_id")
+            b.Property(bh => bh.FilterCityName)
+                .HasColumnName("filter_city_name")
+                .HasMaxLength(255)
                 .IsRequired(false);
             b.Property(bh => bh.FilterDateStart)
                 .HasColumnName("filter_date_start")
@@ -456,7 +461,8 @@ public class MarketStatDbContext : DbContext
             b.Property(bh => bh.BenchmarkResultJson)
                 .HasColumnName("benchmark_result_json")
                 .HasColumnType("jsonb")
-                .IsRequired();
+                .IsRequired()
+                .HasDefaultValue("{}");
             
             b.HasOne(bh => bh.User)
                 .WithMany(u => u.BenchmarkHistories)

@@ -77,4 +77,16 @@ public class DimLocationRepository : BaseRepository, IDimLocationRepository
         _dbContext.DimLocations.Remove(dbLocation);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<List<int>> GetLocationIdsByFilerAsync(string? districtName, string? oblastName, string? cityName)
+    {
+        var query = _dbContext.DimLocations.AsQueryable();
+        if (!string.IsNullOrEmpty(districtName))
+            query = query.Where(l => l.DistrictName == districtName);
+        if (!string.IsNullOrEmpty(oblastName))
+            query = query.Where(l => l.OblastName == oblastName);
+        if (!string.IsNullOrEmpty(cityName))
+            query = query.Where(l => l.CityName == cityName);
+        return await query.Select(l => l.LocationId).ToListAsync();
+    }
 }

@@ -10,22 +10,21 @@ public interface IFactSalaryRepository
     // CRUD 
     Task AddFactSalaryAsync(FactSalary salary);
     Task<FactSalary> GetFactSalaryByIdAsync(long salaryId);
-    Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync();
-    Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto salaryFilterDto);
+    Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(ResolvedSalaryFilterDto resolvedFilters);
     Task UpdateFactSalaryAsync(FactSalary salaryFact);
     Task DeleteFactSalaryByIdAsync(long salaryFactId);
     
     // Authorized analytical methods
-    Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters);
-    Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
-    Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters,
+    Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(ResolvedSalaryFilterDto resolvedFilters);
+    Task<SalarySummaryDto?> GetSalarySummaryAsync(ResolvedSalaryFilterDto resolvedFilters, int targetPercentile);
+    Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(ResolvedSalaryFilterDto resolvedFilters,
         TimeGranularity granularity, int periods);
     
     // Public analytical methods
-    Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto);
-
-    Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
-        PublicSalaryByEducationQueryDto queryDto);
-    Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-        PublicTopEmployerRoleSalariesQueryDto queryDto);
+    // Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto);
+    //
+    // Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
+    //     PublicSalaryByEducationQueryDto queryDto);
+    // Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+    //     PublicTopEmployerRoleSalariesQueryDto queryDto);
 }

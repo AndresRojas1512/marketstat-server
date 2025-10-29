@@ -78,4 +78,17 @@ public class DimJobRepository : BaseRepository, IDimJobRepository
         _dbContext.DimJobs.Remove(dbJob);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<List<int>> GetJobIdsByFilterAsync(string? standardJobRoleTitle, string? hierarchyLevelName,
+        int? industryFieldId)
+    {
+        var query = _dbContext.DimJobs.AsQueryable();
+        if (industryFieldId.HasValue)
+            query = query.Where(j => j.IndustryFieldId == industryFieldId);
+        if (!string.IsNullOrEmpty(standardJobRoleTitle))
+            query = query.Where(j => j.StandardJobRoleTitle == standardJobRoleTitle);
+        if (!string.IsNullOrEmpty(hierarchyLevelName))
+            query = query.Where(j => j.HierarchyLevelName == hierarchyLevelName);
+        return await query.Select(j => j.JobId).ToListAsync();
+    }
 }

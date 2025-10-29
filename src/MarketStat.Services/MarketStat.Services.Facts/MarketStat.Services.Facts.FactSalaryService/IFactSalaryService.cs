@@ -9,31 +9,26 @@ namespace MarketStat.Services.Facts.FactSalaryService;
 public interface IFactSalaryService
 {
     // CRUD
-    Task<FactSalary> CreateFactSalaryAsync(int dateId, int cityId, int employerId, int jobRoleId, int employeeId,
-        decimal salaryAmount, decimal bonusAmount);
+    Task<FactSalary> CreateFactSalaryAsync(int dateId, int locationId, int employerId, int jobId, int employeeId,
+        decimal salaryAmount);
     Task<FactSalary> GetFactSalaryByIdAsync(long salaryFactId);
-    Task<IEnumerable<FactSalary>> GetAllFactSalariesAsync();
     Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto filterDto);
-    Task<FactSalary> UpdateFactSalaryAsync(long salaryFactId, int dateId, int cityId, int employerId, int jobRoleId, 
-        int employeeId, decimal salaryAmount, decimal bonusAmount);
+    Task<FactSalary> UpdateFactSalaryAsync(long salaryFactId, int dateId, int locationId, int employerId, int jobId, 
+        int employeeId, decimal salaryAmount);
     Task DeleteFactSalaryAsync(long salaryFactId);
     
     // Authorized Analytics
-    Task<BenchmarkDataDto?> GetBenchmarkingReportAsync(BenchmarkQueryDto filters);
-    Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters);
-    Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
-    Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters, TimeGranularity granularity,
-        int periods);
+    Task<BenchmarkDataDto?> GetBenchmarkingReportAsync(BenchmarkQueryDto benchmarkFilters);
     
     // Public Analytical Methods
-    Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(
-         PublicRolesQueryDto queryDto);
-    
-    Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
-        PublicSalaryByEducationQueryDto queryDto);
-    
-    Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-        PublicTopEmployerRoleSalariesQueryDto queryDto);
+    // Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(
+    //      PublicRolesQueryDto queryDto);
+    //
+    // Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
+    //     PublicSalaryByEducationQueryDto queryDto);
+    //
+    // Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
+    //     PublicTopEmployerRoleSalariesQueryDto queryDto);
     
     // ETL Methods
 }

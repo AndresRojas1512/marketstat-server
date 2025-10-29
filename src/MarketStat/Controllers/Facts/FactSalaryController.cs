@@ -29,24 +29,6 @@ public class FactSalaryController : ControllerBase
     }
 
     /// <summary>
-    /// Gets all salary fact records.
-    /// </summary>
-    [HttpGet]
-    [Authorize(Roles = "Analyst, EtlUser")]
-    [ProducesResponseType(typeof(IEnumerable<FactSalaryDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<FactSalaryDto>>> GetAllSalaries()
-    {
-        _logger.LogInformation("Attempting to get all salary facts.");
-        var salaryFactsDomain = await _factSalaryService.GetAllFactSalariesAsync();
-        var salaryFactDtos = _mapper.Map<IEnumerable<FactSalaryDto>>(salaryFactsDomain);
-        _logger.LogInformation("Successfully retrieved {Count} salary facts.", salaryFactDtos.Count());
-        return Ok(salaryFactDtos);
-    }
-
-    /// <summary>
     /// Gets a specific salary fact record by its ID.
     /// </summary>
     /// <param name="id">The ID of the salary fact.</param>
@@ -81,22 +63,14 @@ public class FactSalaryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<FactSalaryDto>>> GetSalariesByFilter([FromQuery] SalaryFilterDto filterDto)
     {
         _logger.LogInformation("Controller: Attempting to get salary facts by filter: {@FilterDto}", filterDto);
-        try
-        {
-            var salaryFactsDomain = await _factSalaryService.GetFactSalariesByFilterAsync(filterDto);
-            var salaryFactDtos = _mapper.Map<IEnumerable<FactSalaryDto>>(salaryFactsDomain);
-            _logger.LogInformation("Controller: Successfully retrieved {Count} salary facts for filter.", salaryFactDtos.Count());
-            return Ok(salaryFactDtos);
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "Controller: Invalid filter arguments provided.");
-            return BadRequest(new { Message = "One or more filter IDs are invalid.", Detail = argEx.Message });
-        }
+        var salaryFactsDomain = await _factSalaryService.GetFactSalariesByFilterAsync(filterDto);
+        var salaryFactDtos = _mapper.Map<IEnumerable<FactSalaryDto>>(salaryFactsDomain);
+        _logger.LogInformation("Controller: Successfully retrieved {Count} salary facts for filter.", salaryFactDtos.Count());
+        return Ok(salaryFactDtos);
+        
     }
 
     /// <summary>
@@ -120,8 +94,8 @@ public class FactSalaryController : ControllerBase
         _logger.LogInformation("Attempting to create a new salary fact with data: {@CreateDto}", createDto);
         
         var createdSalaryFactDomain = await _factSalaryService.CreateFactSalaryAsync(
-            createDto.DateId, createDto.CityId, createDto.EmployerId, createDto.JobRoleId,
-            createDto.EmployeeId, createDto.SalaryAmount, createDto.BonusAmount
+            createDto.DateId, createDto.LocationId, createDto.EmployerId, createDto.JobId,
+            createDto.EmployeeId, createDto.SalaryAmount
         );
         var resultDto = _mapper.Map<FactSalaryDto>(createdSalaryFactDomain);
         _logger.LogInformation("Successfully created salary fact with ID: {SalaryFactId}", resultDto.SalaryFactId);
@@ -154,9 +128,8 @@ public class FactSalaryController : ControllerBase
         _logger.LogInformation("Attempting to update salary fact with ID: {SalaryFactId} using data: {@UpdateDto}", id, updateDto);
         
         await _factSalaryService.UpdateFactSalaryAsync(
-            id,
-            updateDto.DateId, updateDto.CityId, updateDto.EmployerId, updateDto.JobRoleId,
-            updateDto.EmployeeId, updateDto.SalaryAmount, updateDto.BonusAmount
+            id, updateDto.DateId, updateDto.LocationId, updateDto.EmployerId, updateDto.JobId,
+            updateDto.EmployeeId, updateDto.SalaryAmount
         );
         _logger.LogInformation("Successfully updated salary fact with ID: {SalaryFactId}", id);
         return NoContent();
@@ -199,7 +172,6 @@ public class FactSalaryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BenchmarkDataDto>> GetBenchmarkingReport([FromQuery] BenchmarkQueryDto filters)
     {
         if (!ModelState.IsValid)
@@ -209,83 +181,76 @@ public class FactSalaryController : ControllerBase
 
         _logger.LogInformation("User ({UserRoles}) requesting benchmarking report: {@Filters}", 
             string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters);
-            
-        try
-        {
-            BenchmarkDataDto? reportData = await _factSalaryService.GetBenchmarkingReportAsync(filters);
-            return Ok(reportData); 
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "Controller: Invalid arguments provided for GetBenchmarkingReport.");
-            return BadRequest(new { Message = "One or more filter parameters are invalid.", Detail = argEx.Message });
-        }
+        
+        BenchmarkDataDto? reportData = await _factSalaryService.GetBenchmarkingReportAsync(filters);
+        return Ok(reportData ?? new BenchmarkDataDto
+            { SalaryDistribution = new(), SalarySummary = null, SalaryTimeSeries = new() });
     }
 
     /// <summary>
     /// Gets salary distribution (histogram buckets).
     /// </summary>
     /// <param name="filters">ID-based filter criteria.</param>
-    [HttpGet("distribution")]
-    [Authorize(Roles = "Analyst, EtlUser")]
-    [ProducesResponseType(typeof(List<SalaryDistributionBucketDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<List<SalaryDistributionBucketDto>>> GetSalaryDistribution([FromQuery] SalaryFilterDto filters)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        _logger.LogInformation("Controller: User ({UserRoles}) fetching salary distribution for filters: {@Filters}", 
-            string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters);
-            
-        try
-        {
-            var distribution = await _factSalaryService.GetSalaryDistributionAsync(filters);
-            return Ok(distribution); 
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "Controller: Invalid filter arguments provided for GetSalaryDistribution.");
-            return BadRequest(new { Message = "One or more filter IDs are invalid.", Detail = argEx.Message });
-        }
-    }
+    // [HttpGet("distribution")]
+    // [Authorize(Roles = "Analyst, EtlUser")]
+    // [ProducesResponseType(typeof(List<SalaryDistributionBucketDto>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    // [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    // public async Task<ActionResult<List<SalaryDistributionBucketDto>>> GetSalaryDistribution([FromQuery] SalaryFilterDto filters)
+    // {
+    //     if (!ModelState.IsValid) return BadRequest(ModelState);
+    //
+    //     _logger.LogInformation("Controller: User ({UserRoles}) fetching salary distribution for filters: {@Filters}", 
+    //         string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters);
+    //         
+    //     try
+    //     {
+    //         var distribution = await _factSalaryService.GetSalaryDistributionAsync(filters);
+    //         return Ok(distribution); 
+    //     }
+    //     catch (ArgumentException argEx)
+    //     {
+    //         _logger.LogWarning(argEx, "Controller: Invalid filter arguments provided for GetSalaryDistribution.");
+    //         return BadRequest(new { Message = "One or more filter IDs are invalid.", Detail = argEx.Message });
+    //     }
+    // }
 
     /// <summary>
     /// Gets salary summary statistics (percentiles, average, count).
     /// </summary>
     /// <param name="filters">ID-based filter criteria.</param>
     /// <param name="targetPercentile">The target percentile to calculate.</param>
-    [HttpGet("summary")]
-    [Authorize(Roles = "Analyst, EtlUser")]
-    [ProducesResponseType(typeof(SalarySummaryDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)] 
-    public async Task<ActionResult<SalarySummaryDto>> GetSalarySummary([FromQuery] SalaryFilterDto filters, [FromQuery] int targetPercentile = 90)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-        _logger.LogInformation("User ({UserRoles}) fetching salary summary for filters: {@Filters}, target percentile: {TargetPercentile}", 
-            string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters, targetPercentile);
-            
-        try
-        {
-            var summary = await _factSalaryService.GetSalarySummaryAsync(filters, targetPercentile);
-            if (summary == null)
-            {
-                _logger.LogWarning("No salary summary data found for filters {@Filters}", filters);
-                return NotFound(new { Message = "No salary data found matching the specified criteria for summary." });
-            }
-            return Ok(summary);
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "Controller: Invalid arguments provided for GetSalarySummary.");
-            return BadRequest(new { Message = "One or more filter parameters are invalid.", Detail = argEx.Message });
-        }
-    }
+    // [HttpGet("summary")]
+    // [Authorize(Roles = "Analyst, EtlUser")]
+    // [ProducesResponseType(typeof(SalarySummaryDto), StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    // [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    // [ProducesResponseType(StatusCodes.Status404NotFound)] 
+    // public async Task<ActionResult<SalarySummaryDto>> GetSalarySummary([FromQuery] SalaryFilterDto filters, [FromQuery] int targetPercentile = 90)
+    // {
+    //     if (!ModelState.IsValid) return BadRequest(ModelState);
+    //         
+    //     _logger.LogInformation("User ({UserRoles}) fetching salary summary for filters: {@Filters}, target percentile: {TargetPercentile}", 
+    //         string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters, targetPercentile);
+    //         
+    //     try
+    //     {
+    //         var summary = await _factSalaryService.GetSalarySummaryAsync(filters, targetPercentile);
+    //         if (summary == null)
+    //         {
+    //             _logger.LogWarning("No salary summary data found for filters {@Filters}", filters);
+    //             return NotFound(new { Message = "No salary data found matching the specified criteria for summary." });
+    //         }
+    //         return Ok(summary);
+    //     }
+    //     catch (ArgumentException argEx)
+    //     {
+    //         _logger.LogWarning(argEx, "Controller: Invalid arguments provided for GetSalarySummary.");
+    //         return BadRequest(new { Message = "One or more filter parameters are invalid.", Detail = argEx.Message });
+    //     }
+    // }
 
     /// <summary>
     /// Gets salary time series data.
@@ -293,33 +258,33 @@ public class FactSalaryController : ControllerBase
     /// <param name="filters">ID-based filter criteria.</param>
     /// <param name="granularity">Time granularity (Month, Quarter, Year).</param>
     /// <param name="periods">Number of periods to show.</param>
-    [HttpGet("timeseries")]
-    [Authorize(Roles = "Analyst, EtlUser")]
-    [ProducesResponseType(typeof(List<SalaryTimeSeriesPointDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<List<SalaryTimeSeriesPointDto>>> GetSalaryTimeSeries(
-        [FromQuery] SalaryFilterDto filters,
-        [FromQuery] TimeGranularity granularity = TimeGranularity.Month,
-        [FromQuery] int periods = 12)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-        _logger.LogInformation("User ({UserRoles}) fetching salary time series for filters: {@Filters}, granularity: {Granularity}, periods: {Periods}", 
-            string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters, granularity, periods);
-            
-        try
-        {
-            var timeSeries = await _factSalaryService.GetSalaryTimeSeriesAsync(filters, granularity, periods);
-            return Ok(timeSeries);
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "Controller: Invalid filter arguments provided for GetSalaryTimeSeries.");
-            return BadRequest(new { Message = "One or more filter IDs are invalid.", Detail = argEx.Message });
-        }
-    }
+    // [HttpGet("timeseries")]
+    // [Authorize(Roles = "Analyst, EtlUser")]
+    // [ProducesResponseType(typeof(List<SalaryTimeSeriesPointDto>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    // [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    // public async Task<ActionResult<List<SalaryTimeSeriesPointDto>>> GetSalaryTimeSeries(
+    //     [FromQuery] SalaryFilterDto filters,
+    //     [FromQuery] TimeGranularity granularity = TimeGranularity.Month,
+    //     [FromQuery] int periods = 12)
+    // {
+    //     if (!ModelState.IsValid) return BadRequest(ModelState);
+    //         
+    //     _logger.LogInformation("User ({UserRoles}) fetching salary time series for filters: {@Filters}, granularity: {Granularity}, periods: {Periods}", 
+    //         string.Join(",", User.FindAll(ClaimTypes.Role).Select(c => c.Value)), filters, granularity, periods);
+    //         
+    //     try
+    //     {
+    //         var timeSeries = await _factSalaryService.GetSalaryTimeSeriesAsync(filters, granularity, periods);
+    //         return Ok(timeSeries);
+    //     }
+    //     catch (ArgumentException argEx)
+    //     {
+    //         _logger.LogWarning(argEx, "Controller: Invalid filter arguments provided for GetSalaryTimeSeries.");
+    //         return BadRequest(new { Message = "One or more filter IDs are invalid.", Detail = argEx.Message });
+    //     }
+    // }
     
     // ==========================
     // Public analytical endpoints
@@ -333,93 +298,93 @@ public class FactSalaryController : ControllerBase
     /// <param name="oblastId">Optional: Filter by oblast ID.</param>
     /// <param name="cityId">Optional: Filter by city ID.</param>
     /// <param name="minSalaryRecordsForRole">Optional: Minimum records to include a role (default 3).</param>
-    [HttpGet("public/roles-by-location-industry")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(IEnumerable<PublicRoleByLocationIndustryDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<PublicRoleByLocationIndustryDto>>> GetPublicRolesByLocationIndustry(
-        [FromQuery] PublicRolesQueryDto queryDto)
-    {
-        _logger.LogInformation("Public request for roles by location/industry: {@QueryDto}", queryDto);
-                
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-        try
-        {
-            var result = await _factSalaryService.GetPublicRolesByLocationIndustryAsync(queryDto);
-            return Ok(result);
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "Invalid arguments for GetPublicRolesByLocationIndustryAsync: {@QueryDto}", queryDto);
-            return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
-        }
-    }
+    // [HttpGet("public/roles-by-location-industry")]
+    // [AllowAnonymous]
+    // [ProducesResponseType(typeof(IEnumerable<PublicRoleByLocationIndustryDto>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    // public async Task<ActionResult<IEnumerable<PublicRoleByLocationIndustryDto>>> GetPublicRolesByLocationIndustry(
+    //     [FromQuery] PublicRolesQueryDto queryDto)
+    // {
+    //     _logger.LogInformation("Public request for roles by location/industry: {@QueryDto}", queryDto);
+    //             
+    //     if (!ModelState.IsValid)
+    //     {
+    //         return BadRequest(ModelState);
+    //     }
+    //     try
+    //     {
+    //         var result = await _factSalaryService.GetPublicRolesByLocationIndustryAsync(queryDto);
+    //         return Ok(result);
+    //     }
+    //     catch (ArgumentException argEx)
+    //     {
+    //         _logger.LogWarning(argEx, "Invalid arguments for GetPublicRolesByLocationIndustryAsync: {@QueryDto}", queryDto);
+    //         return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
+    //     }
+    // }
     
     /// <summary>
     /// Gets a public view of average salaries by education specialty and level within a given industry.
     /// </summary>
     /// <param name="queryDto">Query parameters including industry and optional thresholds.</param>
-    [HttpGet("public/salary-by-education-in-industry")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(IEnumerable<PublicSalaryByEducationInIndustryDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<PublicSalaryByEducationInIndustryDto>>> GetPublicSalaryByEducationInIndustry(
-        [FromQuery] PublicSalaryByEducationQueryDto queryDto)
-    {
-        _logger.LogInformation("Public request for salary by education in industry: {@QueryDto}", queryDto);
-        
-        if (!ModelState.IsValid)
-        {
-            _logger.LogWarning("GetPublicSalaryByEducationInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
-            return BadRequest(ModelState);
-        }
-    
-        try
-        {
-            var result = await _factSalaryService.GetPublicSalaryByEducationInIndustryAsync(queryDto);
-            return Ok(result);
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "Invalid arguments for GetPublicSalaryByEducationInIndustryAsync: {@QueryDto}", queryDto);
-            return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
-        }
-    }
+    // [HttpGet("public/salary-by-education-in-industry")]
+    // [AllowAnonymous]
+    // [ProducesResponseType(typeof(IEnumerable<PublicSalaryByEducationInIndustryDto>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    // public async Task<ActionResult<IEnumerable<PublicSalaryByEducationInIndustryDto>>> GetPublicSalaryByEducationInIndustry(
+    //     [FromQuery] PublicSalaryByEducationQueryDto queryDto)
+    // {
+    //     _logger.LogInformation("Public request for salary by education in industry: {@QueryDto}", queryDto);
+    //     
+    //     if (!ModelState.IsValid)
+    //     {
+    //         _logger.LogWarning("GetPublicSalaryByEducationInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
+    //         return BadRequest(ModelState);
+    //     }
+    //
+    //     try
+    //     {
+    //         var result = await _factSalaryService.GetPublicSalaryByEducationInIndustryAsync(queryDto);
+    //         return Ok(result);
+    //     }
+    //     catch (ArgumentException argEx)
+    //     {
+    //         _logger.LogWarning(argEx, "Invalid arguments for GetPublicSalaryByEducationInIndustryAsync: {@QueryDto}", queryDto);
+    //         return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
+    //     }
+    // }
     
     /// <summary>
     /// Gets a public view of top employers and their common roles with average salaries within a given industry.
     /// </summary>
     /// <param name="queryDto">Query parameters including industry and optional thresholds.</param>
-    [HttpGet("public/top-employer-role-salaries")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>>> GetPublicTopEmployerRoleSalariesInIndustry(
-        [FromQuery] PublicTopEmployerRoleSalariesQueryDto queryDto)
-    {
-        _logger.LogInformation("Public request for top employer role salaries in industry: {@QueryDto}", queryDto);
-            
-        if (!ModelState.IsValid)
-        {
-            _logger.LogWarning("GetPublicTopEmployerRoleSalariesInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
-            return BadRequest(ModelState);
-        }
-    
-        try
-        {
-            var result = await _factSalaryService.GetPublicTopEmployerRoleSalariesInIndustryAsync(queryDto);
-            return Ok(result);
-        }
-        catch (ArgumentException argEx)
-        {
-            _logger.LogWarning(argEx, "Invalid arguments for GetPublicTopEmployerRoleSalariesInIndustryAsync: {@QueryDto}", queryDto);
-            return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
-        }
-    }
+    // [HttpGet("public/top-employer-role-salaries")]
+    // [AllowAnonymous]
+    // [ProducesResponseType(typeof(IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>), StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    // public async Task<ActionResult<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>>> GetPublicTopEmployerRoleSalariesInIndustry(
+    //     [FromQuery] PublicTopEmployerRoleSalariesQueryDto queryDto)
+    // {
+    //     _logger.LogInformation("Public request for top employer role salaries in industry: {@QueryDto}", queryDto);
+    //         
+    //     if (!ModelState.IsValid)
+    //     {
+    //         _logger.LogWarning("GetPublicTopEmployerRoleSalariesInIndustry: Invalid model state: {@ModelStateErrors}", ModelState);
+    //         return BadRequest(ModelState);
+    //     }
+    //
+    //     try
+    //     {
+    //         var result = await _factSalaryService.GetPublicTopEmployerRoleSalariesInIndustryAsync(queryDto);
+    //         return Ok(result);
+    //     }
+    //     catch (ArgumentException argEx)
+    //     {
+    //         _logger.LogWarning(argEx, "Invalid arguments for GetPublicTopEmployerRoleSalariesInIndustryAsync: {@QueryDto}", queryDto);
+    //         return BadRequest(new ProblemDetails { Title = "Invalid query parameters.", Detail = argEx.Message, Status = StatusCodes.Status400BadRequest });
+    //     }
+    // }
 }

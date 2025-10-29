@@ -9,4 +9,6 @@ public interface IDimLocationRepository
     Task<IEnumerable<DimLocation>> GetAllLocationsAsync();
     Task UpdateLocationAsync(DimLocation location);
     Task DeleteLocationAsync(int locationId);
+
+    Task<List<int>> GetLocationIdsByFilerAsync(string? districtName, string? oblastName, string? cityName);
 }

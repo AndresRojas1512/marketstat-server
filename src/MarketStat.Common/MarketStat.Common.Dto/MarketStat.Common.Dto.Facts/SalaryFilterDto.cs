@@ -1,13 +1,32 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 
 public class SalaryFilterDto
 {
+    [StringLength(255)]
+    public string? StandardJobRoleTitle { get; set; }
+    
+    [StringLength(255)]
+    public string? HierarchyLevelName { get; set; }
+    
+    [Range(1, int.MaxValue)]
     public int? IndustryFieldId { get; set; }
-    public int? StandardJobRoleId { get; set; }
-    public int? HierarchyLevelId { get; set; }
-    public int? DistrictId { get; set; }
-    public int? OblastId { get; set; }
-    public int? CityId { get; set; }
+    
+    [Range(1, int.MaxValue)]
+    public int? JobId { get; set; }
+    
+    [StringLength(255)]
+    public string? DistrictName { get; set; }
+    
+    [StringLength(255)]
+    public string? OblastName { get; set; }
+    
+    [StringLength(255)]
+    public string? CityName { get; set; }
+    
+    [Range(1, int.MaxValue)]
+    public int? LocationId { get; set; }
     
     public DateOnly? DateStart { get; set; }
     public DateOnly? DateEnd { get; set; }
