@@ -10,5 +10,5 @@ public interface IDimLocationRepository
     Task UpdateLocationAsync(DimLocation location);
     Task DeleteLocationAsync(int locationId);
 
-    Task<List<int>> GetLocationIdsByFilerAsync(string? districtName, string? oblastName, string? cityName);
+    Task<List<int>> GetLocationIdsByFilterAsync(string? districtName, string? oblastName, string? cityName);
 }

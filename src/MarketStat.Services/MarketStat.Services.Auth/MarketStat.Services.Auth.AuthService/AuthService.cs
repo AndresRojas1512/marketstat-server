@@ -12,7 +12,6 @@ using MarketStat.Services.Auth.AuthService.Validators;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Win32.SafeHandles;
-using Microsoft.Extensions.Configuration;
 
 namespace MarketStat.Services.Auth.AuthService;
 

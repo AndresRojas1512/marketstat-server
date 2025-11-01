@@ -8,6 +8,7 @@ namespace MarketStat.Controllers.Dimensions;
 
 [ApiController]
 [Route("api/dimlocations")]
+[Authorize]
 public class DimLocationController : ControllerBase
 {
     private readonly IDimLocationService _dimLocationService;
@@ -29,7 +30,6 @@ public class DimLocationController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(typeof(DimLocationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DimLocationDto>> GetById(int id)
@@ -40,7 +40,6 @@ public class DimLocationController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(typeof(DimLocationDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -58,7 +57,6 @@ public class DimLocationController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -76,7 +74,6 @@ public class DimLocationController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteLocation(int id)

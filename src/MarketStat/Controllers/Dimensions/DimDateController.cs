@@ -8,6 +8,7 @@ namespace MarketStat.Controllers.Dimensions;
 
 [ApiController]
 [Route("api/dimdates")]
+[Authorize]
 public class DimDateController : ControllerBase
 {
     private readonly IDimDateService _dimDateService;
@@ -23,7 +24,6 @@ public class DimDateController : ControllerBase
     /// Returns all dates
     /// </summary>
     [HttpGet]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<DimDateDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DimDateDto>>> GetAll()
@@ -38,7 +38,6 @@ public class DimDateController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     [HttpGet("{id:int}")]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(DimDateDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,7 +58,6 @@ public class DimDateController : ControllerBase
     /// </summary>
     /// <param name="createDto"></param>
     [HttpPost]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(typeof(DimDateDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -83,7 +81,6 @@ public class DimDateController : ControllerBase
     /// <param name="id"></param>
     /// <param name="updateDto"></param>
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -110,7 +107,6 @@ public class DimDateController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

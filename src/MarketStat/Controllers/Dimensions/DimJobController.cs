@@ -9,6 +9,7 @@ namespace MarketStat.Controllers.Dimensions;
 
 [ApiController]
 [Route("api/dimjobs")]
+[Authorize]
 public class DimJobController : ControllerBase
 {
     private readonly IDimJobService _dimJobService;
@@ -21,7 +22,6 @@ public class DimJobController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<DimJobDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DimJobDto>>> GetAll()
     {
@@ -39,7 +39,6 @@ public class DimJobController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(typeof(DimJobDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -52,7 +51,6 @@ public class DimJobController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -65,7 +63,6 @@ public class DimJobController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteJob(int id)

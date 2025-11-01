@@ -78,7 +78,7 @@ public class DimLocationRepository : BaseRepository, IDimLocationRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<List<int>> GetLocationIdsByFilerAsync(string? districtName, string? oblastName, string? cityName)
+    public async Task<List<int>> GetLocationIdsByFilterAsync(string? districtName, string? oblastName, string? cityName)
     {
         var query = _dbContext.DimLocations.AsQueryable();
         if (!string.IsNullOrEmpty(districtName))

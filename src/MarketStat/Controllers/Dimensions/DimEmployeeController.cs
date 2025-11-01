@@ -24,7 +24,6 @@ public class DimEmployeeController : ControllerBase
     /// Returns all employees.
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Analyst, EtlUser")]
     [ProducesResponseType(typeof(IEnumerable<DimEmployeeDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -41,7 +40,6 @@ public class DimEmployeeController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "Analyst, EtlUser")]
     [ProducesResponseType(typeof(DimEmployeeDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -63,7 +61,6 @@ public class DimEmployeeController : ControllerBase
     /// </summary>
     /// <param name="createDto"></param>
     [HttpPost]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(typeof(DimEmployeeDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -95,7 +92,6 @@ public class DimEmployeeController : ControllerBase
     /// <param name="id"></param>
     /// <param name="updateDto"></param>
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -131,7 +127,6 @@ public class DimEmployeeController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "EtlUser")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

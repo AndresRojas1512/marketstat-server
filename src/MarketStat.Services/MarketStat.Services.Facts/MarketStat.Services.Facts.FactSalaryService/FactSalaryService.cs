@@ -147,7 +147,7 @@ public class FactSalaryService : IFactSalaryService
         }
     }
 
-    private async Task<ResolvedSalaryFilterDto> ResolveFilters(SalaryFilterDto userFilters)
+    private async Task<ResolvedSalaryFilterDto?> ResolveFilters(SalaryFilterDto userFilters)
     {
         _logger.LogDebug("Resolving user filters: {@UserFilters}", userFilters);
         List<int>? locationIds = null;
@@ -164,7 +164,7 @@ public class FactSalaryService : IFactSalaryService
             locationFilterApplied = true;
             _logger.LogDebug("Resolving location IDs based on names: Distric={District}, Oblast={Oblast}, City={City}",
                 userFilters.DistrictName, userFilters.OblastName, userFilters.CityName);
-            locationIds = await _dimLocationRepository.GetLocationIdsByFilerAsync(userFilters.DistrictName,
+            locationIds = await _dimLocationRepository.GetLocationIdsByFilterAsync(userFilters.DistrictName,
                 userFilters.OblastName, userFilters.CityName);
             if (!locationIds.Any())
             {

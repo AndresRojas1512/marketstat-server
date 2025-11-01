@@ -1,5 +1,3 @@
-using System.Data;
-using System.Text;
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
@@ -10,13 +8,7 @@ using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using NpgsqlTypes;
-using System.Linq;
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 
@@ -236,11 +228,11 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             seriesStartDate, overallEndDate, periods, granularity);
 
         var baseQuery = GetFilteredSalariesQuery(resolvedFilters)
-            .Where(f => f.DimDate.FullDate >= seriesStartDate &&
+            .Where(f => f.DimDate!.FullDate >= seriesStartDate &&
                         f.DimDate.FullDate < overallEndDate);
 
         var dbResults = await baseQuery
-            .GroupBy(f => GetPeriodStartDate(f.DimDate.FullDate, granularity))
+            .GroupBy(f => GetPeriodStartDate(f.DimDate!.FullDate, granularity))
             .Select(g => new
             {
                 PeriodStart = g.Key,
@@ -301,12 +293,12 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
 
         if (resolvedFilters.DateStart.HasValue)
         {
-            query = query.Where(fs => fs.DimDate.FullDate >= resolvedFilters.DateStart.Value);
+            query = query.Where(fs => fs.DimDate!.FullDate >= resolvedFilters.DateStart.Value);
         }
 
         if (resolvedFilters.DateEnd.HasValue)
         {
-            query = query.Where(fs => fs.DimDate.FullDate <= resolvedFilters.DateEnd.Value);
+            query = query.Where(fs => fs.DimDate!.FullDate <= resolvedFilters.DateEnd.Value);
         }
 
         return query;
