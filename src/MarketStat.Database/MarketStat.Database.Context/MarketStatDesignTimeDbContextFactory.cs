@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 
 namespace MarketStat.Database.Context
 {
@@ -10,16 +9,26 @@ namespace MarketStat.Database.Context
     {
         public MarketStatDbContext CreateDbContext(string[] args)
         {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+            var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../../MarketStat"));
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .SetBasePath(basePath)
                 .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build();
 
-            var connString = configuration.GetConnectionString("MarketStat")
-                             ?? throw new InvalidOperationException("Connection string 'MarketStat' not found.");
+            var connectionString = configuration.GetConnectionString("DesignTimeConnection");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "The 'DesignTimeConnection' string was not found in appsettings.Development.json");
+            }
 
             var optionsBuilder = new DbContextOptionsBuilder<MarketStatDbContext>();
-            optionsBuilder.UseNpgsql(connString);
+        
+            optionsBuilder.UseNpgsql(connectionString, o =>
+            {
+                o.MigrationsAssembly(typeof(MarketStatDbContext).Assembly.FullName);
+            }).UseSnakeCaseNamingConvention();
 
             return new MarketStatDbContext(optionsBuilder.Options);
         }
