@@ -9,7 +9,7 @@ namespace MarketStat.Database.Context
     {
         public MarketStatDbContext CreateDbContext(string[] args)
         {
-            var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../../MarketStat"));
+            var basePath = Directory.GetCurrentDirectory();
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(basePath)
                 .AddJsonFile("appsettings.json", optional: false)
