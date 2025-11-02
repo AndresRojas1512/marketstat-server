@@ -1,5 +1,4 @@
 using AutoMapper;
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimJob;
 using MarketStat.Services.Dimensions.DimJobService;
 using Microsoft.AspNetCore.Authorization;

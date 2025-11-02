@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Security.Claims;
 using AutoMapper;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;

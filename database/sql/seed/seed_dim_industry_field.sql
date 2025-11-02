@@ -1,5 +1,5 @@
-SET search_path = marketstat, public;
 \set ON_ERROR_STOP on
+SET search_path = marketstat, public;
 
 CREATE TEMP TABLE staging_industry_fields_temp (
     industry_field_code TEXT,
