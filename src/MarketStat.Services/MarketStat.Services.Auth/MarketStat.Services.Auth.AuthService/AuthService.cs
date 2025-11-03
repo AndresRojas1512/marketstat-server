@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
@@ -11,7 +10,6 @@ using MarketStat.Common.Exceptions;
 using MarketStat.Services.Auth.AuthService.Validators;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Win32.SafeHandles;
 
 namespace MarketStat.Services.Auth.AuthService;
 
@@ -55,12 +53,12 @@ public class AuthService : IAuthService
             FullName = registerDto.FullName,
             IsActive = true,
             CreatedAt = DateTimeOffset.UtcNow,
-            IsEtlUser = registerDto.IsEtlUser
+            IsAdmin = registerDto.IsAdmin
         };
 
         var createdUserDomain = await _userRepository.AddUserAsync(newUserDomain);
         _logger.LogInformation("User {Username} registered successfully with ID {UserId} (IsEtlUser: {IsEtlUser})", 
-            createdUserDomain.Username, createdUserDomain.UserId, createdUserDomain.IsEtlUser);
+            createdUserDomain.Username, createdUserDomain.UserId, createdUserDomain.IsAdmin);
 
         return _mapper.Map<UserDto>(createdUserDomain);
     }
@@ -126,11 +124,11 @@ public class AuthService : IAuthService
         };
 
         string roleClaimValue;
-        if (userDomain.IsEtlUser)
+        if (userDomain.IsAdmin)
         {
-            roleClaimValue = "EtlUser";
+            roleClaimValue = "Admin";
             claims.Add(new Claim(ClaimTypes.Role, roleClaimValue));
-            _logger.LogInformation("User {Username} (ID: {UserId}) assigned 'EtlUser' role in JWT.", userDomain.Username, userDomain.UserId);
+            _logger.LogInformation("User {Username} (ID: {UserId}) assigned 'Admin' role in JWT.", userDomain.Username, userDomain.UserId);
         }
         else
         {

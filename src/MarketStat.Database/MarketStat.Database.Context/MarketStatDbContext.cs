@@ -383,8 +383,8 @@ public class MarketStatDbContext : DbContext
                 .HasColumnName("last_login_at")
                 .IsRequired(false);
 
-            b.Property(u => u.IsEtlUser)
-                .HasColumnName("is_etl_user")
+            b.Property(u => u.IsAdmin)
+                .HasColumnName("is_admin")
                 .IsRequired()
                 .HasDefaultValue(false);
 

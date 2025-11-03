@@ -25,6 +25,7 @@ public class DimEmployerController : ControllerBase
     /// Returns all employers.
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(IEnumerable<DimEmployerDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DimEmployerDto>>> GetAll()
     {
@@ -38,6 +39,7 @@ public class DimEmployerController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(DimEmployerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -57,6 +59,7 @@ public class DimEmployerController : ControllerBase
     /// </summary>
     /// <param name="createDto"></param>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(DimEmployerDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -89,6 +92,7 @@ public class DimEmployerController : ControllerBase
     /// <param name="id"></param>
     /// <param name="updateDto"></param>
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -126,6 +130,7 @@ public class DimEmployerController : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

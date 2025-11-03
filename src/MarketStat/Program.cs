@@ -18,7 +18,7 @@ using MarketStat.Database.Repositories.PostgresRepositories.Account;
 using MarketStat.Middleware;
 using MarketStat.Services.Account.BenchmarkHistoryService;
 using MarketStat.Services.Auth.AuthService;
-using MarketStat.Services.Dimencions.DimLocationService;
+using MarketStat.Services.Dimensions.DimLocationService;
 using MarketStat.Services.Dimensions.DimJobService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -28,7 +28,7 @@ using Serilog.Events;
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning) // Keep EF Core commands quieter during bootstrap
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .CreateBootstrapLogger();

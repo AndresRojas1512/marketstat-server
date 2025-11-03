@@ -1,6 +1,6 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 
-namespace MarketStat.Services.Dimencions.DimLocationService;
+namespace MarketStat.Services.Dimensions.DimLocationService;
 
 public interface IDimLocationService
 {

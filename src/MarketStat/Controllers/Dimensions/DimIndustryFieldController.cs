@@ -24,6 +24,7 @@ public class DimIndustryFieldController : ControllerBase
     /// Returns all industry fields.
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(IEnumerable<DimIndustryFieldDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DimIndustryFieldDto>>> GetAll()
@@ -37,6 +38,7 @@ public class DimIndustryFieldController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(DimIndustryFieldDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -58,6 +60,7 @@ public class DimIndustryFieldController : ControllerBase
     /// <param name="createDto"></param>
     /// <returns></returns>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(DimIndustryFieldDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -85,6 +88,7 @@ public class DimIndustryFieldController : ControllerBase
     /// <param name="id"></param>
     /// <param name="updateDto"></param>
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -116,6 +120,7 @@ public class DimIndustryFieldController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

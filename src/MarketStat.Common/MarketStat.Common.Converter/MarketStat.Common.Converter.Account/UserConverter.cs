@@ -20,7 +20,7 @@ public static class UserConverter
             IsActive = domainUser.IsActive,
             CreatedAt = domainUser.CreatedAt,
             LastLoginAt = domainUser.LastLoginAt,
-            IsEtlUser = domainUser.IsEtlUser
+            IsAdmin = domainUser.IsAdmin
         };
         return dbModel;
     }
@@ -39,7 +39,7 @@ public static class UserConverter
             isActive: dbUser.IsActive,
             createdAt: dbUser.CreatedAt,
             lastLoginAt: dbUser.LastLoginAt,
-            isEtlUser: dbUser.IsEtlUser
+            isAdmin: dbUser.IsAdmin
         );
 
         if (dbUser.BenchmarkHistories != null && dbUser.BenchmarkHistories.Any())

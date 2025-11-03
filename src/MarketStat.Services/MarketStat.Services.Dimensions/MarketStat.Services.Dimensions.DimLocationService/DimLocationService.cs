@@ -4,7 +4,7 @@ using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimencions.DimLocationService.Validators;
 using Microsoft.Extensions.Logging;
 
-namespace MarketStat.Services.Dimencions.DimLocationService;
+namespace MarketStat.Services.Dimensions.DimLocationService;
 
 public class DimLocationService : IDimLocationService
 {
