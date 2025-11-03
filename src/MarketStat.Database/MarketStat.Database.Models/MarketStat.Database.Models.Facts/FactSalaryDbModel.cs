@@ -34,19 +34,9 @@ public class FactSalaryDbModel
     [Column("salary_amount", TypeName = "numeric(18, 2)")]
     public decimal SalaryAmount { get; set; }
     
-    
-    [ForeignKey(nameof(DateId))]
     public virtual DimDateDbModel? DimDate { get; set; }
-
-    [ForeignKey(nameof(LocationId))]
     public virtual DimLocationDbModel? DimLocation { get; set; }
-
-    [ForeignKey(nameof(EmployerId))]
     public virtual DimEmployerDbModel? DimEmployer { get; set; }
-
-    [ForeignKey(nameof(JobId))]
     public virtual DimJobDbModel? DimJob { get; set; }
-
-    [ForeignKey(nameof(EmployeeId))]
     public virtual DimEmployeeDbModel? DimEmployee { get; set; }
 }

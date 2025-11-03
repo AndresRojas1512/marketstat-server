@@ -34,12 +34,6 @@ public class DimEmployeeDbModel
     [Column("graduation_year")]
     public short? GraduationYear { get; set; }
     
-    [ForeignKey(nameof(EducationId))]
     public virtual DimEducationDbModel? Education { get; set; }
-    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; }
-
-    public DimEmployeeDbModel() 
-    {
-        FactSalaries = new List<FactSalaryDbModel>();
-    }
+    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; } = new List<FactSalaryDbModel>();
 }

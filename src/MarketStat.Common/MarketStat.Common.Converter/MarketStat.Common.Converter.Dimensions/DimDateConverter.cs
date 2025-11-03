@@ -7,17 +7,23 @@ public class DimDateConverter
 {
     public static DimDateDbModel ToDbModel(DimDate dimDate)
     {
-        return new DimDateDbModel(
-            dimDate.DateId,
-            dimDate.FullDate,
-            dimDate.Year,
-            dimDate.Quarter,
-            dimDate.Month
-        );
+        if (dimDate == null)
+            throw new ArgumentNullException(nameof(dimDate));
+
+        return new DimDateDbModel
+        {
+            DateId = dimDate.DateId,
+            FullDate = dimDate.FullDate,
+            Year = (short)dimDate.Year,
+            Quarter = (short)dimDate.Quarter,
+            Month = (short)dimDate.Month
+        };
     }
 
     public static DimDate ToDomain(DimDateDbModel dbDate)
     {
+        if (dbDate == null)
+            throw new ArgumentNullException(nameof(dbDate));
         return new DimDate(
             dbDate.DateId,
             dbDate.FullDate,

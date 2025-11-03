@@ -24,4 +24,6 @@ public class DimEducationDbModel
     [Column("education_level_name")]
     [StringLength(255)]
     public string EducationLevelName { get; set; } = string.Empty;
+    
+    public virtual ICollection<DimEmployeeDbModel> DimEmployees { get; set; } = new List<DimEmployeeDbModel>();
 }

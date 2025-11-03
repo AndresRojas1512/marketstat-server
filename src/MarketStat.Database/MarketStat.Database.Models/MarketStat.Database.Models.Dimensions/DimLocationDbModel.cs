@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
 
 namespace MarketStat.Database.Models;
 
@@ -24,4 +25,6 @@ public class DimLocationDbModel
     [Column("district_name")]
     [StringLength(255)]
     public string DistrictName { get; set; } = string.Empty;
+    
+    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; } = new List<FactSalaryDbModel>();
 }

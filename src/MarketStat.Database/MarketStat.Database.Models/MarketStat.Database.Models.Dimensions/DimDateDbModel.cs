@@ -28,19 +28,4 @@ public class DimDateDbModel
     public int Month { get; set; }
     
     public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; } = new List<FactSalaryDbModel>();
-
-    public DimDateDbModel()
-    {
-        FactSalaries = new List<FactSalaryDbModel>();
-    }
-
-    public DimDateDbModel(int dateId, DateOnly fullDate, int year, int quarter, int month)
-    {
-        DateId = dateId;
-        FullDate = fullDate;
-        Year = year;
-        Quarter = quarter;
-        Month = month;
-        FactSalaries = new List<FactSalaryDbModel>();
-    }
 }
