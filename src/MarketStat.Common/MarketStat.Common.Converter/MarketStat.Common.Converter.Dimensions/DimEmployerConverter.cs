@@ -20,7 +20,8 @@ public static class DimEmployerConverter
             RegistrationDate = domainEmployer.RegistrationDate,
             LegalAddress = domainEmployer.LegalAddress,
             ContactEmail = domainEmployer.ContactEmail,
-            ContactPhone = domainEmployer.ContactPhone
+            ContactPhone = domainEmployer.ContactPhone,
+            IndustryFieldId = domainEmployer.IndustryFieldId
         };
     }
 
@@ -39,7 +40,8 @@ public static class DimEmployerConverter
             RegistrationDate = dbEmployer.RegistrationDate,
             LegalAddress = dbEmployer.LegalAddress,
             ContactEmail = dbEmployer.ContactEmail,
-            ContactPhone = dbEmployer.ContactPhone
+            ContactPhone = dbEmployer.ContactPhone,
+            IndustryFieldId = dbEmployer.IndustryFieldId
         };
     }
 }
