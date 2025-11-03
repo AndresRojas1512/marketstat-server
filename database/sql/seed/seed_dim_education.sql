@@ -9,7 +9,7 @@ CREATE TEMP TABLE staging_education_temp (
     education_level TEXT
 );
 
-\copy staging_education_temp(code, specialty, field, general_field, education_level) FROM '/home/andres/Desktop/7-semester/marketstat/server/database/datasets/dim_education_dataset.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',');
+\copy staging_education_temp(code, specialty, field, general_field, education_level) FROM '/home/andres/Desktop/7-semester/marketstat/server/database/datasets/static/dim_education_dataset.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',');
 
 BEGIN;
 INSERT INTO marketstat.dim_education (

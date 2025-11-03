@@ -13,7 +13,7 @@ CREATE TEMP TABLE staging_employers_temp (
     industry_name       TEXT
 );
 
-\copy staging_employers_temp FROM '/home/andres/Desktop/7-semester/marketstat/server/database/datasets/dim_employer_dataset.csv' WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
+\copy staging_employers_temp FROM '/home/andres/Desktop/7-semester/marketstat/server/database/datasets/static/dim_employer_dataset.csv' WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
 
 BEGIN;
 

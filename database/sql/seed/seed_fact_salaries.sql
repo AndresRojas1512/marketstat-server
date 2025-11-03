@@ -1,37 +1,67 @@
-\echo '--- Starting Load Process for Targeted Salary Facts ---'
 \set ON_ERROR_STOP on
-
 SET search_path = marketstat, public;
 
-\set csv_file_path '/home/andres/Desktop/6Semester/SoftwareDesign/PPO/database/datasets/fact_salaries.csv'
+CREATE TEMP TABLE staging_raw_salary_facts (
+    employee_ref_id         TEXT,
+    birth_date              TEXT,
+    career_start_date       TEXT,
+    education_code          TEXT,
+    graduation_year         TEXT,
+    employer_name           TEXT,
+    job_role_title          TEXT,
+    standard_job_role_title TEXT,
+    hierarchy_level         TEXT,
+    city_name               TEXT,
+    oblast_name             TEXT,
+    district_name           TEXT,
+    industry_name           TEXT,
+    salary_amount           TEXT,
+    date                    TEXT
+);
 
-SELECT translate(gen_random_uuid()::text, '-', '') AS temp_table_suffix_val \gset
-\set source_csv_staging_table 'temp_source_csv_data_' :temp_table_suffix_val
-
+\copy staging_raw_salary_facts FROM '/home/andres/Desktop/7-semester/marketstat/server/database/datasets/fact/salary_facts_raw.csv' WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
 
 BEGIN;
 
-CREATE TEMP TABLE :source_csv_staging_table (
-    recorded_date_text TEXT,
-    city_name TEXT,
-    oblast_name TEXT,
-    employer_name TEXT,
-    standard_job_role_title TEXT,
-    job_role_title TEXT,
-    hierarchy_level_name TEXT,
-    employee_birth_date_text TEXT,
-    employee_career_start_date_text TEXT,
-    salary_amount NUMERIC(18,2),
-    bonus_amount NUMERIC(18,2)
-) ON COMMIT DROP;
+INSERT INTO marketstat.dim_employee (employee_ref_id, birth_date, career_start_date, education_id, graduation_year)
+SELECT DISTINCT
+    TRIM(s.employee_ref_id),
+    s.birth_date::date,
+    s.career_start_date::date,
+    de.education_id,
+    NULLIF(TRIM(s.graduation_year), '')::smallint
+FROM staging_raw_salary_facts s
+LEFT JOIN marketstat.dim_education de ON TRIM(s.education_code) = de.specialty_code
+ON CONFLICT (employee_ref_id) DO NOTHING;
 
-
-\copy :source_csv_staging_table FROM :'csv_file_path' WITH (FORMAT CSV, HEADER TRUE, DELIMITER ',');
-
-SELECT COUNT(*) AS rows_in_staging FROM :"source_csv_staging_table";
-
-CALL marketstat.bulk_load_salary_facts_from_staging('api_fact_uploads_staging');
+INSERT INTO marketstat.dim_job (job_role_title, standard_job_role_title, hierarchy_level_name, industry_field_id)
+SELECT DISTINCT
+    TRIM(s.job_role_title),
+    TRIM(s.standard_job_role_title),
+    TRIM(s.hierarchy_level),
+    dif.industry_field_id
+FROM staging_raw_salary_facts s
+JOIN marketstat.dim_industry_field dif ON TRIM(s.industry_name) = dif.industry_field_name
+ON CONFLICT (job_role_title, standard_job_role_title, hierarchy_level_name, industry_field_id) DO NOTHING;
 
 COMMIT;
 
 
+BEGIN;
+
+INSERT INTO marketstat.fact_salaries (date_id, location_id, employer_id, job_id, employee_id, salary_amount)
+SELECT
+    dd.date_id,
+    dl.location_id,
+    de.employer_id,
+    dj.job_id,
+    dem.employee_id,
+    s.salary_amount::numeric(18, 2)
+FROM staging_raw_salary_facts s
+JOIN marketstat.dim_date dd ON s.date::date = dd.full_date
+JOIN marketstat.dim_location dl ON TRIM(s.city_name) = dl.city_name AND TRIM(s.oblast_name) = dl.oblast_name AND TRIM(s.district_name) = dl.district_name
+JOIN marketstat.dim_employer de ON TRIM(s.employer_name) = de.employer_name
+JOIN marketstat.dim_job dj ON TRIM(s.job_role_title) = dj.job_role_title AND TRIM(s.standard_job_role_title) = dj.standard_job_role_title AND TRIM(s.hierarchy_level) = dj.hierarchy_level_name
+JOIN marketstat.dim_employee dem ON TRIM(s.employee_ref_id) = dem.employee_ref_id;
+
+COMMIT;
