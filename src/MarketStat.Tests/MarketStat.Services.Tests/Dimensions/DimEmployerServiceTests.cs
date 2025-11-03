@@ -3,8 +3,8 @@ using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEmployerService;
-using MarketStat.Services.Tests.TestData.Builders;
-using MarketStat.Services.Tests.TestData.ObjectMothers;
+using MarketStat.Tests.TestData.Builders.Dimensions;
+using MarketStat.Tests.TestData.ObjectMothers.Dimensions;
 using Microsoft.Extensions.Logging;
 using Moq;
 

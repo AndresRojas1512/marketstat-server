@@ -1,7 +1,7 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using MarketStat.Services.Tests.TestData.Builders;
+using MarketStat.Tests.TestData.Builders.Dimensions;
 
-namespace MarketStat.Services.Tests.TestData.ObjectMothers;
+namespace MarketStat.Tests.TestData.ObjectMothers.Dimensions;
 
 public class DimEmployerObjectMother
 {

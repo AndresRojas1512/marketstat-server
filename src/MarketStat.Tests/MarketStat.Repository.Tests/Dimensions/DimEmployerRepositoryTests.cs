@@ -3,10 +3,10 @@ using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
-using MarketStat.Services.Tests.TestData.Builders;
+using MarketStat.Tests.TestData.Builders.Dimensions;
 using Microsoft.EntityFrameworkCore;
 
-namespace MarketStat.Repository.Tests;
+namespace MarketStat.Repository.Tests.Dimensions;
 
 public class DimEmployerRepositoryTests
 {

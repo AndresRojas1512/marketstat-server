@@ -27,7 +27,13 @@
     <ProjectReference Include="..\..\MarketStat.Database\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Exceptions\MarketStat.Common.Exceptions.csproj" />
-    <ProjectReference Include="..\MarketStat.Services.Tests\MarketStat.Services.Tests.csproj" />
+    <ProjectReference Include="..\MarketStat.Tests.TestData\MarketStat.Tests.TestData.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\xunit.runner.json" Link="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 
-namespace MarketStat.Services.Tests.TestData.Builders;
+namespace MarketStat.Tests.TestData.Builders.Dimensions;
 
 public class DimEmployerBuilder
 {
