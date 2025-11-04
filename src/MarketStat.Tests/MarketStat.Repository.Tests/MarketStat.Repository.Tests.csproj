@@ -32,6 +32,7 @@
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Exceptions\MarketStat.Common.Exceptions.csproj" />
     <ProjectReference Include="..\MarketStat.Tests.TestData\MarketStat.Tests.TestData.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimDateService\MarketStat.Services.Dimensions.DimDateService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

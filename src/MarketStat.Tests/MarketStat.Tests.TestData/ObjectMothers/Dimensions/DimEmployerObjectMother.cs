@@ -3,7 +3,7 @@ using MarketStat.Tests.TestData.Builders.Dimensions;
 
 namespace MarketStat.Tests.TestData.ObjectMothers.Dimensions;
 
-public class DimEmployerObjectMother
+public static class DimEmployerObjectMother
 {
     public static DimEmployer AValidNewEmployer() =>
         new DimEmployerBuilder()
