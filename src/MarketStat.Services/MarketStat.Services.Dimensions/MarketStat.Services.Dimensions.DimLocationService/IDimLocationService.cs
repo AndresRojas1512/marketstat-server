@@ -9,4 +9,7 @@ public interface IDimLocationService
     Task<IEnumerable<DimLocation>> GetAllLocationsAsync();
     Task<DimLocation> UpdateLocationAsync(int locationId, string cityName, string oblastName, string districtName);
     Task DeleteLocationAsync(int locationId);
+    Task<IEnumerable<string>> GetDistinctDistrictsAsync();
+    Task<IEnumerable<string>> GetDistinctOblastsAsync(string districtName);
+    Task<IEnumerable<string>> GetDistinctCitiesAsync(string oblastName);
 }

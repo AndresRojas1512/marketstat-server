@@ -492,18 +492,6 @@ public class MarketStatDbContext : DbContext
             entity.HasNoKey();
             entity.ToTable((string?)null);
         });
-
-        modelBuilder.Entity<PublicSalaryByEducationInIndustryDto>(entity =>
-        {
-            entity.HasNoKey();
-            entity.ToTable((string?)null);
-        });
-
-        modelBuilder.Entity<PublicTopEmployerRoleSalariesInIndustryDto>(entity =>
-        {
-            entity.HasNoKey();
-            entity.ToTable((string?)null);
-        });
         
         modelBuilder.Entity<SalarySummaryDto>(entity =>
         {

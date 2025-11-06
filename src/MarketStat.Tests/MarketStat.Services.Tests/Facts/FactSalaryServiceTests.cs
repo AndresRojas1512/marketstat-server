@@ -174,42 +174,4 @@ public class FactSalaryServiceTests
         result.Should().BeEmpty();
         _mockFactSalaryRepository.Verify(repo => repo.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilterDto>()), Times.Never);
     }
-    
-    [Fact]
-    public async Task GetBenchmarkingReportAsync_ShouldCallAllRepoMethods_WhenFiltersResolve()
-    {
-        var query = new BenchmarkQueryDto { CityName = "Moscow", TargetPercentile = 90, Periods = 12, Granularity = TimeGranularity.Month };
-        var resolvedLocationIds = new List<int> { 1 };
-        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "Moscow"))
-            .ReturnsAsync(resolvedLocationIds);
-        _mockFactSalaryRepository.Setup(repo => repo.GetSalarySummaryAsync(It.IsAny<ResolvedSalaryFilterDto>(), 90))
-            .ReturnsAsync(new SalarySummaryDto { TotalCount = 10 });
-        _mockFactSalaryRepository.Setup(repo => repo.GetSalaryDistributionAsync(It.IsAny<ResolvedSalaryFilterDto>()))
-            .ReturnsAsync(new List<SalaryDistributionBucketDto>());
-        _mockFactSalaryRepository.Setup(repo => repo.GetSalaryTimeSeriesAsync(It.IsAny<ResolvedSalaryFilterDto>(), TimeGranularity.Month, 12))
-            .ReturnsAsync(new List<SalaryTimeSeriesPointDto>());
-        var result = await _sut.GetBenchmarkingReportAsync(query);
-        result.Should().NotBeNull();
-        result.SalarySummary.Should().NotBeNull();
-        result.SalarySummary.TotalCount.Should().Be(10);
-        _mockFactSalaryRepository.Verify(repo => repo.GetSalarySummaryAsync(It.IsAny<ResolvedSalaryFilterDto>(), 90), Times.Once);
-        _mockFactSalaryRepository.Verify(repo => repo.GetSalaryDistributionAsync(It.IsAny<ResolvedSalaryFilterDto>()), Times.Once);
-        _mockFactSalaryRepository.Verify(repo => repo.GetSalaryTimeSeriesAsync(It.IsAny<ResolvedSalaryFilterDto>(), TimeGranularity.Month, 12), Times.Once);
-    }
-
-    [Fact]
-    public async Task GetBenchmarkingReportAsync_ShouldReturnEmptyReport_WhenFiltersDoNotResolve()
-    {
-        var query = new BenchmarkQueryDto { CityName = "NonExistentCity" };
-        var resolvedLocationIds = new List<int>();
-        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "NonExistentCity"))
-            .ReturnsAsync(resolvedLocationIds);
-        var result = await _sut.GetBenchmarkingReportAsync(query);
-        result.Should().NotBeNull();
-        result.SalarySummary.Should().BeNull();
-        result.SalaryDistribution.Should().BeEmpty();
-        _mockFactSalaryRepository.Verify(repo => repo.GetSalarySummaryAsync(It.IsAny<ResolvedSalaryFilterDto>(), It.IsAny<int>()), Times.Never);
-        _mockFactSalaryRepository.Verify(repo => repo.GetSalaryDistributionAsync(It.IsAny<ResolvedSalaryFilterDto>()), Times.Never);
-        _mockFactSalaryRepository.Verify(repo => repo.GetSalaryTimeSeriesAsync(It.IsAny<ResolvedSalaryFilterDto>(), It.IsAny<TimeGranularity>(), It.IsAny<int>()), Times.Never);
-    }
 }

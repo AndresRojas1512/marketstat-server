@@ -95,4 +95,22 @@ public class DimLocationService : IDimLocationService
             throw;
         }
     }
+
+    public async Task<IEnumerable<string>> GetDistinctDistrictsAsync()
+    {
+        _logger.LogInformation("Fetching distinct districts.");
+        return await _dimLocationRepository.GetDistinctDistrictsAsync();
+    }
+
+    public async Task<IEnumerable<string>> GetDistinctOblastsAsync(string districtName)
+    {
+        _logger.LogInformation("Fetching distinct oblasts for district: {DistrictName}", districtName);
+        return await _dimLocationRepository.GetDistinctOblastsAsync(districtName);
+    }
+
+    public async Task<IEnumerable<string>> GetDistinctCitiesAsync(string oblastName)
+    {
+        _logger.LogInformation("Fetching distinct cities for oblast: {OblastName}", oblastName);
+        return await _dimLocationRepository.GetDistinctCitiesAsync(oblastName);
+    }
 }

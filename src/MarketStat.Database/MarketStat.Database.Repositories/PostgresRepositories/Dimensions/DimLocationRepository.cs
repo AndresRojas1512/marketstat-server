@@ -78,6 +78,35 @@ public class DimLocationRepository : BaseRepository, IDimLocationRepository
         await _dbContext.SaveChangesAsync();
     }
 
+    public async Task<IEnumerable<string>> GetDistinctDistrictsAsync()
+    {
+        return await _dbContext.DimLocations
+            .Select(l => l.DistrictName)
+            .Distinct()
+            .OrderBy(name => name)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<string>> GetDistinctOblastsAsync(string districtName)
+    {
+        return await _dbContext.DimLocations
+            .Where(l => l.DistrictName == districtName)
+            .Select(l => l.OblastName)
+            .Distinct()
+            .OrderBy(name => name)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<string>> GetDistinctCitiesAsync(string oblastName)
+    {
+        return await _dbContext.DimLocations
+            .Where(l => l.OblastName == oblastName)
+            .Select(l => l.CityName)
+            .Distinct()
+            .OrderBy(name => name)
+            .ToListAsync();
+    }
+
     public async Task<List<int>> GetLocationIdsByFilterAsync(string? districtName, string? oblastName, string? cityName)
     {
         var query = _dbContext.DimLocations.AsQueryable();

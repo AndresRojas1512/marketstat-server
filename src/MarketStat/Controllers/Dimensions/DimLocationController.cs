@@ -86,4 +86,31 @@ public class DimLocationController : ControllerBase
         await _dimLocationService.DeleteLocationAsync(id);
         return NoContent();
     }
+
+    [HttpGet("lookup/districts")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<string>>> GetDistricts()
+    {
+        var districts = await _dimLocationService.GetDistinctDistrictsAsync();
+        return Ok(districts);
+    }
+
+    [HttpGet("lookup/oblasts")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<string>>> GetOblasts([FromQuery] string districtName)
+    {
+        var oblasts = await _dimLocationService.GetDistinctOblastsAsync(districtName);
+        return Ok(oblasts);
+    }
+
+    [HttpGet("lookup/cities")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<string>>> GetCities([FromQuery] string oblastName)
+    {
+        var cities = await _dimLocationService.GetDistinctCitiesAsync(oblastName);
+        return Ok(cities);
+    }
 }
