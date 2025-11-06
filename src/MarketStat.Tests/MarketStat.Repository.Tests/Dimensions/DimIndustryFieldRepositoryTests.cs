@@ -8,16 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Repository.Tests.Dimensions;
 
+[Collection("Database collection")]
 public class DimIndustryFieldRepositoryTests
 {
-    private MarketStatDbContext CreateInMemoryDbContext()
+    private readonly DatabaseFixture _fixture;
+
+    public DimIndustryFieldRepositoryTests(DatabaseFixture fixture)
     {
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var context = new MarketStatDbContext(options);
-        context.Database.EnsureCreated();
-        return context;
+        _fixture = fixture;
     }
     
     private DimIndustryFieldRepository CreateRepository(MarketStatDbContext context)
@@ -28,7 +26,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task AddIndustryFieldAsync_ShouldAddField_WhenDataIsCorrect()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var newField = new DimIndustryFieldBuilder()
             .WithId(0)
@@ -44,7 +42,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task AddIndustryFieldAsync_ShouldThrowException_WhenFieldIsNull()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.AddIndustryFieldAsync(null!);
         await act.Should().ThrowAsync<Exception>();
@@ -53,7 +51,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task GetIndustryFieldByIdAsync_ShouldReturnField_WhenFieldExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var expectedField = new DimIndustryFieldBuilder().WithId(1).Build();
         context.DimIndustryFields.Add(DimIndustryFieldConverter.ToDbModel(expectedField));
         await context.SaveChangesAsync();
@@ -66,7 +64,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task GetIndustryFieldByIdAsync_ShouldThrowNotFoundException_WhenFieldDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.GetIndustryFieldByIdAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -75,7 +73,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task GetAllIndustryFieldsAsync_ShouldReturnAllFields_WhenFieldsExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var field1 = DimIndustryFieldConverter.ToDbModel(new DimIndustryFieldBuilder().WithIndustryFieldName("Field A").Build());
         var field2 = DimIndustryFieldConverter.ToDbModel(new DimIndustryFieldBuilder().WithIndustryFieldName("Field B").Build());
         context.DimIndustryFields.AddRange(field1, field2);
@@ -90,7 +88,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task GetAllIndustryFieldsAsync_ShouldReturnEmptyList_WhenNoFieldsExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var result = await repository.GetAllIndustryFieldsAsync();
         result.Should().NotBeNull();
@@ -100,7 +98,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task UpdateIndustryFieldAsync_ShouldUpdateField_WhenFieldExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var originalDbModel = DimIndustryFieldConverter.ToDbModel(
             new DimIndustryFieldBuilder().WithId(1).WithIndustryFieldName("Old Name").Build()
         );
@@ -121,7 +119,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task UpdateIndustryFieldAsync_ShouldThrowNotFoundException_WhenFieldDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var nonExistentField = new DimIndustryFieldBuilder().WithId(999).Build();
         Func<Task> act = async () => await repository.UpdateIndustryFieldAsync(nonExistentField);
@@ -131,7 +129,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task DeleteIndustryFieldAsync_ShouldDeleteField_WhenFieldExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var fieldId = 1;
         var dbModel = DimIndustryFieldConverter.ToDbModel(new DimIndustryFieldBuilder().WithId(fieldId).Build());
         context.DimIndustryFields.Add(dbModel);
@@ -145,7 +143,7 @@ public class DimIndustryFieldRepositoryTests
     [Fact]
     public async Task DeleteIndustryFieldAsync_ShouldThrowNotFoundException_WhenFieldDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.DeleteIndustryFieldAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();

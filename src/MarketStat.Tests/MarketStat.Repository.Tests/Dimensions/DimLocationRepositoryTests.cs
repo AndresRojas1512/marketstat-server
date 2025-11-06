@@ -8,16 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Repository.Tests.Dimensions;
 
+[Collection("Database collection")]
 public class DimLocationRepositoryTests
 {
-    private MarketStatDbContext CreateInMemoryDbContext()
+    private readonly DatabaseFixture _fixture;
+
+    public DimLocationRepositoryTests(DatabaseFixture fixture)
     {
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var context = new MarketStatDbContext(options);
-        context.Database.EnsureCreated();
-        return context;
+        _fixture = fixture;
     }
     
     private DimLocationRepository CreateRepository(MarketStatDbContext context)
@@ -28,7 +26,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task AddLocationAsync_ShouldAddLocation_WhenDataIsCorrect()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var newLocation = new DimLocationBuilder()
             .WithId(0)
@@ -44,7 +42,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task AddLocationAsync_ShouldThrowException_WhenLocationIsNull()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.AddLocationAsync(null!); 
         await act.Should().ThrowAsync<Exception>();
@@ -53,7 +51,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task GetLocationByIdAsync_ShouldReturnLocation_WhenLocationExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var expectedLocation = new DimLocationBuilder().WithId(1).Build();
         context.DimLocations.Add(DimLocationConverter.ToDbModel(expectedLocation));
         await context.SaveChangesAsync();
@@ -66,7 +64,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task GetLocationByIdAsync_ShouldThrowNotFoundException_WhenLocationDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.GetLocationByIdAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -74,7 +72,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task GetAllLocationsAsync_ShouldReturnAllLocations_WhenLocationsExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var loc1 = DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("B District").Build());
         var loc2 = DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("A District").Build());
         context.DimLocations.AddRange(loc1, loc2);
@@ -89,7 +87,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task GetAllLocationsAsync_ShouldReturnEmptyList_WhenNoLocationsExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var result = await repository.GetAllLocationsAsync();
         result.Should().NotBeNull();
@@ -99,7 +97,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task UpdateLocationAsync_ShouldUpdateLocation_WhenLocationExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var originalDbModel = DimLocationConverter.ToDbModel(
             new DimLocationBuilder().WithId(1).WithCityName("Old City").Build()
         );
@@ -120,7 +118,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task UpdateLocationAsync_ShouldThrowNotFoundException_WhenLocationDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var nonExistentLocation = new DimLocationBuilder().WithId(999).Build();
         Func<Task> act = async () => await repository.UpdateLocationAsync(nonExistentLocation);
@@ -130,7 +128,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task DeleteLocationAsync_ShouldDeleteLocation_WhenLocationExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var locationId = 1;
         var dbModel = DimLocationConverter.ToDbModel(new DimLocationBuilder().WithId(locationId).Build());
         context.DimLocations.Add(dbModel);
@@ -144,7 +142,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task DeleteLocationAsync_ShouldThrowNotFoundException_WhenLocationDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.DeleteLocationAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -153,7 +151,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task GetLocationIdsByFilterAsync_ShouldReturnAllIds_WhenFiltersAreNull()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         context.DimLocations.AddRange(
             DimLocationConverter.ToDbModel(new DimLocationBuilder().WithId(1).Build()),
             DimLocationConverter.ToDbModel(new DimLocationBuilder().WithId(2).Build())
@@ -168,7 +166,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task GetLocationIdsByFilterAsync_ShouldReturnFilteredIds_WhenOneFilterIsUsed()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         context.DimLocations.AddRange(
             DimLocationConverter.ToDbModel(new DimLocationBuilder().WithId(1).WithCityName("Moscow").Build()),
             DimLocationConverter.ToDbModel(new DimLocationBuilder().WithId(2).WithCityName("Tula").Build())
@@ -183,7 +181,7 @@ public class DimLocationRepositoryTests
     [Fact]
     public async Task GetLocationIdsByFilterAsync_ShouldReturnFilteredIds_WhenAllFiltersAreUsed()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         context.DimLocations.AddRange(
             DimLocationConverter.ToDbModel(new DimLocationBuilder().WithId(1).WithDistrictName("D1").WithOblastName("O1").WithCityName("C1").Build()),
             DimLocationConverter.ToDbModel(new DimLocationBuilder().WithId(2).WithDistrictName("D1").WithOblastName("O1").WithCityName("C2").Build()),

@@ -9,16 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Repository.Tests.Dimensions;
 
+[Collection("Database collection")]
 public class DimJobRepositoryTests
 {
-    private MarketStatDbContext CreateInMemoryDbContext()
+    private readonly DatabaseFixture _fixture;
+
+    public DimJobRepositoryTests(DatabaseFixture fixture)
     {
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var context = new MarketStatDbContext(options);
-        context.Database.EnsureCreated();
-        return context;
+        _fixture = fixture;
     }
 
     private DimJobRepository CreateRepository(MarketStatDbContext context)
@@ -29,7 +27,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task AddJobAsync_ShouldAddJob_WhenDataIsCorrect()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var newJob = new DimJobBuilder()
             .WithId(0)
@@ -45,7 +43,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task AddJobAsync_ShouldThrowException_WhenJobIsNull()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.AddJobAsync(null!);
         await act.Should().ThrowAsync<Exception>();
@@ -54,7 +52,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task GetJobByIdAsync_ShouldReturnJob_WhenJobExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var industryField = new DimIndustryFieldDbModel { IndustryFieldId = 1, IndustryFieldName = "IT", IndustryFieldCode = "A.01"};
         context.DimIndustryFields.Add(industryField);
         
@@ -74,7 +72,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task GetJobByIdAsync_ShouldThrowNotFoundException_WhenJobDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.GetJobByIdAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -83,7 +81,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task GetAllJobsAsync_ShouldReturnAllJobs_WhenJobsExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var industryField = new DimIndustryFieldDbModel { IndustryFieldId = 1, IndustryFieldName = "IT", IndustryFieldCode = "A.01"};
         context.DimIndustryFields.Add(industryField);
         var job1 = DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Job A").WithIndustryFieldId(1).Build());
@@ -101,7 +99,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task GetAllJobsAsync_ShouldReturnEmptyList_WhenNoJobsExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var result = await repository.GetAllJobsAsync();
         result.Should().NotBeNull();
@@ -111,7 +109,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task UpdateJobAsync_ShouldUpdateJob_WhenJobExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var originalDbModel = DimJobConverter.ToDbModel(
             new DimJobBuilder().WithId(1).WithStandardJobRoleTitle("Old Title").Build()
         );
@@ -132,7 +130,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task UpdateJobAsync_ShouldThrowNotFoundException_WhenJobDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var nonExistentJob = new DimJobBuilder().WithId(999).Build();
         Func<Task> act = async () => await repository.UpdateJobAsync(nonExistentJob);
@@ -142,7 +140,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task DeleteJobAsync_ShouldDeleteJob_WhenJobExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var jobId = 1;
         var dbModel = DimJobConverter.ToDbModel(new DimJobBuilder().WithId(jobId).Build());
         context.DimJobs.Add(dbModel);
@@ -156,7 +154,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task DeleteJobAsync_ShouldThrowNotFoundException_WhenJobDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.DeleteJobAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -165,7 +163,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task GetJobIdsByFilterAsync_ShouldReturnAllIds_WhenFiltersAreNull()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         context.DimJobs.AddRange(
             DimJobConverter.ToDbModel(new DimJobBuilder().WithId(1).Build()),
             DimJobConverter.ToDbModel(new DimJobBuilder().WithId(2).Build())
@@ -180,7 +178,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task GetJobIdsByFilterAsync_ShouldReturnFilteredIds_WhenOneFilterIsUsed()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         context.DimJobs.AddRange(
             DimJobConverter.ToDbModel(new DimJobBuilder().WithId(1).WithStandardJobRoleTitle("Engineer").Build()),
             DimJobConverter.ToDbModel(new DimJobBuilder().WithId(2).WithStandardJobRoleTitle("Analyst").Build())
@@ -195,7 +193,7 @@ public class DimJobRepositoryTests
     [Fact]
     public async Task GetJobIdsByFilterAsync_ShouldReturnFilteredIds_WhenAllFiltersAreUsed()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         context.DimJobs.AddRange(
             DimJobConverter.ToDbModel(new DimJobBuilder().WithId(1).WithStandardJobRoleTitle("Engineer").WithHierarchyLevelName("Mid").WithIndustryFieldId(1).Build()),
             DimJobConverter.ToDbModel(new DimJobBuilder().WithId(2).WithStandardJobRoleTitle("Engineer").WithHierarchyLevelName("Senior").WithIndustryFieldId(1).Build()),

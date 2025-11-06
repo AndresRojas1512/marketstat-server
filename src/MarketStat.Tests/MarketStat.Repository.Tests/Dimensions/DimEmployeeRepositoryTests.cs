@@ -8,16 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Repository.Tests.Dimensions;
 
+[Collection("Database collection")]
 public class DimEmployeeRepositoryTests
 {
-    private MarketStatDbContext CreateInMemoryDbContext()
+    private readonly DatabaseFixture _fixture;
+
+    public DimEmployeeRepositoryTests(DatabaseFixture fixture)
     {
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var context = new MarketStatDbContext(options);
-        context.Database.EnsureCreated();
-        return context;
+        _fixture = fixture;
     }
 
     private DimEmployeeRepository CreateRepository(MarketStatDbContext context)
@@ -28,7 +26,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task AddEmployeeAsync_ShouldAddEmployee_WhenDataIsCorrect()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var newEmployee = new DimEmployeeBuilder()
             .WithId(0)
@@ -44,7 +42,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task AddEmployeeAsync_ShouldThrowException_WhenEmployeeIsNull()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.AddEmployeeAsync(null!); 
         await act.Should().ThrowAsync<Exception>();
@@ -53,7 +51,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task GetEmployeeByIdAsync_ShouldReturnEmployee_WhenEmployeeExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var expectedEmployee = new DimEmployeeBuilder().WithId(1).Build();
         context.DimEmployees.Add(DimEmployeeConverter.ToDbModel(expectedEmployee));
         await context.SaveChangesAsync();
@@ -66,7 +64,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task GetEmployeeByIdAsync_ShouldThrowNotFoundException_WhenEmployeeDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.GetEmployeeByIdAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -75,7 +73,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task GetAllEmployeesAsync_ShouldReturnAllEmployees_WhenEmployeesExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var emp1 = DimEmployeeConverter.ToDbModel(new DimEmployeeBuilder().WithEmployeeRefId("ref1").Build());
         var emp2 = DimEmployeeConverter.ToDbModel(new DimEmployeeBuilder().WithEmployeeRefId("ref2").Build());
         context.DimEmployees.AddRange(emp1, emp2);
@@ -89,7 +87,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task GetAllEmployeesAsync_ShouldReturnEmptyList_WhenNoEmployeesExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var result = await repository.GetAllEmployeesAsync();
         result.Should().NotBeNull();
@@ -99,7 +97,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task UpdateEmployeeAsync_ShouldUpdateEmployee_WhenEmployeeExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var originalDbModel = DimEmployeeConverter.ToDbModel(
             new DimEmployeeBuilder().WithId(1).WithEmployeeRefId("old-ref").Build()
         );
@@ -120,7 +118,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task UpdateEmployeeAsync_ShouldThrowNotFoundException_WhenEmployeeDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var nonExistentEmployee = new DimEmployeeBuilder().WithId(999).Build();
         Func<Task> act = async () => await repository.UpdateEmployeeAsync(nonExistentEmployee);
@@ -130,7 +128,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task DeleteEmployeeAsync_ShouldDeleteEmployee_WhenEmployeeExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var employeeId = 1;
         var dbModel = DimEmployeeConverter.ToDbModel(new DimEmployeeBuilder().WithId(employeeId).Build());
         context.DimEmployees.Add(dbModel);
@@ -144,7 +142,7 @@ public class DimEmployeeRepositoryTests
     [Fact]
     public async Task DeleteEmployeeAsync_ShouldThrowNotFoundException_WhenEmployeeDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.DeleteEmployeeAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();

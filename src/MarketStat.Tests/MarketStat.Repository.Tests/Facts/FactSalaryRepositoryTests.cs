@@ -12,17 +12,14 @@ using Moq;
 
 namespace MarketStat.Repository.Tests.Facts;
 
+[Collection("Database collection")]
 public class FactSalaryRepositoryTests
 {
-    private MarketStatDbContext CreateInMemoryDbContext()
+    private readonly DatabaseFixture _fixture;
+
+    public FactSalaryRepositoryTests(DatabaseFixture fixture)
     {
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-            
-        var context = new MarketStatDbContext(options);
-        context.Database.EnsureCreated();
-        return context;
+        _fixture = fixture;
     }
     
     private FactSalaryRepository CreateRepository(MarketStatDbContext context)
@@ -53,7 +50,7 @@ public class FactSalaryRepositoryTests
     [Fact]
     public async Task AddFactSalaryAsync_ShouldAddSalary_WhenDataIsCorrect()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         await SeedDimensionsAsync(context);
         var repository = CreateRepository(context);
         var newSalary = new FactSalaryBuilder()
@@ -70,7 +67,7 @@ public class FactSalaryRepositoryTests
     [Fact]
     public async Task AddFactSalaryAsync_ShouldThrowNotFoundException_WhenForeignKeyIsMissing()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var newSalary = new FactSalaryBuilder().WithDateId(999).Build();
         Func<Task> act = async () => await repository.AddFactSalaryAsync(newSalary); 
@@ -81,7 +78,7 @@ public class FactSalaryRepositoryTests
     [Fact]
     public async Task GetFactSalaryByIdAsync_ShouldReturnSalary_WhenSalaryExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         await SeedDimensionsAsync(context);
         var repository = CreateRepository(context);
         var existingSalary = new FactSalaryBuilder().WithId(1L).Build();
@@ -95,7 +92,7 @@ public class FactSalaryRepositoryTests
     [Fact]
     public async Task GetFactSalaryByIdAsync_ShouldThrowNotFoundException_WhenSalaryDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.GetFactSalaryByIdAsync(999L);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -104,7 +101,7 @@ public class FactSalaryRepositoryTests
     [Fact]
     public async Task UpdateFactSalaryAsync_ShouldUpdateSalary_WhenSalaryExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         await SeedDimensionsAsync(context);
         var repository = CreateRepository(context);
         var originalModel = FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithId(1L).WithSalaryAmount(100).Build());
@@ -121,7 +118,7 @@ public class FactSalaryRepositoryTests
     [Fact]
     public async Task UpdateFactSalaryAsync_ShouldThrowNotFoundException_WhenSalaryDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var nonExistentSalary = new FactSalaryBuilder().WithId(999L).Build();
         Func<Task> act = async () => await repository.UpdateFactSalaryAsync(nonExistentSalary);
@@ -131,7 +128,7 @@ public class FactSalaryRepositoryTests
     [Fact]
     public async Task DeleteFactSalaryByIdAsync_ShouldDeleteSalary_WhenSalaryExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         await SeedDimensionsAsync(context);
         var repository = CreateRepository(context);
         var dbModel = FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithId(1L).Build());
@@ -145,7 +142,7 @@ public class FactSalaryRepositoryTests
     [Fact]
     public async Task DeleteFactSalaryByIdAsync_ShouldThrowNotFoundException_WhenSalaryDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.DeleteFactSalaryByIdAsync(999L);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -154,7 +151,7 @@ public class FactSalaryRepositoryTests
     [Fact]
     public async Task GetFactSalariesByFilterAsync_ShouldReturnFilteredData_WhenFiltersAreUsed()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         await SeedDimensionsAsync(context);
         var repository = CreateRepository(context);
         context.FactSalaries.AddRange(
