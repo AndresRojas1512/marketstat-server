@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Allure.Xunit" Version="2.14.1" />
+    <PackageReference Include="AutoMapper" Version="15.1.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
@@ -39,6 +40,7 @@
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimIndustryFieldService\MarketStat.Services.Dimensions.DimIndustryFieldService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobService\MarketStat.Services.Dimensions.DimJobService.csproj" />
     <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimLocationService\MarketStat.Services.Dimensions.DimLocationService.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Facts\MarketStat.Services.Facts.FactSalaryService\MarketStat.Services.Facts.FactSalaryService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
