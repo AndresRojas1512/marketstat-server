@@ -8,20 +8,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketStat.Repository.Tests.Dimensions;
 
+[Collection("Database collection")]
 public class DimDateRepositoryTests
 {
-    private MarketStatDbContext CreateInMemoryDbContext()
+    private readonly DatabaseFixture _fixture;
+
+    public DimDateRepositoryTests(DatabaseFixture fixture)
     {
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        
-        var context = new MarketStatDbContext(options);
-        context.Database.EnsureCreated();
-        return context;
+        _fixture = fixture;
     }
 
-    private DimDateRepository createRepository(MarketStatDbContext context)
+    private DimDateRepository CreateRepository(MarketStatDbContext context)
     {
         return new DimDateRepository(context);
     }
@@ -29,8 +26,8 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task AddDateAsync_ShouldAddDate_WhenDataIsCorrect()
     {
-        await using var context = CreateInMemoryDbContext();
-        var repository = createRepository(context);
+        await using var context = _fixture.CreateCleanContext();
+        var repository = CreateRepository(context);
         var newDate = new DimDateBuilder()
             .WithId(0)
             .WithFullDate(2025, 5, 5)
@@ -47,8 +44,8 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task AddDateAsync_ShouldThrowException_WhenDateIsNull()
     {
-        await using var context = CreateInMemoryDbContext();
-        var repository = createRepository(context);
+        await using var context = _fixture.CreateCleanContext();
+        var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.AddDateAsync(null!);
         await act.Should().ThrowAsync<Exception>();
     }
@@ -56,11 +53,11 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task GetDateByIdAsync_ShouldReturnDate_WhenDateExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var expectedDate = new DimDateBuilder().WithId(1).Build();
         context.DimDates.Add(DimDateConverter.ToDbModel(expectedDate));
         await context.SaveChangesAsync();
-        var repository = createRepository(context);
+        var repository = CreateRepository(context);
         var result = await repository.GetDateByIdAsync(1);
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(expectedDate);
@@ -69,8 +66,8 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task GetDateByIdAsync_ShouldThrowNotFoundException_WhenDateDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
-        var repository = createRepository(context);
+        await using var context = _fixture.CreateCleanContext();
+        var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.GetDateByIdAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
     }
@@ -78,12 +75,12 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task GetAllDatesAsync_ShouldReturnAllDates_WhenDatesExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var date1 = DimDateConverter.ToDbModel(new DimDateBuilder().WithFullDate(2025, 1, 1).Build());
         var date2 = DimDateConverter.ToDbModel(new DimDateBuilder().WithFullDate(2025, 1, 2).Build());
         context.DimDates.AddRange(date1, date2);
         await context.SaveChangesAsync();
-        var repository = createRepository(context);
+        var repository = CreateRepository(context);
         var result = await repository.GetAllDatesAsync();
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
@@ -92,8 +89,8 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task GetAllDatesAsync_ShouldReturnEmptyList_WhenNoDatesExist()
     {
-        await using var context = CreateInMemoryDbContext();
-        var repository = createRepository(context);
+        await using var context = _fixture.CreateCleanContext();
+        var repository = CreateRepository(context);
         var result = await repository.GetAllDatesAsync();
         result.Should().NotBeNull();
         result.Should().BeEmpty();
@@ -102,14 +99,14 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task UpdateDateAsync_ShouldUpdateDate_WhenDateExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var originalDbModel = DimDateConverter.ToDbModel(
             new DimDateBuilder().WithId(1).WithFullDate(2025, 1, 1).Build() // Jan 1st (Q1)
         );
         context.DimDates.Add(originalDbModel);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
-        var repository = createRepository(context);
+        var repository = CreateRepository(context);
         var updatedDate = new DimDateBuilder()
             .WithId(1)
             .WithFullDate(2025, 8, 1)
@@ -124,8 +121,8 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task UpdateDateAsync_ShouldThrowNotFoundException_WhenDateDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
-        var repository = createRepository(context);
+        await using var context = _fixture.CreateCleanContext();
+        var repository = CreateRepository(context);
         var nonExistentDate = new DimDateBuilder().WithId(999).Build();
         Func<Task> act = async () => await repository.UpdateDateAsync(nonExistentDate);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -134,13 +131,12 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task DeleteDateAsync_ShouldDeleteDate_WhenDateExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var dateId = 1;
         var dbModel = DimDateConverter.ToDbModel(new DimDateBuilder().WithId(dateId).Build());
         context.DimDates.Add(dbModel);
         await context.SaveChangesAsync();
-        
-        var repository = createRepository(context);
+        var repository = CreateRepository(context);
         (await context.DimDates.FindAsync(dateId)).Should().NotBeNull();
         await repository.DeleteDateAsync(dateId);
         (await context.DimDates.FindAsync(dateId)).Should().BeNull();
@@ -149,8 +145,8 @@ public class DimDateRepositoryTests
     [Fact]
     public async Task DeleteDateAsync_ShouldThrowNotFoundException_WhenDateDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
-        var repository = createRepository(context);
+        await using var context = _fixture.CreateCleanContext();
+        var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.DeleteDateAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
     }
