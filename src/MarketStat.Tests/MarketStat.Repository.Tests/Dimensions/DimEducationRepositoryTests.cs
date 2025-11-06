@@ -5,19 +5,18 @@ using MarketStat.Database.Context;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Tests.TestData.Builders.Dimensions;
 using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace MarketStat.Repository.Tests.Dimensions;
 
+[Collection("Database collection")]
 public class DimEducationRepositoryTests
 {
-    private MarketStatDbContext CreateInMemoryDbContext()
+    private readonly DatabaseFixture _fixture;
+
+    public DimEducationRepositoryTests(DatabaseFixture fixture)
     {
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var context = new MarketStatDbContext(options);
-        context.Database.EnsureDeleted();
-        return context;
+        _fixture = fixture;
     }
 
     private DimEducationRepository CreateRepository(MarketStatDbContext context)
@@ -28,7 +27,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task AddEducationAsync_ShouldAddEducation_WhenDataIsCorrect()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var newEducation = new DimEducationBuilder()
             .WithId(0)
@@ -44,7 +43,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task AddEducationAsync_ShouldThrowException_WhenEducationIsNull()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.AddEducationAsync(null!);
         await act.Should().ThrowAsync<Exception>();
@@ -53,7 +52,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task GetEducationByIdAsync_ShouldReturnEducation_WhenEducationExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var expectedEducation = new DimEducationBuilder().WithId(1).Build();
         context.DimEducations.Add(DimEducationConverter.ToDbModel(expectedEducation));
         await context.SaveChangesAsync();
@@ -66,7 +65,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task GetEducationByIdAsync_ShouldThrowNotFoundException_WhenEducationDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.GetEducationByIdAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
@@ -75,7 +74,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task GetAllEducationsAsync_ShouldReturnAllEducations_WhenEducationsExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var edu1 = DimEducationConverter.ToDbModel(new DimEducationBuilder().WithSpecialtyCode("01.01.01").Build());
         var edu2 = DimEducationConverter.ToDbModel(new DimEducationBuilder().WithSpecialtyCode("02.02.02").Build());
         context.DimEducations.AddRange(edu1, edu2);
@@ -89,7 +88,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task GetAllEducationsAsync_ShouldReturnEmptyList_WhenNoEducationsExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var result = await repository.GetAllEducationsAsync();
         result.Should().NotBeNull();
@@ -99,8 +98,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task UpdateEducationAsync_ShouldUpdateEducation_WhenEducationExists()
     {
-        await using var context = CreateInMemoryDbContext();
-        
+        await using var context = _fixture.CreateCleanContext();
         var originalDbModel = DimEducationConverter.ToDbModel(
             new DimEducationBuilder().WithId(1).WithSpecialtyName("Old Name").Build()
         );
@@ -121,7 +119,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task UpdateEducationAsync_ShouldThrowNotFoundException_WhenEducationDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         var nonExistentEducation = new DimEducationBuilder().WithId(999).Build();
         Func<Task> act = async () => await repository.UpdateEducationAsync(nonExistentEducation);
@@ -131,7 +129,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task DeleteEducationAsync_ShouldDeleteEducation_WhenEducationExists()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var educationId = 1;
         var dbModel = DimEducationConverter.ToDbModel(new DimEducationBuilder().WithId(educationId).Build());
         context.DimEducations.Add(dbModel);
@@ -145,7 +143,7 @@ public class DimEducationRepositoryTests
     [Fact]
     public async Task DeleteEducationAsync_ShouldThrowNotFoundException_WhenEducationDoesNotExist()
     {
-        await using var context = CreateInMemoryDbContext();
+        await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
         Func<Task> act = async () => await repository.DeleteEducationAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
