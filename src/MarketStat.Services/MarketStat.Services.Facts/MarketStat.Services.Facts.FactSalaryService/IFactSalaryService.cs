@@ -17,17 +17,12 @@ public interface IFactSalaryService
     Task DeleteFactSalaryAsync(long salaryFactId);
     
     // Authorized Analytics
-    Task<BenchmarkDataDto?> GetBenchmarkingReportAsync(BenchmarkQueryDto benchmarkFilters);
+    Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters);
+    Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
+    Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters, TimeGranularity granularity,
+        int periods);
     
-    // Public Analytical Methods
-    // Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(
-    //      PublicRolesQueryDto queryDto);
-    //
-    // Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
-    //     PublicSalaryByEducationQueryDto queryDto);
-    //
-    // Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-    //     PublicTopEmployerRoleSalariesQueryDto queryDto);
-    
-    // ETL Methods
+    // Public Analytics
+    Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesAsync(SalaryFilterDto userFilters,
+        int minRecordCount);
 }

@@ -268,9 +268,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         return allPeriods.OrderBy(p => p.PeriodStart).ToList();
     }
     
-    // =====
     // Utils
-    // =====
 
     private IQueryable<FactSalaryDbModel> GetFilteredSalariesQuery(ResolvedSalaryFilterDto resolvedFilters)
     {
@@ -354,184 +352,27 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         return (decimal)((1 - weight) * (double)sortedData[lowerIndex] + weight * (double)sortedData[upperIndex]);
     }
     
-    // =========================
     // Public analytical methods
-    // =========================
-    
-    // public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto)
-    // {
-    //     _logger.LogInformation(
-    //         "Repository (LINQ): GetPublicRolesByLocationIndustryAsync with DTO: {@QueryDto}", queryDto);
-    //     var periodEndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1).AddDays(-DateTime.UtcNow.Day));
-    //     var periodStartDate = periodEndDate.AddMonths(-12).AddDays(1);
-    //
-    //     var filters = new SalaryFilterDto
-    //     {
-    //         IndustryFieldId = queryDto.IndustryFieldId,
-    //         DistrictId = queryDto.FederalDistrictId,
-    //         OblastId = queryDto.OblastId,
-    //         CityId = queryDto.CityId,
-    //         DateStart = periodStartDate,
-    //         DateEnd = periodEndDate
-    //     };
-    //     
-    //     var query = GetFilteredSalariesQuery(filters);
-    //     var results = await query
-    //         .GroupBy(fs => fs.DimJobRole.DimStandardJobRole.StandardJobRoleTitle)
-    //         .Select(g => new
-    //         {
-    //             StandardJobRoleTitle = g.Key,
-    //             AverageSalary = g.Average(fs => fs.SalaryAmount),
-    //             SalaryRecordCount = g.Count()
-    //         })
-    //         .Where(g => g.SalaryRecordCount >= queryDto.MinSalaryRecordsForRole)
-    //         .OrderByDescending(g => g.AverageSalary)
-    //         .ThenByDescending(g => g.SalaryRecordCount)
-    //         .ThenBy(g => g.StandardJobRoleTitle)
-    //         .Select(g => new PublicRoleByLocationIndustryDto
-    //         {
-    //             StandardJobRoleTitle = g.StandardJobRoleTitle,
-    //             AverageSalary = g.AverageSalary,
-    //             SalaryRecordCount = g.SalaryRecordCount
-    //         })
-    //         .AsNoTracking()
-    //         .ToListAsync();
-    //     _logger.LogInformation("Repository (LINQ): GetPublicRolesByLocationIndustryAsync returned {Count} records.", results.Count);
-    //     return results;
-    // }
-    
-    // public async Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(PublicSalaryByEducationQueryDto queryDto)
-    // {
-    //     _logger.LogInformation("Repository (LINQ): GetPublicSalaryByEducationInIndustryAsync with DTO: {@QueryDto}", queryDto);
-    //     var periodEndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1).AddDays(-DateTime.UtcNow.Day));
-    //     var periodStartDate = periodEndDate.AddMonths(-12).AddDays(1);
-    //
-    //     var baseQuery = _dbContext.FactSalaries
-    //         .Include(fs => fs.DimDate)
-    //         .Include(fs => fs.DimJobRole).ThenInclude(jr => jr.DimStandardJobRole)
-    //         .Include(fs => fs.DimEmployee).ThenInclude(e => e.DimEmployeeEducations)
-    //         .ThenInclude(ee => ee.Education).ThenInclude(ed => ed.DimEducationLevel)
-    //         .Where(fs => fs.DimJobRole.DimStandardJobRole.IndustryFieldId == queryDto.IndustryFieldId)
-    //         .Where(fs => fs.DimDate.FullDate >= periodStartDate && fs.DimDate.FullDate <= periodEndDate);
-    //
-    //     var specialtyLevelStats = await baseQuery
-    //         .SelectMany(fs => fs.DimEmployee.DimEmployeeEducations, (fs, ee) => new
-    //         {
-    //             Salary = fs.SalaryAmount,
-    //             EmployeeId = fs.EmployeeId,
-    //             Specialty = ee.Education.Specialty,
-    //             EducationLevel = ee.Education.DimEducationLevel.EducationLevelName
-    //         })
-    //         .GroupBy(x => new { x.Specialty, x.EducationLevel })
-    //         .Select(g => new
-    //         {
-    //             g.Key.Specialty,
-    //             g.Key.EducationLevel,
-    //             AverageSalary = g.Average(x => x.Salary),
-    //             EmployeeCount = g.Select(x => x.EmployeeId).Distinct().Count()
-    //         })
-    //         .Where(x => x.EmployeeCount >= queryDto.MinEmployeesPerLevelInSpecialty)
-    //         .ToListAsync();
-    //
-    //     var topSpecialties = specialtyLevelStats
-    //         .GroupBy(s => s.Specialty)
-    //         .Select(g => new
-    //         {
-    //             Specialty = g.Key,
-    //             OverallEmployeeCount = g.Sum(s => s.EmployeeCount)
-    //         })
-    //         .Where(g => g.OverallEmployeeCount >= queryDto.MinEmployeesPerSpecialty)
-    //         .OrderByDescending(g => g.OverallEmployeeCount)
-    //         .ThenBy(g => g.Specialty)
-    //         .Take(queryDto.TopNSpecialties)
-    //         .Select(g => g.Specialty)
-    //         .ToHashSet();
-    //
-    //     var finalResult = specialtyLevelStats
-    //         .Where(s => topSpecialties.Contains(s.Specialty))
-    //         .GroupBy(s => s.Specialty)
-    //         .SelectMany(g => g.Select(levelStat => new PublicSalaryByEducationInIndustryDto
-    //         {
-    //             EducationSpecialty = levelStat.Specialty,
-    //             EducationLevelName = levelStat.EducationLevel,
-    //             AverageSalary = levelStat.AverageSalary,
-    //             EmployeeCountForLevel = levelStat.EmployeeCount,
-    //             OverallSpecialtyEmployeeCount = g.Sum(s => s.EmployeeCount)
-    //         }))
-    //         .OrderBy(r => Array.IndexOf(topSpecialties.ToArray(), r.EducationSpecialty))
-    //         .ThenBy(r => r.EducationLevelName)
-    //         .ToList();
-    //
-    //     return finalResult;
-    // }
 
-    // public async Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-    //         PublicTopEmployerRoleSalariesQueryDto queryDto)
-    // {
-    //     _logger.LogInformation("Repository (LINQ): GetPublicTopEmployerRoleSalariesInIndustryAsync with DTO: {@QueryDto}", queryDto);
-    //     
-    //     var periodEndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1).AddDays(-DateTime.UtcNow.Day));
-    //     var periodStartDate = periodEndDate.AddMonths(-12).AddDays(1);
-    //
-    //     var baseQuery = _dbContext.FactSalaries
-    //         .Include(fs => fs.DimDate)
-    //         .Include(fs => fs.DimEmployer)
-    //         .Include(fs => fs.DimJobRole).ThenInclude(jr => jr.DimStandardJobRole)
-    //         .Where(fs => fs.DimJobRole.DimStandardJobRole.IndustryFieldId == queryDto.IndustryFieldId)
-    //         .Where(fs => fs.DimDate.FullDate >= periodStartDate && fs.DimDate.FullDate <= periodEndDate);
-    //
-    //     var topEmployers = await baseQuery
-    //         .GroupBy(fs => new { fs.EmployerId, fs.DimEmployer.EmployerName })
-    //         .Select(g => new
-    //         {
-    //             EmployerId = g.Key.EmployerId,
-    //             EmployerName = g.Key.EmployerName,
-    //             RecordCount = g.Count()
-    //         })
-    //         .OrderByDescending(x => x.RecordCount)
-    //         .ThenBy(x => x.EmployerName)
-    //         .Take(queryDto.TopNEmployers)
-    //         .ToListAsync();
-    //
-    //     var topEmployerIds = topEmployers.Select(e => e.EmployerId).ToList();
-    //
-    //     var roleStatsForTopEmployers = await baseQuery
-    //         .Where(fs => topEmployerIds.Contains(fs.EmployerId))
-    //         .GroupBy(fs => new
-    //         {
-    //             fs.EmployerId,
-    //             fs.DimJobRole.DimStandardJobRole.StandardJobRoleTitle
-    //         })
-    //         .Select(g => new
-    //         {
-    //             g.Key.EmployerId,
-    //             g.Key.StandardJobRoleTitle,
-    //             AverageSalaryForRole = g.Average(fs => fs.SalaryAmount),
-    //             SalaryRecordCountForRole = g.Count()
-    //         })
-    //         .Where(g => g.SalaryRecordCountForRole >= queryDto.MinSalaryRecordsForRoleAtEmployer)
-    //         .ToListAsync();
-    //     
-    //     var finalResult = topEmployers
-    //         .Select((employer, index) => new { Employer = employer, Rank = index + 1 })
-    //         .SelectMany(rankedEmployer => roleStatsForTopEmployers
-    //             .Where(role => role.EmployerId == rankedEmployer.Employer.EmployerId)
-    //             .OrderByDescending(role => role.SalaryRecordCountForRole)
-    //             .ThenByDescending(role => role.AverageSalaryForRole)
-    //             .ThenBy(role => role.StandardJobRoleTitle)
-    //             .Take(queryDto.TopMRolesPerEmployer)
-    //             .Select((role, roleIndex) => new PublicTopEmployerRoleSalariesInIndustryDto
-    //             {
-    //                 EmployerName = rankedEmployer.Employer.EmployerName,
-    //                 StandardJobRoleTitle = role.StandardJobRoleTitle,
-    //                 AverageSalaryForRole = role.AverageSalaryForRole,
-    //                 SalaryRecordCountForRole = role.SalaryRecordCountForRole,
-    //                 EmployerRank = rankedEmployer.Rank,
-    //                 RoleRankWithinEmployer = roleIndex + 1
-    //             })
-    //         )
-    //         .ToList();
-    //
-    //     return finalResult;
-    // }
+    public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesAsync(
+        ResolvedSalaryFilterDto resolvedFilters, int minRecordCount)
+    {
+        _logger.LogInformation("Repository: GetPublicRolesAsync called");
+        var query = GetFilteredSalariesQuery(resolvedFilters);
+        var results = await query
+            .Include(fs => fs.DimJob)
+            .GroupBy(fs => fs.DimJob!.StandardJobRoleTitle)
+            .Select(g => new PublicRoleByLocationIndustryDto
+            {
+                StandardJobRoleTitle = g.Key,
+                AverageSalary = g.Average(fs => fs.SalaryAmount),
+                SalaryRecordCount = g.Count()
+            })
+            .Where(g => g.SalaryRecordCount >= minRecordCount)
+            .OrderByDescending(g => g.AverageSalary)
+            .AsNoTracking()
+            .ToListAsync();
+        _logger.LogInformation("Repository: GetPublicRolesAsync return {Count} records.", results.Count);
+        return results;
+    }
 }

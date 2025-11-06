@@ -20,10 +20,6 @@ public interface IFactSalaryRepository
         TimeGranularity granularity, int periods);
     
     // Public analytical methods
-    // Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto);
-    //
-    // Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
-    //     PublicSalaryByEducationQueryDto queryDto);
-    // Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-    //     PublicTopEmployerRoleSalariesQueryDto queryDto);
+    Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesAsync(ResolvedSalaryFilterDto resolvedFilters,
+        int minRecordCount);
 }

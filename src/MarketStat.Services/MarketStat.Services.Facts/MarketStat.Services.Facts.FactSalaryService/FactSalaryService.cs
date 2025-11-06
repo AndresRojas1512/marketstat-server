@@ -5,6 +5,7 @@ using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Services.Facts.FactSalaryService.Validators;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
+using MarketStat.Common.Enums;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
 
@@ -220,194 +221,67 @@ public class FactSalaryService : IFactSalaryService
         };
     }
     
-    // ===============================
     // Authorized analytical endpoints
-    // ===============================
     
-    public async Task<BenchmarkDataDto?> GetBenchmarkingReportAsync(BenchmarkQueryDto benchmarkFilters)
+    public async Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters)
     {
-        _logger.LogInformation("Service: Generating benchmark report with filters: {@Filters}", benchmarkFilters);
-        var userFilter = new SalaryFilterDto
-        {
-            StandardJobRoleTitle = benchmarkFilters.StandardJobRoleTitle,
-            HierarchyLevelName = benchmarkFilters.HierarchyLevelName,
-            IndustryFieldId = benchmarkFilters.IndustryFieldId,
-            DistrictName = benchmarkFilters.DistrictName,
-            OblastName = benchmarkFilters.OblastName,
-            CityName = benchmarkFilters.CityName,
-            DateStart = benchmarkFilters.DateStart,
-            DateEnd = benchmarkFilters.DateEnd
-        };
-        var resolvedFilters = await ResolveFilters(userFilter);
-        var emptyResult = new BenchmarkDataDto
-            { SalaryDistribution = new(), SalarySummary = null, SalaryTimeSeries = new() };
+        _logger.LogInformation("Service: Getting salary distribution with user filters: {@Filters}", filters);
+        var resolvedFilters = await ResolveFilters(filters);
         if (resolvedFilters == null)
         {
-            _logger.LogInformation(
-                "Filters resolved to no matching dimension IDs for benchmark. Returning empty report.");
-            return emptyResult;
+            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty distribution.");
+            return new List<SalaryDistributionBucketDto>();
         }
+        return await _factSalaryRepository.GetSalaryDistributionAsync(resolvedFilters);
+    }
 
-        if (benchmarkFilters.TargetPercentile < 0 || benchmarkFilters.TargetPercentile > 100)
+    public async Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile)
+    {
+        _logger.LogInformation(
+            "Service: Getting salary distribution with user filters: {@Filters} and percentile: {Percentile}", filters,
+            targetPercentile);
+        if (targetPercentile < 0 || targetPercentile > 100)
+            throw new ArgumentException("Target percentile must be between 0 and 100.", nameof(targetPercentile));
+        var resolvedFilters = await ResolveFilters(filters);
+        if (resolvedFilters == null)
         {
-            throw new ArgumentException("Target percentile must be between 0 and 100.",
-                nameof(benchmarkFilters.TargetPercentile));
+            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning null summary.");
+            return null;
         }
+        return await _factSalaryRepository.GetSalarySummaryAsync(resolvedFilters, targetPercentile);
+    }
 
-        if (benchmarkFilters.Periods <= 0)
+    public async Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters,
+        TimeGranularity granularity, int periods)
+    {
+        _logger.LogInformation(
+            "Service: Getting salary time series with user filters: {@Filters}, Granularity: {Granularity}, Periods: {Periods}",
+            filters, granularity, periods);
+        if (periods <= 0)
+            throw new ArgumentException("Periods must be greater than zero.", nameof(periods));
+        var resolvedFilters = await ResolveFilters(filters);
+        if (resolvedFilters == null)
         {
-            throw new ArgumentException("Periods must be greater than zero.", nameof(benchmarkFilters.Periods));
+            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty time series.");
+            return new List<SalaryTimeSeriesPointDto>();
         }
-        
-        _logger.LogInformation("Calling repository analytical methods with resolved filters for benchmark.");
-        var salarySummaryTask = _factSalaryRepository.GetSalarySummaryAsync(resolvedFilters, benchmarkFilters.TargetPercentile);
-        var salaryDistributionTask = _factSalaryRepository.GetSalaryDistributionAsync(resolvedFilters);
-        var salaryTimeSeriesTask = _factSalaryRepository.GetSalaryTimeSeriesAsync(resolvedFilters, benchmarkFilters.Granularity, benchmarkFilters.Periods);
-
-        await Task.WhenAll(salarySummaryTask, salaryDistributionTask, salaryTimeSeriesTask);
-
-        var salarySummary = await salarySummaryTask;
-        var salaryDistribution = await salaryDistributionTask;
-        var salaryTimeSeries = await salaryTimeSeriesTask;
-        
-        _logger.LogInformation("Successfully assembled benchmark report.");
-        return new BenchmarkDataDto
-        {
-            SalarySummary = salarySummary,
-            SalaryDistribution = salaryDistribution ?? new List<SalaryDistributionBucketDto>(),
-            SalaryTimeSeries = salaryTimeSeries ?? new List<SalaryTimeSeriesPointDto>()
-        };
+        return await _factSalaryRepository.GetSalaryTimeSeriesAsync(resolvedFilters, granularity, periods);
     }
     
-    // =========================
     // Public analytical methods
-    // =========================
-        
-    // public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesByLocationIndustryAsync(PublicRolesQueryDto queryDto)
-    // {
-    //     _logger.LogInformation(
-    //         "Service: Validating filters for public roles by location/industry: {@QueryDto}", queryDto);
-    //
-    //     if (queryDto.IndustryFieldId <= 0)
-    //     {
-    //         _logger.LogWarning("GetPublicRolesByLocationIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
-    //         throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
-    //     }
-    //     if (queryDto.MinSalaryRecordsForRole < 0) 
-    //     {
-    //         _logger.LogWarning("GetPublicRolesByLocationIndustryAsync called with invalid minSalaryRecordsForRole in DTO: {MinRecs}", queryDto.MinSalaryRecordsForRole);
-    //         throw new ArgumentException("minSalaryRecordsForRole cannot be negative.", nameof(queryDto.MinSalaryRecordsForRole));
-    //     }
-    //
-    //     try
-    //     {
-    //         await _dimIndustryFieldService.GetIndustryFieldByIdAsync(queryDto.IndustryFieldId);
-    //
-    //         if (queryDto.FederalDistrictId.HasValue) await _dimFederalDistrictService.GetDistrictByIdAsync(queryDto.FederalDistrictId.Value);
-    //         if (queryDto.OblastId.HasValue) await _dimOblastService.GetOblastByIdAsync(queryDto.OblastId.Value);
-    //         if (queryDto.CityId.HasValue) await _dimCityService.GetCityByIdAsync(queryDto.CityId.Value);
-    //     }
-    //     catch (NotFoundException ex)
-    //     {
-    //         _logger.LogWarning("Invalid filter ID provided for public roles search. {ErrorMessage}", ex.Message);
-    //         throw new ArgumentException($"Invalid filter ID provided. {ex.Message}", ex);
-    //     }
-    //
-    //     try
-    //     {
-    //         _logger.LogInformation("Service: All filter IDs are valid. Fetching public roles from repository.");
-    //         var result = await _factSalaryRepository.GetPublicRolesByLocationIndustryAsync(queryDto);
-    //         _logger.LogInformation("Service: Successfully retrieved {Count} records for public roles by location/industry.", result.Count());
-    //         return result;
-    //     }
-    //     catch (Exception ex) 
-    //     {
-    //         _logger.LogError(ex, "Service: Error retrieving public roles by location/industry for DTO: {@QueryDto}", queryDto);
-    //         throw; 
-    //     }
-    // }
-    //
-    // public async Task<IEnumerable<PublicSalaryByEducationInIndustryDto>> GetPublicSalaryByEducationInIndustryAsync(
-    //         PublicSalaryByEducationQueryDto queryDto)
-    // {
-    //     _logger.LogInformation(
-    //         "Service: Getting public salary by education in industry with DTO: {@QueryDto}", queryDto);
-    //     
-    //     if (queryDto.IndustryFieldId <= 0)
-    //     {
-    //         _logger.LogWarning("GetPublicSalaryByEducationInIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
-    //         throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
-    //     }
-    //     if (queryDto.TopNSpecialties <= 0)
-    //     {
-    //          throw new ArgumentException("TopNSpecialties must be a positive integer.", nameof(queryDto.TopNSpecialties));
-    //     }
-    //     if (queryDto.MinEmployeesPerSpecialty < 0)
-    //     {
-    //          throw new ArgumentException("MinEmployeesPerSpecialty cannot be negative.", nameof(queryDto.MinEmployeesPerSpecialty));
-    //     }
-    //     if (queryDto.MinEmployeesPerLevelInSpecialty < 0)
-    //     {
-    //          throw new ArgumentException("MinEmployeesPerLevelInSpecialty cannot be negative.", nameof(queryDto.MinEmployeesPerLevelInSpecialty));
-    //     }
-    //     
-    //     try
-    //     {
-    //         await _dimIndustryFieldService.GetIndustryFieldByIdAsync(queryDto.IndustryFieldId);
-    //     }
-    //     catch (NotFoundException ex)
-    //     {
-    //         _logger.LogWarning("Invalid IndustryFieldId provided for public salary by education search. {ErrorMessage}", ex.Message);
-    //         throw new ArgumentException($"Invalid filter ID provided. {ex.Message}", ex);
-    //     }
-    //
-    //     try
-    //     {
-    //         var result = await _factSalaryRepository.GetPublicSalaryByEducationInIndustryAsync(queryDto);
-    //         _logger.LogInformation("Service: Successfully retrieved {Count} records for public salary by education in industry.", result.Count());
-    //         return result;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Service: Error retrieving public salary by education in industry for DTO: {@QueryDto}", queryDto);
-    //         throw;
-    //     }
-    // }
-    //
-    // public async Task<IEnumerable<PublicTopEmployerRoleSalariesInIndustryDto>> GetPublicTopEmployerRoleSalariesInIndustryAsync(
-    //         PublicTopEmployerRoleSalariesQueryDto queryDto)
-    // {
-    //     _logger.LogInformation(
-    //         "Service: Getting public top employer role salaries in industry with DTO: {@QueryDto}", queryDto);
-    //
-    //     if (queryDto.IndustryFieldId <= 0)
-    //     {
-    //         _logger.LogWarning("GetPublicTopEmployerRoleSalariesInIndustryAsync called with invalid IndustryFieldId in DTO: {IndustryFieldId}", queryDto.IndustryFieldId);
-    //         throw new ArgumentException("IndustryFieldId must be a positive integer.", nameof(queryDto.IndustryFieldId));
-    //     }
-    //     if (queryDto.TopNEmployers <= 0)
-    //     {
-    //          throw new ArgumentException("TopNEmployers must be a positive integer.", nameof(queryDto.TopNEmployers));
-    //     }
-    //     if (queryDto.TopMRolesPerEmployer <= 0)
-    //     {
-    //          throw new ArgumentException("TopMRolesPerEmployer must be a positive integer.", nameof(queryDto.TopMRolesPerEmployer));
-    //     }
-    //     if (queryDto.MinSalaryRecordsForRoleAtEmployer < 0)
-    //     {
-    //          throw new ArgumentException("MinSalaryRecordsForRoleAtEmployer cannot be negative.", nameof(queryDto.MinSalaryRecordsForRoleAtEmployer));
-    //     }
-    //
-    //     try
-    //     {
-    //         var result = await _factSalaryRepository.GetPublicTopEmployerRoleSalariesInIndustryAsync(queryDto);
-    //         _logger.LogInformation("Service: Successfully retrieved {Count} records for public top employer role salaries.", result.Count());
-    //         return result;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Service: Error retrieving public top employer role salaries for DTO: {@QueryDto}", queryDto);
-    //         throw;
-    //     }
-    // }
+
+    public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesAsync(SalaryFilterDto userFilters,
+        int minRecordCount)
+    {
+        _logger.LogInformation("Service: Getting public roles with user filters: {$Filters}", userFilters);
+        if (minRecordCount < 0)
+            throw new ArgumentException("Minimum record count cannot be negative.", nameof(minRecordCount));
+        var resolvedFilters = await ResolveFilters(userFilters);
+        if (resolvedFilters == null)
+        {
+            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty list.");
+            return Enumerable.Empty<PublicRoleByLocationIndustryDto>();
+        }
+        return await _factSalaryRepository.GetPublicRolesAsync(resolvedFilters, minRecordCount);
+    }
 }
