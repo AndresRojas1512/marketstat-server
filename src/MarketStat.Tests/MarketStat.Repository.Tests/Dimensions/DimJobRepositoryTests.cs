@@ -205,4 +205,86 @@ public class DimJobRepositoryTests
         result.Should().HaveCount(1);
         result.Should().Contain(2);
     }
+    
+    [Fact]
+    public async Task GetDistinctStandardJobRolesAsync_ShouldReturnAllDistinctRoles_WhenFilterIsNull()
+    {
+        await using var context = _fixture.CreateCleanContext();
+        context.DimJobs.AddRange(
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Engineer").WithIndustryFieldId(1).Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Analyst").WithIndustryFieldId(1).Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Engineer").WithIndustryFieldId(2).Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Manager").WithIndustryFieldId(2).Build())
+        );
+        await context.SaveChangesAsync();
+        var repository = CreateRepository(context);
+
+        var result = (await repository.GetDistinctStandardJobRolesAsync(null)).ToList();
+
+        result.Should().HaveCount(3);
+        result.Should().ContainInOrder("Analyst", "Engineer", "Manager");
+    }
+
+    [Fact]
+    public async Task GetDistinctStandardJobRolesAsync_ShouldReturnFilteredRoles_WhenIndustryIdIsProvided()
+    {
+        await using var context = _fixture.CreateCleanContext();
+        
+        context.DimIndustryFields.Add(new DimIndustryFieldDbModel { IndustryFieldId = 1, IndustryFieldName = "IT", IndustryFieldCode = "A.01"});
+        context.DimIndustryFields.Add(new DimIndustryFieldDbModel { IndustryFieldId = 2, IndustryFieldName = "Finance", IndustryFieldCode = "B.02"});
+        
+        context.DimJobs.AddRange(
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Engineer").WithIndustryFieldId(1).Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Analyst").WithIndustryFieldId(1).Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Engineer").WithIndustryFieldId(2).Build()), 
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Manager").WithIndustryFieldId(2).Build())
+        );
+        await context.SaveChangesAsync();
+        var repository = CreateRepository(context);
+
+        var result = (await repository.GetDistinctStandardJobRolesAsync(1)).ToList(); // Filter by Industry 1
+
+        result.Should().HaveCount(2);
+        result.Should().ContainInOrder("Analyst", "Engineer");
+    }
+
+    [Fact]
+    public async Task GetDistinctHierarchyLevelsAsync_ShouldReturnAllDistinctLevels_WhenFiltersAreNull()
+    {
+        await using var context = _fixture.CreateCleanContext();
+        context.DimJobs.AddRange(
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithHierarchyLevelName("Mid").Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithHierarchyLevelName("Senior").Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithHierarchyLevelName("Junior").Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithHierarchyLevelName("Mid").Build()) // Duplicate
+        );
+        await context.SaveChangesAsync();
+        var repository = CreateRepository(context);
+
+        var result = (await repository.GetDistinctHierarchyLevelsAsync(null, null)).ToList();
+
+        result.Should().HaveCount(3);
+        result.Should().ContainInOrder("Junior", "Mid", "Senior");
+    }
+
+    [Fact]
+    public async Task GetDistinctHierarchyLevelsAsync_ShouldReturnFilteredLevels_WhenAllFiltersAreUsed()
+    {
+        await using var context = _fixture.CreateCleanContext();
+        
+        context.DimIndustryFields.Add(new DimIndustryFieldDbModel { IndustryFieldId = 1, IndustryFieldName = "IT", IndustryFieldCode = "A.01"});
+        context.DimIndustryFields.Add(new DimIndustryFieldDbModel { IndustryFieldId = 2, IndustryFieldName = "Finance", IndustryFieldCode = "B.02"});
+        
+        context.DimJobs.AddRange(
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Engineer").WithHierarchyLevelName("Mid").WithIndustryFieldId(1).Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Engineer").WithHierarchyLevelName("Senior").WithIndustryFieldId(1).Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Analyst").WithHierarchyLevelName("Mid").WithIndustryFieldId(1).Build()),
+            DimJobConverter.ToDbModel(new DimJobBuilder().WithStandardJobRoleTitle("Engineer").WithHierarchyLevelName("Senior").WithIndustryFieldId(2).Build())
+        );
+        await context.SaveChangesAsync();
+        var repository = CreateRepository(context);
+        var result = (await repository.GetDistinctHierarchyLevelsAsync(1, "Engineer")).ToList(); 
+        result.Should().HaveCount(2);
+        result.Should().ContainInOrder("Mid", "Senior");
+    }
 }

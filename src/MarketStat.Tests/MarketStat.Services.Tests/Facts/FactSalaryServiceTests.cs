@@ -1,9 +1,7 @@
-using AutoMapper;
 using FluentAssertions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
-using MarketStat.Common.Enums;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Core.Repositories.Facts;
@@ -11,6 +9,7 @@ using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using MarketStat.Services.Facts.FactSalaryService;
 using MarketStat.Tests.TestData.ObjectMothers.Facts;
 using Microsoft.Extensions.Logging;
+using MarketStat.Common.Enums;
 using Moq;
 
 namespace MarketStat.Services.Tests.Facts;
@@ -18,7 +17,6 @@ namespace MarketStat.Services.Tests.Facts;
 public class FactSalaryServiceTests
 {
     private readonly Mock<IFactSalaryRepository> _mockFactSalaryRepository;
-    private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<ILogger<FactSalaryService>> _mockLogger;
     private readonly Mock<IDimLocationRepository> _mockLocationRepository;
     private readonly Mock<IDimJobRepository> _mockJobRepository;
@@ -29,7 +27,6 @@ public class FactSalaryServiceTests
     public FactSalaryServiceTests()
     {
         _mockFactSalaryRepository = new Mock<IFactSalaryRepository>();
-        _mockMapper = new Mock<IMapper>();
         _mockLogger = new Mock<ILogger<FactSalaryService>>();
         _mockLocationRepository = new Mock<IDimLocationRepository>();
         _mockJobRepository = new Mock<IDimJobRepository>();
@@ -37,7 +34,6 @@ public class FactSalaryServiceTests
 
         _sut = new FactSalaryService(
             _mockFactSalaryRepository.Object,
-            _mockMapper.Object,
             _mockLogger.Object,
             _mockLocationRepository.Object,
             _mockJobRepository.Object,
@@ -150,7 +146,7 @@ public class FactSalaryServiceTests
     [Fact]
     public async Task GetFactSalariesByFilterAsync_ShouldResolveFiltersAndCallRepository_WhenFiltersMatch()
     {
-        var userFilter = new SalaryFilterDto { CityName = "Moscow" };
+        var userFilter = new AnalysisFilterRequest { CityName = "Moscow" };
         var resolvedLocationIds = new List<int> { 1, 2 };
         var expectedSalaries = FactSalaryObjectMother.SomeSalaries();
         _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "Moscow"))
@@ -167,12 +163,144 @@ public class FactSalaryServiceTests
     [Fact]
     public async Task GetFactSalariesByFilterAsync_ShouldReturnEmpty_WhenFiltersDoNotResolve()
     {
-        var userFilter = new SalaryFilterDto { CityName = "NonExistentCity" };
+        var userFilter = new AnalysisFilterRequest { CityName = "NonExistentCity" };
         var resolvedLocationIds = new List<int>();
         _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "NonExistentCity"))
             .ReturnsAsync(resolvedLocationIds);
         var result = await _sut.GetFactSalariesByFilterAsync(userFilter);
         result.Should().BeEmpty();
         _mockFactSalaryRepository.Verify(repo => repo.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Never);
+    }
+    
+    [Fact]
+    public async Task GetSalaryDistributionAsync_ShouldReturnDistribution_WhenFiltersResolve()
+    {
+        var request = new AnalysisFilterRequest { CityName = "Moscow" };
+        var resolvedLocationIds = new List<int> { 1 };
+        var expectedDistribution = new List<SalaryDistributionBucket>();
+
+        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "Moscow"))
+            .ReturnsAsync(resolvedLocationIds);
+        
+        _mockFactSalaryRepository.Setup(repo => repo.GetSalaryDistributionAsync(It.Is<ResolvedSalaryFilter>(f => f.LocationIds == resolvedLocationIds)))
+            .ReturnsAsync(expectedDistribution);
+        var result = await _sut.GetSalaryDistributionAsync(request);
+        result.Should().BeEquivalentTo(expectedDistribution); 
+        _mockFactSalaryRepository.Verify(repo => repo.GetSalaryDistributionAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetSalaryDistributionAsync_ShouldReturnEmpty_WhenFiltersDoNotResolve()
+    {
+        var request = new AnalysisFilterRequest { CityName = "NonExistent" };
+        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "NonExistent"))
+            .ReturnsAsync(new List<int>());
+        var result = await _sut.GetSalaryDistributionAsync(request);
+        result.Should().BeEmpty();
+        _mockFactSalaryRepository.Verify(repo => repo.GetSalaryDistributionAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Never);
+    }
+    
+    [Fact]
+    public async Task GetSalarySummaryAsync_ShouldReturnSummary_WhenFiltersResolve()
+    {
+        var request = new SalarySummaryRequest { CityName = "Moscow", TargetPercentile = 90 };
+        var resolvedLocationIds = new List<int> { 1 };
+        var expectedSummary = new SalarySummary { TotalCount = 10 };
+        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "Moscow"))
+            .ReturnsAsync(resolvedLocationIds);
+        _mockFactSalaryRepository.Setup(repo => repo.GetSalarySummaryAsync(It.Is<ResolvedSalaryFilter>(f => f.LocationIds == resolvedLocationIds), 90))
+            .ReturnsAsync(expectedSummary);
+        var result = await _sut.GetSalarySummaryAsync(request);
+        result.Should().Be(expectedSummary);
+        _mockFactSalaryRepository.Verify(repo => repo.GetSalarySummaryAsync(It.IsAny<ResolvedSalaryFilter>(), 90), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetSalarySummaryAsync_ShouldReturnNull_WhenFiltersDoNotResolve()
+    {
+        var request = new SalarySummaryRequest { CityName = "NonExistent" };
+        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "NonExistent"))
+            .ReturnsAsync(new List<int>());
+        var result = await _sut.GetSalarySummaryAsync(request);
+        result.Should().BeNull();
+        _mockFactSalaryRepository.Verify(repo => repo.GetSalarySummaryAsync(It.IsAny<ResolvedSalaryFilter>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetSalarySummaryAsync_ShouldThrowArgumentException_WhenPercentileIsInvalid()
+    {
+        var request = new SalarySummaryRequest { TargetPercentile = -10 };
+        Func<Task> act = async () => await _sut.GetSalarySummaryAsync(request);
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("TargetPercentile");
+    }
+    
+    [Fact]
+    public async Task GetSalaryTimeSeriesAsync_ShouldReturnSeries_WhenFiltersResolve()
+    {
+        var request = new TimeSeriesRequest { CityName = "Moscow", Granularity = TimeGranularity.Month, Periods = 6 };
+        var resolvedLocationIds = new List<int> { 1 };
+        var expectedSeries = new List<SalaryTimeSeriesPoint>();
+        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "Moscow"))
+            .ReturnsAsync(resolvedLocationIds);
+        _mockFactSalaryRepository.Setup(repo => repo.GetSalaryTimeSeriesAsync(
+                It.Is<ResolvedSalaryFilter>(f => f.LocationIds == resolvedLocationIds), TimeGranularity.Month, 6))
+            .ReturnsAsync(expectedSeries);
+        var result = await _sut.GetSalaryTimeSeriesAsync(request);
+        result.Should().BeEquivalentTo(expectedSeries);
+        _mockFactSalaryRepository.Verify(repo => repo.GetSalaryTimeSeriesAsync(It.IsAny<ResolvedSalaryFilter>(), TimeGranularity.Month, 6), Times.Once);
+    }
+    
+    [Fact]
+    public async Task GetSalaryTimeSeriesAsync_ShouldReturnEmpty_WhenFiltersDoNotResolve()
+    {
+        var request = new TimeSeriesRequest { CityName = "NonExistent", Periods = 1 }; 
+        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "NonExistent"))
+            .ReturnsAsync(new List<int>());
+        var result = await _sut.GetSalaryTimeSeriesAsync(request);
+        result.Should().BeEmpty();
+        _mockFactSalaryRepository.Verify(repo => repo.GetSalaryTimeSeriesAsync(It.IsAny<ResolvedSalaryFilter>(), It.IsAny<TimeGranularity>(), It.IsAny<int>()), Times.Never);
+    }
+    
+    [Fact]
+    public async Task GetSalaryTimeSeriesAsync_ShouldThrowArgumentException_WhenPeriodsIsInvalid()
+    {
+        var request = new TimeSeriesRequest { Periods = 0 };
+        Func<Task> act = async () => await _sut.GetSalaryTimeSeriesAsync(request);
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("Periods");
+    }
+    
+    [Fact]
+    public async Task GetPublicRolesAsync_ShouldReturnRoles_WhenFiltersResolve()
+    {
+        var request = new PublicRolesRequest { CityName = "Moscow", MinRecordCount = 10 };
+        var resolvedLocationIds = new List<int> { 1 };
+        var expectedRoles = new List<PublicRoleByLocationIndustry>();
+        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "Moscow"))
+            .ReturnsAsync(resolvedLocationIds);
+        _mockFactSalaryRepository.Setup(repo => repo.GetPublicRolesAsync(
+                It.Is<ResolvedSalaryFilter>(f => f.LocationIds == resolvedLocationIds), 10))
+            .ReturnsAsync(expectedRoles);
+        var result = await _sut.GetPublicRolesAsync(request);
+        result.Should().BeEquivalentTo(expectedRoles);
+        _mockFactSalaryRepository.Verify(repo => repo.GetPublicRolesAsync(It.IsAny<ResolvedSalaryFilter>(), 10), Times.Once);
+    }
+    
+    [Fact]
+    public async Task GetPublicRolesAsync_ShouldReturnEmpty_WhenFiltersDoNotResolve()
+    {
+        var request = new PublicRolesRequest { CityName = "NonExistent" };
+        _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "NonExistent"))
+            .ReturnsAsync(new List<int>());
+        var result = await _sut.GetPublicRolesAsync(request);
+        result.Should().BeEmpty();
+        _mockFactSalaryRepository.Verify(repo => repo.GetPublicRolesAsync(It.IsAny<ResolvedSalaryFilter>(), It.IsAny<int>()), Times.Never);
+    }
+    
+    [Fact]
+    public async Task GetPublicRolesAsync_ShouldThrowArgumentException_WhenMinCountIsInvalid()
+    {
+        var request = new PublicRolesRequest { MinRecordCount = -1 };
+        Func<Task> act = async () => await _sut.GetPublicRolesAsync(request);
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("MinRecordCount");
     }
 }

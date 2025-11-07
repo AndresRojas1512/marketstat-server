@@ -193,4 +193,55 @@ public class DimLocationRepositoryTests
         result.Should().HaveCount(1);
         result.Should().Contain(2);
     }
+    
+    [Fact]
+    public async Task GetDistinctDistrictsAsync_ShouldReturnDistinctSortedDistricts()
+    {
+        await using var context = _fixture.CreateCleanContext();
+        context.DimLocations.AddRange(
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("Central").Build()),
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("Ural").Build()),
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("Central").Build()), // Duplicate
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("Siberian").Build())
+        );
+        await context.SaveChangesAsync();
+        var repository = CreateRepository(context);
+        var result = (await repository.GetDistinctDistrictsAsync()).ToList();
+        result.Should().HaveCount(3);
+        result.Should().ContainInOrder("Central", "Siberian", "Ural");
+    }
+    
+    [Fact]
+    public async Task GetDistinctOblastsAsync_ShouldReturnDistinctOblastsForDistrict()
+    {
+        await using var context = _fixture.CreateCleanContext();
+        context.DimLocations.AddRange(
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("Central").WithOblastName("Moscow").Build()),
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("Central").WithOblastName("Tula").Build()),
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("Central").WithOblastName("Moscow").Build()),
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithDistrictName("Ural").WithOblastName("Sverdlovsk").Build())
+        );
+        await context.SaveChangesAsync();
+        var repository = CreateRepository(context);
+        var result = (await repository.GetDistinctOblastsAsync("Central")).ToList();
+        result.Should().HaveCount(2);
+        result.Should().ContainInOrder("Moscow", "Tula");
+    }
+
+    [Fact]
+    public async Task GetDistinctCitiesAsync_ShouldReturnDistinctCitiesForOblast()
+    {
+        await using var context = _fixture.CreateCleanContext();
+        context.DimLocations.AddRange(
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithOblastName("Moscow").WithCityName("Moscow").Build()),
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithOblastName("Moscow").WithCityName("Podolsk").Build()),
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithOblastName("Moscow").WithCityName("Moscow").Build()),
+            DimLocationConverter.ToDbModel(new DimLocationBuilder().WithOblastName("Tula").WithCityName("Tula").Build())
+        );
+        await context.SaveChangesAsync();
+        var repository = CreateRepository(context);
+        var result = (await repository.GetDistinctCitiesAsync("Moscow")).ToList();
+        result.Should().HaveCount(2);
+        result.Should().ContainInOrder("Moscow", "Podolsk");
+    }
 }
