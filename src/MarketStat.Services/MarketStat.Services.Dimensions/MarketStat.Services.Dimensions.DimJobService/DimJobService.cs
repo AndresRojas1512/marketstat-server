@@ -60,4 +60,20 @@ public class DimJobService : IDimJobService
         await _dimJobRepository.DeleteJobAsync(jobId);
         _logger.LogInformation("Deleted job {JobId}", jobId);
     }
+
+    public async Task<IEnumerable<string>> GetDistinctStandardJobRolesAsync(int? industryFieldId)
+    {
+        _logger.LogInformation("Fetching distinct standard job roles for IndustryFieldId: {IndustryFieldId}",
+            industryFieldId);
+        return await _dimJobRepository.GetDistinctStandardJobRolesAsync(industryFieldId);
+    }
+
+    public async Task<IEnumerable<string>> GetDistinctHierarchyLevelsAsync(int? industryFieldId,
+        string? standardJobRoleTitle)
+    {
+        _logger.LogInformation(
+            "Fetching distinct hierarchy levels for IndustryFieldId: {IndustryFieldId} and StandardJobRoleTitle: {StandardJobRoleTitle}",
+            industryFieldId, standardJobRoleTitle);
+        return await _dimJobRepository.GetDistinctHierarchyLevelsAsync(industryFieldId, standardJobRoleTitle);
+    }
 }

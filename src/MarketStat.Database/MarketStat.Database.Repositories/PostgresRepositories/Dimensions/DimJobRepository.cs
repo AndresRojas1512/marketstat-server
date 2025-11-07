@@ -91,4 +91,37 @@ public class DimJobRepository : BaseRepository, IDimJobRepository
             query = query.Where(j => j.HierarchyLevelName == hierarchyLevelName);
         return await query.Select(j => j.JobId).ToListAsync();
     }
+
+    public async Task<IEnumerable<string>> GetDistinctStandardJobRolesAsync(int? industryFieldId)
+    {
+        var query = _dbContext.DimJobs.AsQueryable();
+        if (industryFieldId.HasValue)
+        {
+            query = query.Where(j => j.IndustryFieldId == industryFieldId.Value);
+        }
+        return await query
+            .Select(j => j.StandardJobRoleTitle)
+            .Distinct()
+            .OrderBy(title => title)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<string>> GetDistinctHierarchyLevelsAsync(int? industryFieldId,
+        string? standardJobRoleTitle)
+    {
+        var query = _dbContext.DimJobs.AsQueryable();
+        if (industryFieldId.HasValue)
+        {
+            query = query.Where(j => j.IndustryFieldId == industryFieldId.Value);
+        }
+        if (!string.IsNullOrEmpty(standardJobRoleTitle))
+        {
+            query = query.Where(j => j.StandardJobRoleTitle == standardJobRoleTitle);
+        }
+        return await query
+            .Select(j => j.HierarchyLevelName)
+            .Distinct()
+            .OrderBy(level => level)
+            .ToListAsync();
+    }
 }

@@ -1,14 +1,12 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Services.Facts.FactSalaryService.Validators;
 using Microsoft.Extensions.Logging;
-using AutoMapper;
-using MarketStat.Common.Enums;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimIndustryFieldService;
-
 
 namespace MarketStat.Services.Facts.FactSalaryService;
 
@@ -16,22 +14,18 @@ public class FactSalaryService : IFactSalaryService
 {
     private readonly IFactSalaryRepository _factSalaryRepository;
     private readonly ILogger<FactSalaryService> _logger;
-    private readonly IMapper _mapper;
-
     private readonly IDimLocationRepository _dimLocationRepository;
     private readonly IDimJobRepository _dimJobRepository;
     private readonly IDimIndustryFieldService _dimIndustryFieldService;
     
     public FactSalaryService(
         IFactSalaryRepository factSalaryRepository,
-        IMapper mapper,
         ILogger<FactSalaryService> logger,
         IDimLocationRepository dimLocationRepository,
         IDimJobRepository dimJobRepository,
         IDimIndustryFieldService dimIndustryFieldService)
     {
         _factSalaryRepository = factSalaryRepository ?? throw new ArgumentNullException(nameof(factSalaryRepository));
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _dimLocationRepository = dimLocationRepository ?? throw new ArgumentNullException(nameof(dimLocationRepository));
         _dimJobRepository = dimJobRepository ?? throw new ArgumentNullException(nameof(dimJobRepository));
@@ -82,14 +76,15 @@ public class FactSalaryService : IFactSalaryService
         }
     }
 
-    public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto filterDto)
+    public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(AnalysisFilterRequest request)
     {
         _logger.LogInformation("Service: GetFactSalariesByFilterAsync called with user filters: {@FilterDto}",
-            filterDto);
-        var resolvedFilters = await ResolveFilters(filterDto);
+            request);
+        var resolvedFilters = await ResolveFilters(request);
         if (resolvedFilters == null)
         {
-            _logger.LogInformation("User filters resolved to no matching dimension IDs. Returning empty list.");
+            _logger.LogInformation(
+                "User filters resolved to no matching dimension IDs. Returning empty list. Returning empty list.");
             return Enumerable.Empty<FactSalary>();
         }
 
@@ -147,27 +142,84 @@ public class FactSalaryService : IFactSalaryService
             throw;
         }
     }
-
-    private async Task<ResolvedSalaryFilterDto?> ResolveFilters(SalaryFilterDto userFilters)
+    
+    // Authorized analytical endpoints
+    
+    public async Task<List<SalaryDistributionBucket>> GetSalaryDistributionAsync(AnalysisFilterRequest request)
     {
-        _logger.LogDebug("Resolving user filters: {@UserFilters}", userFilters);
+        _logger.LogInformation("Service: Getting salary distribution with request: {@Request}", request);
+        var resolvedFilters = await ResolveFilters(request);
+        if (resolvedFilters == null)
+        {
+            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty distribution.");
+            return new List<SalaryDistributionBucket>();
+        }
+        return await _factSalaryRepository.GetSalaryDistributionAsync(resolvedFilters);
+    }
+
+    public async Task<SalarySummary?> GetSalarySummaryAsync(SalarySummaryRequest request)
+    {
+        _logger.LogInformation("Service: Getting salary summary with request: {@Request}", request);
+        if (request.TargetPercentile < 0 || request.TargetPercentile > 100)
+            throw new ArgumentException("Target percentile must be between 0 and 100.", 
+                nameof(request.TargetPercentile));
+        var resolvedFilters = await ResolveFilters(request);
+        if (resolvedFilters == null)
+        {
+            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning null summary");
+            return null;
+        }
+        return await _factSalaryRepository.GetSalarySummaryAsync(resolvedFilters, request.TargetPercentile);
+    }
+
+    public async Task<List<SalaryTimeSeriesPoint>> GetSalaryTimeSeriesAsync(TimeSeriesRequest request)
+    {
+        _logger.LogInformation(
+            "Service: Getting salary time series with request: {@Request}", request);
+        if (request.Periods <= 0)
+            throw new ArgumentException("Periods must be greater than zero.", nameof(request.Periods));
+        var resolvedFilters = await ResolveFilters(request);
+        if (resolvedFilters == null)
+        {
+            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty time series.");
+            return new List<SalaryTimeSeriesPoint>();
+        }
+        return await _factSalaryRepository.GetSalaryTimeSeriesAsync(resolvedFilters, request.Granularity,
+            request.Periods);
+    }
+    
+    // Public analytical methods
+
+    public async Task<IEnumerable<PublicRoleByLocationIndustry>> GetPublicRolesAsync(PublicRolesRequest request)
+    {
+        _logger.LogInformation("Service: Getting public roles with request: {$Request}", request);
+        if (request.MinRecordCount < 0)
+            throw new ArgumentException("Minimum record count cannot be negative.", nameof(request.MinRecordCount));
+        var resolvedFilters = await ResolveFilters(request);
+        if (resolvedFilters == null)
+        {
+            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty list.");
+            return Enumerable.Empty<PublicRoleByLocationIndustry>();
+        }
+        return await _factSalaryRepository.GetPublicRolesAsync(resolvedFilters, request.MinRecordCount);
+    }
+
+    private async Task<ResolvedSalaryFilter?> ResolveFilters(AnalysisFilterRequest request)
+    {
+        _logger.LogDebug("Resolving user request: {@Request}", request);
         List<int>? locationIds = null;
         bool locationFilterApplied = false;
-        if (userFilters.LocationId.HasValue)
-        {
-            locationIds = new List<int> { userFilters.LocationId.Value };
-            locationFilterApplied = true;
-            _logger.LogDebug("Direct LocationId filter applied: {LocationId}", userFilters.LocationId.Value);
-        }
-        else if (!string.IsNullOrEmpty(userFilters.DistrictName) || !string.IsNullOrEmpty(userFilters.OblastName) ||
-                 !string.IsNullOrEmpty(userFilters.CityName))
+
+        if (!string.IsNullOrEmpty(request.DistrictName) || !string.IsNullOrEmpty(request.OblastName) ||
+            !string.IsNullOrEmpty(request.CityName))
         {
             locationFilterApplied = true;
-            _logger.LogDebug("Resolving location IDs based on names: Distric={District}, Oblast={Oblast}, City={City}",
-                userFilters.DistrictName, userFilters.OblastName, userFilters.CityName);
-            locationIds = await _dimLocationRepository.GetLocationIdsByFilterAsync(userFilters.DistrictName,
-                userFilters.OblastName, userFilters.CityName);
-            if (!locationIds.Any())
+            _logger.LogDebug("Resolving location IDs based on names: District={District}, Oblast={Oblast}, City={City}",
+                request.DistrictName, request.OblastName, request.CityName);
+            locationIds =
+                await _dimLocationRepository.GetLocationIdsByFilterAsync(request.DistrictName, request.OblastName,
+                    request.CityName);
+            if (locationIds == null || !locationIds.Any())
             {
                 _logger.LogInformation("No locations matched the specified name filters.");
                 return null;
@@ -178,33 +230,30 @@ public class FactSalaryService : IFactSalaryService
         List<int>? jobIds = null;
         bool jobFilterApplied = false;
 
-        if (userFilters.JobId.HasValue)
-        {
-            jobIds = new List<int> { userFilters.JobId.Value };
-            jobFilterApplied = true;
-            _logger.LogDebug("Direct JobId filter applied: {JobId}", userFilters.JobId.Value);
-        }
-        else if (!string.IsNullOrEmpty(userFilters.StandardJobRoleTitle) || !string.IsNullOrEmpty(userFilters.HierarchyLevelName) || userFilters.IndustryFieldId.HasValue)
+        if (!string.IsNullOrEmpty(request.StandardJobRoleTitle) || !string.IsNullOrEmpty(request.HierarchyLevelName) ||
+            request.IndustryFieldId.HasValue)
         {
             jobFilterApplied = true;
             _logger.LogDebug(
                 "Resolving job IDs based on criteria: StandardJobRole={StdJob}, Hierarchy={Hierarchy}, IndustryId={IndustryId}",
-                userFilters.StandardJobRoleTitle, userFilters.HierarchyLevelName, userFilters.IndustryFieldId);
-            if (userFilters.IndustryFieldId.HasValue)
+                request.StandardJobRoleTitle, request.HierarchyLevelName, request.IndustryFieldId);
+            if (request.IndustryFieldId.HasValue)
             {
                 try
                 {
-                    await _dimIndustryFieldService.GetIndustryFieldByIdAsync(userFilters.IndustryFieldId.Value);
+                    await _dimIndustryFieldService.GetIndustryFieldByIdAsync(request.IndustryFieldId.Value);
                 }
                 catch (NotFoundException ex)
                 {
                     throw new ArgumentException(
-                        $"Invalid IndustryFieldId provided in filter: {userFilters.IndustryFieldId.Value}", ex);
+                        $"Invalid IndustryFieldId provided in filter: {request.IndustryFieldId.Value}", ex);
                 }
             }
-            jobIds = await _dimJobRepository.GetJobIdsByFilterAsync(userFilters.StandardJobRoleTitle,
-                userFilters.HierarchyLevelName, userFilters.IndustryFieldId);
-            if (!jobIds.Any())
+
+            jobIds = await _dimJobRepository.GetJobIdsByFilterAsync(request.StandardJobRoleTitle,
+                request.HierarchyLevelName, request.IndustryFieldId);
+            
+            if (jobIds == null || !jobIds.Any())
             {
                 _logger.LogInformation("No jobs matched the specified job filters.");
                 return null;
@@ -212,76 +261,12 @@ public class FactSalaryService : IFactSalaryService
             _logger.LogDebug("Resolved {Count} Job IDs from criteria.", jobIds.Count);
         }
 
-        return new ResolvedSalaryFilterDto
+        return new ResolvedSalaryFilter
         {
             LocationIds = locationFilterApplied ? locationIds : null,
             JobIds = jobFilterApplied ? jobIds : null,
-            DateStart = userFilters.DateStart,
-            DateEnd = userFilters.DateEnd,
+            DateStart = request.DateStart,
+            DateEnd = request.DateEnd
         };
-    }
-    
-    // Authorized analytical endpoints
-    
-    public async Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters)
-    {
-        _logger.LogInformation("Service: Getting salary distribution with user filters: {@Filters}", filters);
-        var resolvedFilters = await ResolveFilters(filters);
-        if (resolvedFilters == null)
-        {
-            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty distribution.");
-            return new List<SalaryDistributionBucketDto>();
-        }
-        return await _factSalaryRepository.GetSalaryDistributionAsync(resolvedFilters);
-    }
-
-    public async Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile)
-    {
-        _logger.LogInformation(
-            "Service: Getting salary distribution with user filters: {@Filters} and percentile: {Percentile}", filters,
-            targetPercentile);
-        if (targetPercentile < 0 || targetPercentile > 100)
-            throw new ArgumentException("Target percentile must be between 0 and 100.", nameof(targetPercentile));
-        var resolvedFilters = await ResolveFilters(filters);
-        if (resolvedFilters == null)
-        {
-            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning null summary.");
-            return null;
-        }
-        return await _factSalaryRepository.GetSalarySummaryAsync(resolvedFilters, targetPercentile);
-    }
-
-    public async Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters,
-        TimeGranularity granularity, int periods)
-    {
-        _logger.LogInformation(
-            "Service: Getting salary time series with user filters: {@Filters}, Granularity: {Granularity}, Periods: {Periods}",
-            filters, granularity, periods);
-        if (periods <= 0)
-            throw new ArgumentException("Periods must be greater than zero.", nameof(periods));
-        var resolvedFilters = await ResolveFilters(filters);
-        if (resolvedFilters == null)
-        {
-            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty time series.");
-            return new List<SalaryTimeSeriesPointDto>();
-        }
-        return await _factSalaryRepository.GetSalaryTimeSeriesAsync(resolvedFilters, granularity, periods);
-    }
-    
-    // Public analytical methods
-
-    public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesAsync(SalaryFilterDto userFilters,
-        int minRecordCount)
-    {
-        _logger.LogInformation("Service: Getting public roles with user filters: {$Filters}", userFilters);
-        if (minRecordCount < 0)
-            throw new ArgumentException("Minimum record count cannot be negative.", nameof(minRecordCount));
-        var resolvedFilters = await ResolveFilters(userFilters);
-        if (resolvedFilters == null)
-        {
-            _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty list.");
-            return Enumerable.Empty<PublicRoleByLocationIndustryDto>();
-        }
-        return await _factSalaryRepository.GetPublicRolesAsync(resolvedFilters, minRecordCount);
     }
 }

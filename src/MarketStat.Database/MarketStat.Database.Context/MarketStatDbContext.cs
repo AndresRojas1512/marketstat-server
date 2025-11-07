@@ -1,5 +1,6 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Payloads;
 using MarketStat.Database.Models;
 using MarketStat.Database.Models.MarketStat.Database.Models.Account;
 using MarketStat.Database.Models.MarketStat.Database.Models.Facts;

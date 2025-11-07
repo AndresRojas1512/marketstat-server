@@ -1,7 +1,8 @@
-using System.Security.Claims;
 using AutoMapper;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
-using MarketStat.Common.Enums;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Payloads;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
 using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -62,11 +63,11 @@ public class FactSalaryController : ControllerBase
     public async Task<ActionResult<IEnumerable<FactSalaryDto>>> GetSalariesByFilter([FromQuery] SalaryFilterDto filterDto)
     {
         _logger.LogInformation("Controller: Attempting to get salary facts by filter: {@FilterDto}", filterDto);
-        var salaryFactsDomain = await _factSalaryService.GetFactSalariesByFilterAsync(filterDto);
+        var request = _mapper.Map<AnalysisFilterRequest>(filterDto);
+        var salaryFactsDomain = await _factSalaryService.GetFactSalariesByFilterAsync(request);
         var salaryFactDtos = _mapper.Map<IEnumerable<FactSalaryDto>>(salaryFactsDomain);
         _logger.LogInformation("Controller: Successfully retrieved {Count} salary facts for filter.", salaryFactDtos.Count());
         return Ok(salaryFactDtos);
-        
     }
 
     /// <summary>
@@ -164,49 +165,51 @@ public class FactSalaryController : ControllerBase
         [FromQuery] SalaryFilterDto filters)
     {
         _logger.LogInformation("User requesting salary distribution: {@Filters}", filters);
-        var data = await _factSalaryService.GetSalaryDistributionAsync(filters);
-        return Ok(data);
+        var request = _mapper.Map<AnalysisFilterRequest>(filters);
+        var domainResult = await _factSalaryService.GetSalaryDistributionAsync(request);
+        var dtos = _mapper.Map<List<SalaryDistributionBucketDto>>(domainResult);
+        return Ok(dtos);
     }
 
     [HttpGet("summary")]
     [Authorize(Roles = "Admin, Analyst")]
     [ProducesResponseType(typeof(SalarySummaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<SalarySummaryDto>> GetSalarySummary([FromQuery] SalaryFilterDto filters,
-        [FromQuery] int targetPercentile = 90)
+    public async Task<ActionResult<SalarySummaryDto>> GetSalarySummary([FromQuery] SalarySummaryRequestDto requestDto)
     {
-        _logger.LogInformation("User requesting salary summary: {@Filters}, Percentile: {Percentile}", filters,
-            targetPercentile);
-        var data = await _factSalaryService.GetSalarySummaryAsync(filters, targetPercentile);
-        return Ok(data);
+        _logger.LogInformation("User requesting salary summary: {@RequestDto}", requestDto);
+        var request = _mapper.Map<SalarySummaryRequest>(requestDto);
+        var domainResult = await _factSalaryService.GetSalarySummaryAsync(request);
+        var dto = _mapper.Map<SalarySummaryDto>(domainResult);
+        return Ok(dto);
     }
 
     [HttpGet("timeseries")]
     [Authorize(Roles = "Admin, Analyst")]
     [ProducesResponseType(typeof(List<SalaryTimeSeriesPointDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<SalaryTimeSeriesPointDto>>> GetSalaryTimeSeries(
-        [FromQuery] SalaryFilterDto filters, [FromQuery] TimeGranularity granularity = TimeGranularity.Month,
-        [FromQuery] int periods = 12)
+    public async Task<ActionResult<List<SalaryTimeSeriesPointDto>>> GetSalaryTimeSeries([FromQuery] SalaryTimeSeriesRequestDto requestDto)
     {
-        _logger.LogInformation(
-            "User requesting salary time series: {@Filters}, Granularity: {Granularity}, Periods: {Periods}", filters,
-            granularity, periods);
-        var data = await _factSalaryService.GetSalaryTimeSeriesAsync(filters, granularity, periods);
-        return Ok(data);
+        _logger.LogInformation("User requesting salary time series: {@RequestDto}", requestDto);
+        var request = _mapper.Map<TimeSeriesRequest>(requestDto);
+        var domainResult = await _factSalaryService.GetSalaryTimeSeriesAsync(request);
+        var dtos = _mapper.Map<List<SalaryTimeSeriesPointDto>>(domainResult);
+        return Ok(dtos);
     }
     
     // Public analytical endpoints
-    
+
     [HttpGet("public/roles")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<PublicRoleByLocationIndustryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<PublicRoleByLocationIndustryDto>>> GetPublicRoles(
-        [FromQuery] SalaryFilterDto filters, [FromQuery] int minRecordCount = 10)
+        PublicRolesRequestDto requestDto)
     {
-        _logger.LogInformation("Public request for roles: {@Filters}", filters);
-        var data = await _factSalaryService.GetPublicRolesAsync(filters, minRecordCount);
-        return Ok(data);
+        _logger.LogInformation("Public request for roles: {@RequestDto}", requestDto);
+        var request = _mapper.Map<PublicRolesRequest>(requestDto);
+        var domainResult = await _factSalaryService.GetPublicRolesAsync(request);
+        var dtos = _mapper.Map<IEnumerable<PublicRoleByLocationIndustryDto>>(domainResult);
+        return Ok(dtos);
     }
 }

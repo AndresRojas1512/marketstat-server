@@ -9,7 +9,8 @@ public interface IDimJobRepository
     Task<IEnumerable<DimJob>> GetAllJobsAsync();
     Task UpdateJobAsync(DimJob job);
     Task DeleteJobAsync(int jobId);
-
     Task<List<int>> GetJobIdsByFilterAsync(string? standardJobRoleTitle, string? hierarchyLevelName,
         int? industryFieldId);
+    Task<IEnumerable<string>> GetDistinctStandardJobRolesAsync(int? industryFieldId);
+    Task<IEnumerable<string>> GetDistinctHierarchyLevelsAsync(int? industryFieldId, string? standardJobRoleTitle);
 }

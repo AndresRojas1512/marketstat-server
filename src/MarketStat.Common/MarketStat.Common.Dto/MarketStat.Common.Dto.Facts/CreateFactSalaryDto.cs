@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
 
 public record CreateFactSalaryDto
 {

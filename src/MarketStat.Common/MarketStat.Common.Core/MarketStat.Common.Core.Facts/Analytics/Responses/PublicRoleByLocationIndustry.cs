@@ -1,8 +1,6 @@
-using System.Text.Json.Serialization;
+namespace MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
-
-public class PublicRoleByLocationIndustryDto
+public class PublicRoleByLocationIndustry
 {
     public string StandardJobRoleTitle { get; set; } = string.Empty;
     public decimal AverageSalary { get; set; }

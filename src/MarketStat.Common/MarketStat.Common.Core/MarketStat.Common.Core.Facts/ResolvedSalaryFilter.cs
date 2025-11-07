@@ -1,6 +1,6 @@
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+namespace MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 
-public class ResolvedSalaryFilterDto
+public class ResolvedSalaryFilter
 {
     public List<int>? LocationIds { get; set; }
     public List<int>? JobIds { get; set; }

@@ -1,6 +1,6 @@
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
 using MarketStat.Common.Enums;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
@@ -48,7 +48,6 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         var dbSalary = await _dbContext.FactSalaries
             .AsNoTracking()
             .FirstOrDefaultAsync(fs => fs.SalaryFactId == salaryId);
-
         if (dbSalary == null)
         {
             throw new NotFoundException($"Salary fact with ID {salaryId} not found.");
@@ -56,7 +55,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         return FactSalaryConverter.ToDomain(dbSalary);
     }
 
-    public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(ResolvedSalaryFilterDto resolvedFilters)
+    public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(ResolvedSalaryFilter resolvedFilters)
     {
         _logger.LogInformation("Repository: GetFactSalariesByFilterAsync called with resolved filters: {@ResolvedFilters}", resolvedFilters);
         try
@@ -105,14 +104,13 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFactId);
         if (dbModel == null)
             throw new NotFoundException($"Salary fact with ID {salaryFactId} not found for deletion.");
-
         _dbContext.FactSalaries.Remove(dbModel);
         await _dbContext.SaveChangesAsync();
     }
     
     // Authorized analytical methods
 
-    public async Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(ResolvedSalaryFilterDto resolvedFilters)
+    public async Task<List<SalaryDistributionBucket>> GetSalaryDistributionAsync(ResolvedSalaryFilter resolvedFilters)
     {
         var baseQuery = GetFilteredSalariesQuery(resolvedFilters);
         var salaries = await baseQuery
@@ -120,7 +118,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             .ToListAsync();
         if (salaries.Count == 0)
         {
-            return new List<SalaryDistributionBucketDto>();
+            return new List<SalaryDistributionBucket>();
         }
 
         var n = salaries.Count;
@@ -129,9 +127,9 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
 
         if (n <= 1 || minVal == maxVal)
         {
-            return new List<SalaryDistributionBucketDto>
+            return new List<SalaryDistributionBucket>
             {
-                new SalaryDistributionBucketDto { LowerBound = minVal, UpperBound = maxVal, BucketCount = n}
+                new SalaryDistributionBucket { LowerBound = minVal, UpperBound = maxVal, BucketCount = n}
             };
         }
 
@@ -140,9 +138,9 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
 
         if (delta == 0)
         {
-            return new List<SalaryDistributionBucketDto>
+            return new List<SalaryDistributionBucket>
             {
-                new SalaryDistributionBucketDto { LowerBound = minVal, UpperBound = maxVal, BucketCount = n }
+                new SalaryDistributionBucket { LowerBound = minVal, UpperBound = maxVal, BucketCount = n }
             };
         }
 
@@ -163,7 +161,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
                 };
             })
             .GroupBy(b => b.BucketNo)
-            .Select(finalGroup => new SalaryDistributionBucketDto
+            .Select(finalGroup => new SalaryDistributionBucket
             {
                 LowerBound = finalGroup.First().LowerBound,
                 UpperBound = finalGroup.First().UpperBound,
@@ -175,7 +173,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         return distribution;
     }
 
-    public async Task<SalarySummaryDto?> GetSalarySummaryAsync(ResolvedSalaryFilterDto resolvedFilters, int targetPercentile)
+    public async Task<SalarySummary?> GetSalarySummaryAsync(ResolvedSalaryFilter resolvedFilters, int targetPercentile)
     {
         var baseQuery = GetFilteredSalariesQuery(resolvedFilters);
         
@@ -203,7 +201,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
                 .ToListAsync();
         }
 
-        var result = new SalarySummaryDto
+        var result = new SalarySummary
         {
             TotalCount = summaryStats.TotalCount,
             AverageSalary = summaryStats.AverageSalary,
@@ -216,7 +214,8 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         return result;
     }
 
-    public async Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(ResolvedSalaryFilterDto resolvedFilters, TimeGranularity granularity, int periods)
+    public async Task<List<SalaryTimeSeriesPoint>> GetSalaryTimeSeriesAsync(ResolvedSalaryFilter resolvedFilters,
+        TimeGranularity granularity, int periods)
     {
         var referenceDate = resolvedFilters.DateEnd ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var seriesEndDate = GetPeriodStartDate(referenceDate, granularity);
@@ -240,14 +239,14 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
                 SalaryCountInPeriod = g.Count()
             })
             .ToDictionaryAsync(r => r.PeriodStart);
-        
-        var allPeriods = new List<SalaryTimeSeriesPointDto>();
+
+        var allPeriods = new List<SalaryTimeSeriesPoint>();
         var currentPeriodStart = seriesStartDate;
         for (int i = 0; i < periods; i++)
         {
             if (dbResults.TryGetValue(currentPeriodStart, out var stats))
             {
-                allPeriods.Add(new SalaryTimeSeriesPointDto
+                allPeriods.Add(new SalaryTimeSeriesPoint
                 {
                     PeriodStart = currentPeriodStart,
                     AvgSalary = stats.AvgSalary,
@@ -256,21 +255,47 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             }
             else
             {
-                allPeriods.Add(new SalaryTimeSeriesPointDto
+                allPeriods.Add(new SalaryTimeSeriesPoint
                 {
                     PeriodStart = currentPeriodStart,
                     AvgSalary = 0,
                     SalaryCountInPeriod = 0
                 });
             }
+
             currentPeriodStart = AddPeriods(currentPeriodStart, granularity, 1);
         }
+
         return allPeriods.OrderBy(p => p.PeriodStart).ToList();
+    }
+
+    // Public analytical methods
+
+    public async Task<IEnumerable<PublicRoleByLocationIndustry>> GetPublicRolesAsync(
+        ResolvedSalaryFilter resolvedFilters, int minRecordCount)
+    {
+        _logger.LogInformation("Repository: GetPublicRolesAsync called");
+        var query = GetFilteredSalariesQuery(resolvedFilters);
+        var results = await query
+            .Include(fs => fs.DimJob)
+            .GroupBy(fs => fs.DimJob!.StandardJobRoleTitle)
+            .Select(g => new PublicRoleByLocationIndustry
+            {
+                StandardJobRoleTitle = g.Key,
+                AverageSalary = g.Average(fs => fs.SalaryAmount),
+                SalaryRecordCount = g.Count()
+            })
+            .Where(g => g.SalaryRecordCount >= minRecordCount)
+            .OrderByDescending(g => g.AverageSalary)
+            .AsNoTracking()
+            .ToListAsync();
+        _logger.LogInformation("Repository: GetPublicRolesAsync return {Count} records.", results.Count);
+        return results;
     }
     
     // Utils
 
-    private IQueryable<FactSalaryDbModel> GetFilteredSalariesQuery(ResolvedSalaryFilterDto resolvedFilters)
+    private IQueryable<FactSalaryDbModel> GetFilteredSalariesQuery(ResolvedSalaryFilter resolvedFilters)
     {
         _logger.LogInformation("Building filtered salary query with resolved IDs.");
         var query = _dbContext.FactSalaries
@@ -350,29 +375,5 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         double weight = realIndex - lowerIndex;
         
         return (decimal)((1 - weight) * (double)sortedData[lowerIndex] + weight * (double)sortedData[upperIndex]);
-    }
-    
-    // Public analytical methods
-
-    public async Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesAsync(
-        ResolvedSalaryFilterDto resolvedFilters, int minRecordCount)
-    {
-        _logger.LogInformation("Repository: GetPublicRolesAsync called");
-        var query = GetFilteredSalariesQuery(resolvedFilters);
-        var results = await query
-            .Include(fs => fs.DimJob)
-            .GroupBy(fs => fs.DimJob!.StandardJobRoleTitle)
-            .Select(g => new PublicRoleByLocationIndustryDto
-            {
-                StandardJobRoleTitle = g.Key,
-                AverageSalary = g.Average(fs => fs.SalaryAmount),
-                SalaryRecordCount = g.Count()
-            })
-            .Where(g => g.SalaryRecordCount >= minRecordCount)
-            .OrderByDescending(g => g.AverageSalary)
-            .AsNoTracking()
-            .ToListAsync();
-        _logger.LogInformation("Repository: GetPublicRolesAsync return {Count} records.", results.Count);
-        return results;
     }
 }

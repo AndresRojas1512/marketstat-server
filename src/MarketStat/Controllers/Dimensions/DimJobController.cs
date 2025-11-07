@@ -74,4 +74,23 @@ public class DimJobController : ControllerBase
         await _dimJobService.DeleteJobAsync(id);
         return NoContent();
     }
+
+    [HttpGet("lookup/standard-roles")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<string>>> GetStandardJobRoles([FromQuery] int? industryFieldId)
+    {
+        var roles = await _dimJobService.GetDistinctStandardJobRolesAsync(industryFieldId);
+        return Ok(roles);
+    }
+
+    [HttpGet("lookup/hierarchy-levels")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<string>>> GetHierarchyLevels([FromQuery] int? industryFieldId,
+        [FromQuery] string? standardJobRoleTitle)
+    {
+        var levels = await _dimJobService.GetDistinctHierarchyLevelsAsync(industryFieldId, standardJobRoleTitle);
+        return Ok(levels);
+    }
 }

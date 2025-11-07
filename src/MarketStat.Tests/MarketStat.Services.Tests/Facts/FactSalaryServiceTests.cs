@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
 using MarketStat.Common.Enums;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
@@ -155,12 +156,12 @@ public class FactSalaryServiceTests
         _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "Moscow"))
             .ReturnsAsync(resolvedLocationIds);
         _mockFactSalaryRepository.Setup(repo => repo.GetFactSalariesByFilterAsync(
-                It.Is<ResolvedSalaryFilterDto>(dto => dto.LocationIds == resolvedLocationIds)
+                It.Is<ResolvedSalaryFilter>(dto => dto.LocationIds == resolvedLocationIds)
             ))
             .ReturnsAsync(expectedSalaries);
         var result = await _sut.GetFactSalariesByFilterAsync(userFilter);
         result.Should().BeEquivalentTo(expectedSalaries);
-        _mockFactSalaryRepository.Verify(repo => repo.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilterDto>()), Times.Once);
+        _mockFactSalaryRepository.Verify(repo => repo.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Once);
     }
     
     [Fact]
@@ -172,6 +173,6 @@ public class FactSalaryServiceTests
             .ReturnsAsync(resolvedLocationIds);
         var result = await _sut.GetFactSalariesByFilterAsync(userFilter);
         result.Should().BeEmpty();
-        _mockFactSalaryRepository.Verify(repo => repo.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilterDto>()), Times.Never);
+        _mockFactSalaryRepository.Verify(repo => repo.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Never);
     }
 }

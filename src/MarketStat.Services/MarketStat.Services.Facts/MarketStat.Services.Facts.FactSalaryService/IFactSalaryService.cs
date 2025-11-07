@@ -1,7 +1,6 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
-using MarketStat.Common.Enums;
-using Microsoft.AspNetCore.Http;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
 
 namespace MarketStat.Services.Facts.FactSalaryService;
 
@@ -11,18 +10,16 @@ public interface IFactSalaryService
     Task<FactSalary> CreateFactSalaryAsync(int dateId, int locationId, int employerId, int jobId, int employeeId,
         decimal salaryAmount);
     Task<FactSalary> GetFactSalaryByIdAsync(long salaryFactId);
-    Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(SalaryFilterDto filterDto);
+    Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(AnalysisFilterRequest request);
     Task<FactSalary> UpdateFactSalaryAsync(long salaryFactId, int dateId, int locationId, int employerId, int jobId, 
         int employeeId, decimal salaryAmount);
     Task DeleteFactSalaryAsync(long salaryFactId);
     
     // Authorized Analytics
-    Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(SalaryFilterDto filters);
-    Task<SalarySummaryDto?> GetSalarySummaryAsync(SalaryFilterDto filters, int targetPercentile);
-    Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(SalaryFilterDto filters, TimeGranularity granularity,
-        int periods);
+    Task<List<SalaryDistributionBucket>> GetSalaryDistributionAsync(AnalysisFilterRequest request);
+    Task<SalarySummary?> GetSalarySummaryAsync(SalarySummaryRequest request);
+    Task<List<SalaryTimeSeriesPoint>> GetSalaryTimeSeriesAsync(TimeSeriesRequest request);
     
     // Public Analytics
-    Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesAsync(SalaryFilterDto userFilters,
-        int minRecordCount);
+    Task<IEnumerable<PublicRoleByLocationIndustry>> GetPublicRolesAsync(PublicRolesRequest request);
 }

@@ -11,4 +11,6 @@ public interface IDimJobService
     Task<DimJob> UpdateJobAsync(int jobId, string jobRoleTitle, string standardJobRoleTitle, string hierarchyLevelName,
         int industryFieldId);
     Task DeleteJobAsync(int jobId);
+    Task<IEnumerable<string>> GetDistinctStandardJobRolesAsync(int? industryFieldId);
+    Task<IEnumerable<string>> GetDistinctHierarchyLevelsAsync(int? industryFieldId, string? standardJobRoleTitle);
 }

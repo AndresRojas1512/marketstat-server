@@ -1,5 +1,5 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
 using MarketStat.Common.Enums;
 
 namespace MarketStat.Database.Core.Repositories.Facts;
@@ -9,17 +9,17 @@ public interface IFactSalaryRepository
     // CRUD 
     Task AddFactSalaryAsync(FactSalary salary);
     Task<FactSalary> GetFactSalaryByIdAsync(long salaryId);
-    Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(ResolvedSalaryFilterDto resolvedFilters);
+    Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(ResolvedSalaryFilter resolvedFilters);
     Task UpdateFactSalaryAsync(FactSalary salaryFact);
     Task DeleteFactSalaryByIdAsync(long salaryFactId);
     
     // Authorized analytical methods
-    Task<List<SalaryDistributionBucketDto>> GetSalaryDistributionAsync(ResolvedSalaryFilterDto resolvedFilters);
-    Task<SalarySummaryDto?> GetSalarySummaryAsync(ResolvedSalaryFilterDto resolvedFilters, int targetPercentile);
-    Task<List<SalaryTimeSeriesPointDto>> GetSalaryTimeSeriesAsync(ResolvedSalaryFilterDto resolvedFilters,
+    Task<List<SalaryDistributionBucket>> GetSalaryDistributionAsync(ResolvedSalaryFilter resolvedFilters);
+    Task<SalarySummary?> GetSalarySummaryAsync(ResolvedSalaryFilter resolvedFilters, int targetPercentile);
+    Task<List<SalaryTimeSeriesPoint>> GetSalaryTimeSeriesAsync(ResolvedSalaryFilter resolvedFilters,
         TimeGranularity granularity, int periods);
     
     // Public analytical methods
-    Task<IEnumerable<PublicRoleByLocationIndustryDto>> GetPublicRolesAsync(ResolvedSalaryFilterDto resolvedFilters,
+    Task<IEnumerable<PublicRoleByLocationIndustry>> GetPublicRolesAsync(ResolvedSalaryFilter resolvedFilters,
         int minRecordCount);
 }
