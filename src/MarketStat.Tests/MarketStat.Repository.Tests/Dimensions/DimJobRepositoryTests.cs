@@ -34,11 +34,12 @@ public class DimJobRepositoryTests
             .WithStandardJobRoleTitle("Software Engineer")
             .Build();
         await repository.AddJobAsync(newJob);
+        newJob.JobId.Should().BeGreaterThan(0);
         var savedJob = await context.DimJobs.FindAsync(newJob.JobId);
         savedJob.Should().NotBeNull();
-        savedJob.StandardJobRoleTitle.Should().Be("Software Engineer");
-        newJob.JobId.Should().Be(1);
+        savedJob!.StandardJobRoleTitle.Should().Be("Software Engineer");
     }
+
     
     [Fact]
     public async Task AddJobAsync_ShouldThrowException_WhenJobIsNull()

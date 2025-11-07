@@ -33,11 +33,12 @@ public class DimEmployeeRepositoryTests
             .WithEmployeeRefId("test-ref-123")
             .Build();
         await repository.AddEmployeeAsync(newEmployee);
+        newEmployee.EmployeeId.Should().BeGreaterThan(0);
         var savedEmployee = await context.DimEmployees.FindAsync(newEmployee.EmployeeId);
         savedEmployee.Should().NotBeNull();
-        savedEmployee.EmployeeRefId.Should().Be("test-ref-123");
-        newEmployee.EmployeeId.Should().Be(1);
+        savedEmployee!.EmployeeRefId.Should().Be("test-ref-123");
     }
+
     
     [Fact]
     public async Task AddEmployeeAsync_ShouldThrowException_WhenEmployeeIsNull()

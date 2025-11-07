@@ -33,10 +33,10 @@ public class DimLocationRepositoryTests
             .WithCityName("Moscow")
             .Build();
         await repository.AddLocationAsync(newLocation);
+        newLocation.LocationId.Should().BeGreaterThan(0);
         var savedLocation = await context.DimLocations.FindAsync(newLocation.LocationId);
         savedLocation.Should().NotBeNull();
-        savedLocation.CityName.Should().Be("Moscow");
-        newLocation.LocationId.Should().Be(1);
+        savedLocation!.CityName.Should().Be("Moscow");
     }
     
     [Fact]

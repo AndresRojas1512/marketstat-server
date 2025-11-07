@@ -33,12 +33,12 @@ public class DimEmployerRepositoryTests
             .WithName("Test Corp")
             .Build();
         await repository.AddEmployerAsync(newEmployer);
+        newEmployer.EmployerId.Should().BeGreaterThan(0);
         var savedEmployer = await context.DimEmployers.FindAsync(newEmployer.EmployerId);
-        
         savedEmployer.Should().NotBeNull();
-        savedEmployer.EmployerName.Should().Be("Test Corp");
-        newEmployer.EmployerId.Should().Be(1);
+        savedEmployer!.EmployerName.Should().Be("Test Corp");
     }
+
     
     [Fact]
     public async Task AddEmployerAsync_ShouldThrowException_WhenEmployerIsNull()

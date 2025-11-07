@@ -62,12 +62,12 @@ public class FactSalaryRepositoryTests
             .WithSalaryAmount(120000)
             .Build();
         await repository.AddFactSalaryAsync(newSalary);
+        newSalary.SalaryFactId.Should().BeGreaterThan(0);
         var savedSalary = await context.FactSalaries.FindAsync(newSalary.SalaryFactId);
         savedSalary.Should().NotBeNull();
-        savedSalary.SalaryAmount.Should().Be(120000);
-        newSalary.SalaryFactId.Should().Be(1L);
+        savedSalary!.SalaryAmount.Should().Be(120000);
     }
-
+    
     [Fact]
     public async Task AddFactSalaryAsync_ShouldThrowException_WhenSalaryIsNull()
     {

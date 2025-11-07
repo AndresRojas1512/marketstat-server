@@ -33,13 +33,15 @@ public class DimDateRepositoryTests
             .WithFullDate(2025, 5, 5)
             .Build();
         await repository.AddDateAsync(newDate);
+        newDate.DateId.Should().BeGreaterThan(0);
         var savedDate = await context.DimDates.FindAsync(newDate.DateId);
         savedDate.Should().NotBeNull();
-        savedDate.FullDate.Should().Be(new DateOnly(2025, 5, 5));
+        savedDate!.FullDate.Should().Be(new DateOnly(2025, 5, 5));
         savedDate.Year.Should().Be(2025);
         savedDate.Quarter.Should().Be(2);
-        newDate.DateId.Should().Be(1);
+        savedDate.Month.Should().Be(5);
     }
+
 
     [Fact]
     public async Task AddDateAsync_ShouldThrowException_WhenDateIsNull()

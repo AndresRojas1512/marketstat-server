@@ -29,16 +29,18 @@ public class DimEducationRepositoryTests
     {
         await using var context = _fixture.CreateCleanContext();
         var repository = CreateRepository(context);
+
         var newEducation = new DimEducationBuilder()
             .WithId(0)
             .WithSpecialtyCode("09.03.01")
             .Build();
         await repository.AddEducationAsync(newEducation);
+        newEducation.EducationId.Should().BeGreaterThan(0);
         var savedEducation = await context.DimEducations.FindAsync(newEducation.EducationId);
         savedEducation.Should().NotBeNull();
-        savedEducation.SpecialtyCode.Should().Be("09.03.01");
-        newEducation.EducationId.Should().Be(1);
+        savedEducation!.SpecialtyCode.Should().Be("09.03.01");
     }
+
 
     [Fact]
     public async Task AddEducationAsync_ShouldThrowException_WhenEducationIsNull()

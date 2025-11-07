@@ -33,11 +33,12 @@ public class DimIndustryFieldRepositoryTests
             .WithIndustryFieldCode("A.01")
             .Build();
         await repository.AddIndustryFieldAsync(newField);
+        newField.IndustryFieldId.Should().BeGreaterThan(0);
         var savedField = await context.DimIndustryFields.FindAsync(newField.IndustryFieldId);
         savedField.Should().NotBeNull();
-        savedField.IndustryFieldCode.Should().Be("A.01");
-        newField.IndustryFieldId.Should().Be(1);
+        savedField!.IndustryFieldCode.Should().Be("A.01");
     }
+
 
     [Fact]
     public async Task AddIndustryFieldAsync_ShouldThrowException_WhenFieldIsNull()
