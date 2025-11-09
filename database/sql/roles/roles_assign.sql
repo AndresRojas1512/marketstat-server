@@ -9,4 +9,4 @@ ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
 	GRANT USAGE, SELECT ON SEQUENCES TO marketstat_analyst;
 
-GRANT INSERT, UPDATE, DELETE ON TABLE users, benchmark_history TO marketstat_analyst;
+GRANT INSERT, UPDATE, DELETE ON TABLE marketstat.users TO marketstat_analyst;

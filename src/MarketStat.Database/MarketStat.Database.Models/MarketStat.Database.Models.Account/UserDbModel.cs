@@ -41,12 +41,9 @@ public class UserDbModel
     [Required]
     [Column("is_admin")]
     public bool IsAdmin { get; set; }
-
-    public virtual ICollection<BenchmarkHistoryDbModel> BenchmarkHistories { get; set; }
-
+    
     public UserDbModel()
     {
-        BenchmarkHistories = new List<BenchmarkHistoryDbModel>();
         IsActive = true;
         CreatedAt = DateTimeOffset.UtcNow;
         IsAdmin = false;

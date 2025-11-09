@@ -12,7 +12,6 @@ public class User
     public DateTimeOffset? LastLoginAt { get; set; }
     public bool IsAdmin { get; set; }
 
-    public virtual ICollection<BenchmarkHistory> BenchmarkHistories { get; set; }
     
     public User()
     {
@@ -20,7 +19,6 @@ public class User
         PasswordHash = string.Empty;
         Email = string.Empty;
         FullName = string.Empty;
-        BenchmarkHistories = new List<BenchmarkHistory>();
         CreatedAt = DateTimeOffset.UtcNow;
         IsActive = true;
         IsAdmin = false;
@@ -38,6 +36,5 @@ public class User
         CreatedAt = createdAt;
         LastLoginAt = lastLoginAt;
         IsAdmin = isAdmin;
-        BenchmarkHistories = new List<BenchmarkHistory>();
     }
 }

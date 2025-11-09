@@ -64,11 +64,11 @@ public class AuthServiceTests
 
         if (!isValid)
         {
-            _mockConfiguration.Setup(c => c["JwtSettings:Key"]).Returns((string)null);
-            _mockConfiguration.Setup(c => c["JwtSettings:Issuer"]).Returns((string)null);
-            _mockConfiguration.Setup(c => c["JwtSettings:Audience"]).Returns((string)null);
+            _mockConfiguration.Setup(c => c["JwtSettings:Key"]).Returns((string?)null);
+            _mockConfiguration.Setup(c => c["JwtSettings:Issuer"]).Returns((string?)null);
+            _mockConfiguration.Setup(c => c["JwtSettings:Audience"]).Returns((string?)null);
 
-            mockExpiresSection.Setup(s => s.Value).Returns((string)null);
+            mockExpiresSection.Setup(s => s.Value).Returns((string?)null);
             _mockConfiguration.Setup(c => c.GetSection("JwtSettings:ExpiresInMinutes")).Returns(mockExpiresSection.Object);
             return;
         }

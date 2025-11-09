@@ -66,7 +66,6 @@
     <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployeeService\MarketStat.Services.Dimensions.DimEmployeeService.csproj" />
     <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimIndustryFieldService\MarketStat.Services.Dimensions.DimIndustryFieldService.csproj" />
     <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Auth\MarketStat.Services.Auth.AuthService\MarketStat.Services.Auth.AuthService.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Account\MarketStat.Services.Account.BenchmarkHistoryService\MarketStat.Services.Account.BenchmarkHistoryService.csproj" />
     <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimLocationService\MarketStat.Services.Dimensions.DimLocationService.csproj" />
     <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobService\MarketStat.Services.Dimensions.DimJobService.csproj" />
   </ItemGroup>

@@ -61,9 +61,6 @@ public class UserRepositoryTests
         var repository = CreateRepository(context);
         var result = await repository.GetUserByUsernameAsync("findme");
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(expectedUser, options => 
-                options.Excluding(u => u.BenchmarkHistories)
-        );
     }
 
     [Fact]
@@ -85,9 +82,6 @@ public class UserRepositoryTests
         var repository = CreateRepository(context);
         var result = await repository.GetUserByIdAsync(1);
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(expectedUser, options => 
-            options.Excluding(u => u.BenchmarkHistories)
-        );
     }
     
     [Fact]

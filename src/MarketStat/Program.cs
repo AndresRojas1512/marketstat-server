@@ -16,7 +16,6 @@ using System.Text;
 using MarketStat.Database.Core.Repositories.Account;
 using MarketStat.Database.Repositories.PostgresRepositories.Account;
 using MarketStat.Middleware;
-using MarketStat.Services.Account.BenchmarkHistoryService;
 using MarketStat.Services.Auth.AuthService;
 using MarketStat.Services.Dimensions.DimLocationService;
 using MarketStat.Services.Dimensions.DimJobService;
@@ -92,7 +91,6 @@ try
     builder.Services.AddScoped<IDimJobRepository, DimJobRepository>();
     builder.Services.AddScoped<IFactSalaryRepository, FactSalaryRepository>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
-    builder.Services.AddScoped<IBenchmarkHistoryRepository, BenchmarkHistoryRepository>();
     
     builder.Services.AddScoped<IDimDateService, DimDateService>();
     builder.Services.AddScoped<IDimLocationService, DimLocationService>();
@@ -103,7 +101,6 @@ try
     builder.Services.AddScoped<IDimJobService, DimJobService>();
     builder.Services.AddScoped<IFactSalaryService, FactSalaryService>();
     builder.Services.AddScoped<IAuthService, AuthService>();
-    builder.Services.AddScoped<IBenchmarkHistoryService, BenchmarkHistoryService>();
     
     builder.Services.AddControllers();
     builder.Services.AddAutoMapper(typeof(Program).Assembly);

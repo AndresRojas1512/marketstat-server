@@ -42,17 +42,6 @@ public static class UserConverter
             isAdmin: dbUser.IsAdmin
         );
 
-        if (dbUser.BenchmarkHistories != null && dbUser.BenchmarkHistories.Any())
-        {
-            domainUser.BenchmarkHistories = dbUser.BenchmarkHistories
-                .Select(BenchmarkHistoryConverter.ToDomain)
-                .ToList();
-        }
-        else
-        {
-            domainUser.BenchmarkHistories = new List<BenchmarkHistory>();
-        }
-
         return domainUser;
     }
 

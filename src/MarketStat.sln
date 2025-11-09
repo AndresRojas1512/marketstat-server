@@ -49,10 +49,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Services.Auth", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Auth.AuthService", "MarketStat.Services\MarketStat.Services.Auth\MarketStat.Services.Auth.AuthService\MarketStat.Services.Auth.AuthService.csproj", "{825DECCE-B72F-4D39-8BA0-653D939FDD28}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MarketStat.Services.Account", "MarketStat.Services.Account", "{67A381EA-5945-4AF0-BDF1-9416C19EF7F8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Account.BenchmarkHistoryService", "MarketStat.Services\MarketStat.Services.Account\MarketStat.Services.Account.BenchmarkHistoryService\MarketStat.Services.Account.BenchmarkHistoryService.csproj", "{D36DCC70-C5E4-4816-941A-1C49F5C108AD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimLocationService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimLocationService\MarketStat.Services.Dimensions.DimLocationService.csproj", "{602A7EE7-EE02-4F52-B4C3-BB63F64C617C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketStat.Services.Dimensions.DimJobService", "MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobService\MarketStat.Services.Dimensions.DimJobService.csproj", "{E2ECAA91-E725-45EC-A7B5-B0028A8D7658}"
@@ -142,10 +138,6 @@ Global
 		{825DECCE-B72F-4D39-8BA0-653D939FDD28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{825DECCE-B72F-4D39-8BA0-653D939FDD28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{825DECCE-B72F-4D39-8BA0-653D939FDD28}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D36DCC70-C5E4-4816-941A-1C49F5C108AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D36DCC70-C5E4-4816-941A-1C49F5C108AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D36DCC70-C5E4-4816-941A-1C49F5C108AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D36DCC70-C5E4-4816-941A-1C49F5C108AD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{602A7EE7-EE02-4F52-B4C3-BB63F64C617C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{602A7EE7-EE02-4F52-B4C3-BB63F64C617C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{602A7EE7-EE02-4F52-B4C3-BB63F64C617C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -187,8 +179,6 @@ Global
 		{6B360517-1C0D-4FF3-A17A-71CE3A088E57} = {000EF10E-BFA7-4A20-BDBE-07AEFBB2FEC7}
 		{FFF03295-B10D-4A21-B566-BF5A18CA96B7} = {F41D1465-FB87-4FAF-B66D-EE51BFDBDB7D}
 		{825DECCE-B72F-4D39-8BA0-653D939FDD28} = {FFF03295-B10D-4A21-B566-BF5A18CA96B7}
-		{67A381EA-5945-4AF0-BDF1-9416C19EF7F8} = {F41D1465-FB87-4FAF-B66D-EE51BFDBDB7D}
-		{D36DCC70-C5E4-4816-941A-1C49F5C108AD} = {67A381EA-5945-4AF0-BDF1-9416C19EF7F8}
 		{602A7EE7-EE02-4F52-B4C3-BB63F64C617C} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
 		{E2ECAA91-E725-45EC-A7B5-B0028A8D7658} = {68ED94C7-8F02-4839-A900-4E3C5BE0924F}
 		{1E3DADE6-B938-4E35-9E94-58EC04F9A7BE} = {1BE56C02-F41F-4A22-A51D-7FD1DAA84EE9}

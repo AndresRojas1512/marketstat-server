@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Enums\MarketStat.Common.Enums.csproj" />
+  </ItemGroup>
+
 </Project>
