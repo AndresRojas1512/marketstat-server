@@ -24,8 +24,7 @@ public class FactSalaryRepositoryTests
     
     private FactSalaryRepository CreateRepository(MarketStatDbContext context)
     {
-        var mockLogger = new Mock<ILogger<FactSalaryRepository>>();
-        return new FactSalaryRepository(context, mockLogger.Object);
+        return new FactSalaryRepository(context);
     }
     
     private async Task SeedDimensionsAsync(MarketStatDbContext context)

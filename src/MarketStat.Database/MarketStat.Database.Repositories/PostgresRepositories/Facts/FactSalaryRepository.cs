@@ -15,12 +15,10 @@ namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
 {
     private readonly MarketStatDbContext _dbContext;
-    private readonly ILogger<FactSalaryRepository> _logger;
 
-    public FactSalaryRepository(MarketStatDbContext dbContext, ILogger<FactSalaryRepository> logger)
+    public FactSalaryRepository(MarketStatDbContext dbContext)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
 
@@ -37,7 +35,6 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             when (dbEx.InnerException is PostgresException pgEx &&
                   pgEx.SqlState == PostgresErrorCodes.ForeignKeyViolation)
         {
-            _logger.LogError(dbEx, "Foreign key violation when adding salary fact. Referenced entity might be missing.");
             throw new NotFoundException(
                 "One or more referenced entities (date, city, employer, job role or employee) were not found when adding salary fact.");
         }
@@ -57,18 +54,14 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
 
     public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(ResolvedSalaryFilter resolvedFilters)
     {
-        _logger.LogInformation("Repository: GetFactSalariesByFilterAsync called with resolved filters: {@ResolvedFilters}", resolvedFilters);
         try
         {
             var query = GetFilteredSalariesQuery(resolvedFilters);
             var dbModels = await query.AsNoTracking().ToListAsync();
-            _logger.LogInformation("Repository: Successfully retrieved {Count} salary facts using LINQ.",
-                dbModels.Count);
             return dbModels.Select(FactSalaryConverter.ToDomain);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Repository: Error executing LINQ query for filter: {@ResolvedFilters}", resolvedFilters );
             throw new ApplicationException("An error occurred while processing filtered salaries.", ex);
         }
     }
@@ -93,7 +86,6 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             when (dbEx.InnerException is PostgresException pgEx &&
                   pgEx.SqlState == PostgresErrorCodes.ForeignKeyViolation)
         {
-            _logger.LogError(dbEx, "Foreign key violation during salary fact update. Referenced entity might be missing.");
             throw new NotFoundException(
                 "One or more referenced entities (date, city, employer, job role or employee) were not found during update.");
         }
@@ -188,7 +180,6 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         
         if (summaryStats == null || summaryStats.TotalCount == 0)
         {
-            _logger.LogInformation("No data found for salary summery with the given filters.");
             return null;
         }
 
@@ -210,7 +201,6 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             Percentile75 = CalculatePercentile(salariesForPercentile, 75),
             PercentileTarget = CalculatePercentile(salariesForPercentile, targetPercentile)
         };
-        _logger.LogInformation("Calculated salary summary: {@Result}", result);
         return result;
     }
 
@@ -221,11 +211,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         var seriesEndDate = GetPeriodStartDate(referenceDate, granularity);
         var seriesStartDate = AddPeriods(seriesEndDate, granularity, -(periods - 1));
         var overallEndDate = AddPeriods(seriesEndDate, granularity, 1);
-
-        _logger.LogInformation(
-            "Calculating time series from {StartDate} to {EndDate} (exclusive) for {Periods} periods with {Granularity} granularity",
-            seriesStartDate, overallEndDate, periods, granularity);
-
+        
         var baseQuery = GetFilteredSalariesQuery(resolvedFilters)
             .Where(f => f.DimDate!.FullDate >= seriesStartDate &&
                         f.DimDate.FullDate < overallEndDate);
@@ -274,7 +260,6 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
     public async Task<IEnumerable<PublicRoleByLocationIndustry>> GetPublicRolesAsync(
         ResolvedSalaryFilter resolvedFilters, int minRecordCount)
     {
-        _logger.LogInformation("Repository: GetPublicRolesAsync called");
         var query = GetFilteredSalariesQuery(resolvedFilters);
         var results = await query
             .Include(fs => fs.DimJob)
@@ -289,7 +274,6 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             .OrderByDescending(g => g.AverageSalary)
             .AsNoTracking()
             .ToListAsync();
-        _logger.LogInformation("Repository: GetPublicRolesAsync return {Count} records.", results.Count);
         return results;
     }
     
@@ -297,20 +281,17 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
 
     private IQueryable<FactSalaryDbModel> GetFilteredSalariesQuery(ResolvedSalaryFilter resolvedFilters)
     {
-        _logger.LogInformation("Building filtered salary query with resolved IDs.");
         var query = _dbContext.FactSalaries
             .Include(fs => fs.DimDate)
             .AsQueryable();
 
         if (resolvedFilters.LocationIds != null && resolvedFilters.LocationIds.Any())
         {
-            _logger.LogDebug("Applying LocationIds filter with {Count} IDs.", resolvedFilters.LocationIds.Count);
             query = query.Where(fs => resolvedFilters.LocationIds.Contains(fs.LocationId));
         }
 
         if (resolvedFilters.JobIds != null && resolvedFilters.JobIds.Any())
         {
-            _logger.LogDebug("Applying JobIds filter with {Count} IDs.", resolvedFilters.JobIds.Count);
             query = query.Where(fs => resolvedFilters.JobIds.Contains(fs.JobId));
         }
 

@@ -97,8 +97,7 @@ public class DatabaseFixture : IDisposable
             context.SaveChanges();
 
             var repo = new FactSalaryRepository(
-                context,
-                NullLogger<FactSalaryRepository>.Instance
+                context
             );
 
             var fs = new FactSalary
