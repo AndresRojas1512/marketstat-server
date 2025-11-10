@@ -26,9 +26,6 @@ public class DatabaseFixture : IDisposable
     {
         var context = new MarketStatDbContext(Options);
         
-        // context.BenchmarkHistories.RemoveRange(context.BenchmarkHistories);
-        // context.Users.RemoveRange(context.Users);
-        //
         // context.DimDates.RemoveRange(context.DimDates);
         // context.DimEducations.RemoveRange(context.DimEducations);
         // context.DimEmployees.RemoveRange(context.DimEmployees);
