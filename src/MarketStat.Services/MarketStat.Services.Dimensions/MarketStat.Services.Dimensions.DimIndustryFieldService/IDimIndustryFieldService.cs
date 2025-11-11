@@ -9,4 +9,5 @@ public interface IDimIndustryFieldService
     Task<IEnumerable<DimIndustryField>> GetAllIndustryFieldsAsync();
     Task<DimIndustryField> UpdateIndustryFieldAsync(int industryFieldId, string industryFieldCode, string industryFieldName);
     Task DeleteIndustryFieldAsync(int industryFieldId);
+    Task<DimIndustryField?> GetIndustryFieldByNameAsync(string industryFieldName);
 }

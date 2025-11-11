@@ -204,7 +204,7 @@ public class FactSalaryController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<PublicRoleByLocationIndustryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<PublicRoleByLocationIndustryDto>>> GetPublicRoles(
-        PublicRolesRequestDto requestDto)
+        [FromQuery] PublicRolesRequestDto requestDto)
     {
         _logger.LogInformation("Public request for roles: {@RequestDto}", requestDto);
         var request = _mapper.Map<PublicRolesRequest>(requestDto);

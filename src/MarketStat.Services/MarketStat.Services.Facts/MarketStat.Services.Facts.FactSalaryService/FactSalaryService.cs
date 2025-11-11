@@ -16,20 +16,20 @@ public class FactSalaryService : IFactSalaryService
     private readonly ILogger<FactSalaryService> _logger;
     private readonly IDimLocationRepository _dimLocationRepository;
     private readonly IDimJobRepository _dimJobRepository;
-    private readonly IDimIndustryFieldService _dimIndustryFieldService;
+    private readonly IDimIndustryFieldRepository _dimIndustryFieldRepository;
     
     public FactSalaryService(
         IFactSalaryRepository factSalaryRepository,
         ILogger<FactSalaryService> logger,
         IDimLocationRepository dimLocationRepository,
         IDimJobRepository dimJobRepository,
-        IDimIndustryFieldService dimIndustryFieldService)
+        IDimIndustryFieldRepository dimIndustryFieldRepository)
     {
         _factSalaryRepository = factSalaryRepository ?? throw new ArgumentNullException(nameof(factSalaryRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _dimLocationRepository = dimLocationRepository ?? throw new ArgumentNullException(nameof(dimLocationRepository));
         _dimJobRepository = dimJobRepository ?? throw new ArgumentNullException(nameof(dimJobRepository));
-        _dimIndustryFieldService = dimIndustryFieldService ?? throw new ArgumentNullException(nameof(dimIndustryFieldService));
+        _dimIndustryFieldRepository = dimIndustryFieldRepository ?? throw new ArgumentNullException(nameof(dimIndustryFieldRepository));
     }
 
     public async Task<FactSalary> CreateFactSalaryAsync(int dateId, int locationId, int employerId, int jobId, int employeeId, decimal salaryAmount)
@@ -203,6 +203,8 @@ public class FactSalaryService : IFactSalaryService
         }
         return await _factSalaryRepository.GetPublicRolesAsync(resolvedFilters, request.MinRecordCount);
     }
+    
+    // Utils
 
     private async Task<ResolvedSalaryFilter?> ResolveFilters(AnalysisFilterRequest request)
     {
@@ -230,35 +232,34 @@ public class FactSalaryService : IFactSalaryService
         List<int>? jobIds = null;
         bool jobFilterApplied = false;
 
+        int? resolvedIndustryFieldId = null;
+        if (!string.IsNullOrEmpty(request.IndustryFieldName))
+        {
+            var industry = await _dimIndustryFieldRepository.GetIndustryFieldByNameAsync(request.IndustryFieldName);
+            if (industry == null)
+            {
+                _logger.LogWarning("Invalid IndustryFieldName provided: {IndustryName}", request.IndustryFieldName);
+                throw new ArgumentException($"Invalid IndustryFieldName provided: {request.IndustryFieldName}");
+            }
+            resolvedIndustryFieldId = industry.IndustryFieldId;
+        }
+
         if (!string.IsNullOrEmpty(request.StandardJobRoleTitle) || !string.IsNullOrEmpty(request.HierarchyLevelName) ||
-            request.IndustryFieldId.HasValue)
+            resolvedIndustryFieldId.HasValue)
         {
             jobFilterApplied = true;
             _logger.LogDebug(
                 "Resolving job IDs based on criteria: StandardJobRole={StdJob}, Hierarchy={Hierarchy}, IndustryId={IndustryId}",
-                request.StandardJobRoleTitle, request.HierarchyLevelName, request.IndustryFieldId);
-            if (request.IndustryFieldId.HasValue)
-            {
-                try
-                {
-                    await _dimIndustryFieldService.GetIndustryFieldByIdAsync(request.IndustryFieldId.Value);
-                }
-                catch (NotFoundException ex)
-                {
-                    throw new ArgumentException(
-                        $"Invalid IndustryFieldId provided in filter: {request.IndustryFieldId.Value}", ex);
-                }
-            }
+                request.StandardJobRoleTitle, request.HierarchyLevelName, resolvedIndustryFieldId);
 
             jobIds = await _dimJobRepository.GetJobIdsByFilterAsync(request.StandardJobRoleTitle,
-                request.HierarchyLevelName, request.IndustryFieldId);
+                request.HierarchyLevelName, resolvedIndustryFieldId);
             
             if (jobIds == null || !jobIds.Any())
             {
                 _logger.LogInformation("No jobs matched the specified job filters.");
                 return null;
             }
-            _logger.LogDebug("Resolved {Count} Job IDs from criteria.", jobIds.Count);
         }
 
         return new ResolvedSalaryFilter

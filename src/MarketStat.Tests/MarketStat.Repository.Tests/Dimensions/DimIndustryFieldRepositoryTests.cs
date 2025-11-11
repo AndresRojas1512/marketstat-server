@@ -149,4 +149,44 @@ public class DimIndustryFieldRepositoryTests
         Func<Task> act = async () => await repository.DeleteIndustryFieldAsync(999);
         await act.Should().ThrowAsync<NotFoundException>();
     }
+    
+    [Fact]
+    public async Task GetIndustryFieldByNameAsync_ShouldReturnField_WhenNameExists()
+    {
+        // Arrange
+        await using var context = _fixture.CreateCleanContext();
+        
+        var expectedField = new DimIndustryFieldBuilder()
+            .WithIndustryFieldName("Information Technology")
+            .Build(); // ID is 0 here
+
+        // Convert to DB model and add
+        var dbModel = DimIndustryFieldConverter.ToDbModel(expectedField);
+        context.DimIndustryFields.Add(dbModel);
+        await context.SaveChangesAsync();
+
+        // ⬇️ --- THIS IS THE FIX --- ⬇️
+        // After saving, the dbModel has the new ID. Update our expectation to match.
+        expectedField.IndustryFieldId = dbModel.IndustryFieldId; 
+        
+        var repository = CreateRepository(context);
+
+        // Act
+        var result = await repository.GetIndustryFieldByNameAsync("Information Technology");
+
+        // Assert
+        result.Should().NotBeNull();
+        
+        // This will now pass, as both objects have the same ID (e.g., 1)
+        result.Should().BeEquivalentTo(expectedField);
+    }
+
+    [Fact]
+    public async Task GetIndustryFieldByNameAsync_ShouldReturnNull_WhenNameDoesNotExist()
+    {
+        await using var context = _fixture.CreateCleanContext();
+        var repository = CreateRepository(context);
+        var result = await repository.GetIndustryFieldByNameAsync("NonExistentName");
+        result.Should().BeNull();
+    }
 }

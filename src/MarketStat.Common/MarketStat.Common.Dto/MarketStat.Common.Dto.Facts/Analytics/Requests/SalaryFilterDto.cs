@@ -10,8 +10,8 @@ public class SalaryFilterDto
     [StringLength(255)]
     public string? HierarchyLevelName { get; set; }
     
-    [Range(1, int.MaxValue)]
-    public int? IndustryFieldId { get; set; }
+    [StringLength(255)]
+    public string? IndustryFieldName { get; set; }
     
     [StringLength(255)]
     public string? DistrictName { get; set; }

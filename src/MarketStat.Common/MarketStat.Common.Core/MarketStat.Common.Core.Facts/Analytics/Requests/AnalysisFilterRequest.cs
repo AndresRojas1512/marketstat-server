@@ -4,7 +4,7 @@ public class AnalysisFilterRequest
 {
     public string? StandardJobRoleTitle { get; set; }
     public string? HierarchyLevelName { get; set; }
-    public int? IndustryFieldId { get; set; }
+    public string? IndustryFieldName { get; set; }
     
     public string? DistrictName { get; set; }
     public string? OblastName { get; set; }

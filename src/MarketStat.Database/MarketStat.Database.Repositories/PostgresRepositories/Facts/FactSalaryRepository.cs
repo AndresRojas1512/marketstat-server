@@ -8,7 +8,6 @@ using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 

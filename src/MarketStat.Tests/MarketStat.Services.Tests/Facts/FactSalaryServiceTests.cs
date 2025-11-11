@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
@@ -10,6 +11,7 @@ using MarketStat.Services.Facts.FactSalaryService;
 using MarketStat.Tests.TestData.ObjectMothers.Facts;
 using Microsoft.Extensions.Logging;
 using MarketStat.Common.Enums;
+using MarketStat.Tests.TestData.Builders.Dimensions;
 using Moq;
 
 namespace MarketStat.Services.Tests.Facts;
@@ -20,7 +22,7 @@ public class FactSalaryServiceTests
     private readonly Mock<ILogger<FactSalaryService>> _mockLogger;
     private readonly Mock<IDimLocationRepository> _mockLocationRepository;
     private readonly Mock<IDimJobRepository> _mockJobRepository;
-    private readonly Mock<IDimIndustryFieldService> _mockIndustryFieldService;
+    private readonly Mock<IDimIndustryFieldRepository> _mockIndustryFieldRepository;
     
     private readonly FactSalaryService _sut;
     
@@ -30,14 +32,14 @@ public class FactSalaryServiceTests
         _mockLogger = new Mock<ILogger<FactSalaryService>>();
         _mockLocationRepository = new Mock<IDimLocationRepository>();
         _mockJobRepository = new Mock<IDimJobRepository>();
-        _mockIndustryFieldService = new Mock<IDimIndustryFieldService>();
+        _mockIndustryFieldRepository = new Mock<IDimIndustryFieldRepository>();
 
         _sut = new FactSalaryService(
             _mockFactSalaryRepository.Object,
             _mockLogger.Object,
             _mockLocationRepository.Object,
             _mockJobRepository.Object,
-            _mockIndustryFieldService.Object
+            _mockIndustryFieldRepository.Object
         );
     }
     
@@ -170,6 +172,38 @@ public class FactSalaryServiceTests
         var result = await _sut.GetFactSalariesByFilterAsync(userFilter);
         result.Should().BeEmpty();
         _mockFactSalaryRepository.Verify(repo => repo.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Never);
+    }
+    
+    [Fact]
+    public async Task GetFactSalariesByFilterAsync_ShouldResolveIndustryName_WhenIndustryNameIsValid()
+    {
+        var userFilter = new AnalysisFilterRequest { IndustryFieldName = "IT" };
+        var mockIndustry = new DimIndustryFieldBuilder().WithId(1).WithIndustryFieldName("IT").Build();
+        var resolvedJobIds = new List<int> { 10, 11 };
+        _mockIndustryFieldRepository.Setup(r => r.GetIndustryFieldByNameAsync("IT"))
+            .ReturnsAsync(mockIndustry);
+        _mockJobRepository.Setup(r => r.GetJobIdsByFilterAsync(null, null, 1)) // 1 is the resolved ID
+            .ReturnsAsync(resolvedJobIds);
+        _mockFactSalaryRepository.Setup(r => r.GetFactSalariesByFilterAsync(
+            It.Is<ResolvedSalaryFilter>(f => f.JobIds == resolvedJobIds)))
+            .ReturnsAsync(new List<FactSalary>());
+        await _sut.GetFactSalariesByFilterAsync(userFilter);
+        _mockIndustryFieldRepository.Verify(r => r.GetIndustryFieldByNameAsync("IT"), Times.Once);
+        _mockJobRepository.Verify(r => r.GetJobIdsByFilterAsync(null, null, 1), Times.Once);
+        _mockFactSalaryRepository.Verify(r => r.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetFactSalariesByFilterAsync_ShouldThrowArgumentException_WhenIndustryNameIsInvalid()
+    {
+        var userFilter = new AnalysisFilterRequest { IndustryFieldName = "NonExistentIndustry" };
+        _mockIndustryFieldRepository.Setup(r => r.GetIndustryFieldByNameAsync("NonExistentIndustry"))
+            .ReturnsAsync((DimIndustryField?)null);
+        Func<Task> act = async () => await _sut.GetFactSalariesByFilterAsync(userFilter);
+        await act.Should().ThrowAsync<ArgumentException>()
+                 .WithMessage("Invalid IndustryFieldName provided: NonExistentIndustry");
+        _mockJobRepository.Verify(r => r.GetJobIdsByFilterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>()), Times.Never);
+        _mockFactSalaryRepository.Verify(r => r.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Never);
     }
     
     [Fact]

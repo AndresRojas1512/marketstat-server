@@ -100,4 +100,16 @@ public class DimIndustryFieldService : IDimIndustryFieldService
             throw;
         }
     }
+
+    public async Task<DimIndustryField?> GetIndustryFieldByNameAsync(string industryFieldName)
+    {
+        _logger.LogInformation("Service: Attempting to find industry field by name: {IndustryFieldName}",
+            industryFieldName);
+        var industryField = await _dimIndustryFieldRepository.GetIndustryFieldByNameAsync(industryFieldName);
+        if (industryField == null)
+        {
+            _logger.LogWarning("Service: No industry field found with name: {IndustryFieldName}", industryFieldName);
+        }
+        return industryField;
+    }
 }

@@ -166,4 +166,28 @@ public class DimIndustryFieldServiceTests
         Func<Task> act = async () => await _sut.DeleteIndustryFieldAsync(nonExistentId);
         await act.Should().ThrowAsync<NotFoundException>();
     }
+    
+    [Fact]
+    public async Task GetIndustryFieldByNameAsync_ShouldReturnField_WhenNameExists()
+    {
+        var expectedField = DimIndustryFieldObjectMother.AnExistingIndustryField();
+        var fieldName = expectedField.IndustryFieldName;
+        _mockRepository.Setup(repo => repo.GetIndustryFieldByNameAsync(fieldName))
+            .ReturnsAsync(expectedField);
+        var result = await _sut.GetIndustryFieldByNameAsync(fieldName);
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(expectedField);
+        _mockRepository.Verify(repo => repo.GetIndustryFieldByNameAsync(fieldName), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetIndustryFieldByNameAsync_ShouldReturnNull_WhenNameDoesNotExist()
+    {
+        var fieldName = "Non-existent Name";
+        _mockRepository.Setup(repo => repo.GetIndustryFieldByNameAsync(fieldName))
+            .ReturnsAsync((DimIndustryField?)null);
+        var result = await _sut.GetIndustryFieldByNameAsync(fieldName);
+        result.Should().BeNull();
+        _mockRepository.Verify(repo => repo.GetIndustryFieldByNameAsync(fieldName), Times.Once);
+    }
 }

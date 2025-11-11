@@ -93,4 +93,14 @@ public class DimIndustryFieldRepository : BaseRepository, IDimIndustryFieldRepos
         _dbContext.DimIndustryFields.Remove(dbIndustryField);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<DimIndustryField?> GetIndustryFieldByNameAsync(string industryFieldName)
+    {
+        var dbIndustryField = await _dbContext.DimIndustryFields
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.IndustryFieldName == industryFieldName);
+        if (dbIndustryField == null)
+            return null;
+        return DimIndustryFieldConverter.ToDomain(dbIndustryField);
+    }
 }
