@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
 using MarketStat.Database.Core.Repositories.Dimensions;
-using MarketStat.Services.Dimensions.DimIndustryFieldService;
 
 namespace MarketStat.Services.Facts.FactSalaryService;
 
