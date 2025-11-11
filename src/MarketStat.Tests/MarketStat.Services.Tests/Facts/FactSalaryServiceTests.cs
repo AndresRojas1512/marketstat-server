@@ -6,7 +6,6 @@ using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Core.Repositories.Facts;
-using MarketStat.Services.Dimensions.DimIndustryFieldService;
 using MarketStat.Services.Facts.FactSalaryService;
 using MarketStat.Tests.TestData.ObjectMothers.Facts;
 using Microsoft.Extensions.Logging;
@@ -182,7 +181,7 @@ public class FactSalaryServiceTests
         var resolvedJobIds = new List<int> { 10, 11 };
         _mockIndustryFieldRepository.Setup(r => r.GetIndustryFieldByNameAsync("IT"))
             .ReturnsAsync(mockIndustry);
-        _mockJobRepository.Setup(r => r.GetJobIdsByFilterAsync(null, null, 1)) // 1 is the resolved ID
+        _mockJobRepository.Setup(r => r.GetJobIdsByFilterAsync(null, null, 1))
             .ReturnsAsync(resolvedJobIds);
         _mockFactSalaryRepository.Setup(r => r.GetFactSalariesByFilterAsync(
             It.Is<ResolvedSalaryFilter>(f => f.JobIds == resolvedJobIds)))
