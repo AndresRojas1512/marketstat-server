@@ -54,7 +54,7 @@ public class FactSalaryController : ControllerBase
     /// Gets salary fact records based on filter criteria (using IDs).
     /// </summary>
     /// <param name="filterDto">The filter criteria.</param>
-    [HttpGet("byfilter")]
+    [HttpGet]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(IEnumerable<FactSalaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

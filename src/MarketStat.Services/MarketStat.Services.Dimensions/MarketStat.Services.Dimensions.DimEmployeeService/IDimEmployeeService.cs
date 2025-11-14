@@ -9,4 +9,6 @@ public interface IDimEmployeeService
     Task<IEnumerable<DimEmployee>> GetAllEmployeesAsync();
     Task<DimEmployee> UpdateEmployeeAsync(int employeeId, string employeeRefId, DateOnly birthDate, DateOnly careerStartDate, string? gender, int? educationId, short? graduationYear);
     Task DeleteEmployeeAsync(int employeeId);
+    Task<DimEmployee> PartialUpdateEmployeeAsync(int employeeId, string? employeeRefId, DateOnly? careerStartDate,
+        int? educationId, short? graduationYear);
 }

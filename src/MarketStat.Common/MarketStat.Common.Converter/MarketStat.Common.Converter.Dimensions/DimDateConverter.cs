@@ -14,9 +14,9 @@ public class DimDateConverter
         {
             DateId = dimDate.DateId,
             FullDate = dimDate.FullDate,
-            Year = (short)dimDate.Year,
-            Quarter = (short)dimDate.Quarter,
-            Month = (short)dimDate.Month
+            Year = dimDate.Year,
+            Quarter = dimDate.Quarter,
+            Month = dimDate.Month
         };
     }
 

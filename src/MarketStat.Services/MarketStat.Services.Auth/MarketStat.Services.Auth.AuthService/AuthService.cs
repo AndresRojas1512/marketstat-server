@@ -159,4 +159,31 @@ public class AuthService : IAuthService
             User = _mapper.Map<UserDto>(userDomain)
         };
     }
+
+    public async Task<UserDto> PartialUpdateProfileAsync(int userId, string? fullName, string? email)
+    {
+        _logger.LogInformation("Service: Attempting to partially update profile for User {UserId}", userId);
+        UserValidator.ValidateProfileUpdate(fullName, email);
+        try
+        {
+            var existingUser = await _userRepository.GetUserByIdAsync(userId);
+
+            existingUser.FullName = fullName ?? existingUser.FullName;
+            existingUser.Email = email ?? existingUser.Email;
+
+            await _userRepository.UpdateUserAsync(existingUser);
+            _logger.LogInformation("Service: Successfully updated profile for User {UserId}", userId);
+            return _mapper.Map<UserDto>(existingUser);
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Service: Cannot update profile for user {UserId}, user not found.", userId);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogWarning(ex, "Service: Conflict when updating profile for user {UserId}.", userId);
+            throw;
+        }
+    }
 }

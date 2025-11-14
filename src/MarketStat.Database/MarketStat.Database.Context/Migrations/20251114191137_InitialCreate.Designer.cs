@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MarketStat.Database.Context.Migrations
 {
     [DbContext(typeof(MarketStatDbContext))]
-    [Migration("20251108233524_InitialCreate")]
+    [Migration("20251114191137_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

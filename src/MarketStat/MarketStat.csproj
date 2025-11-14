@@ -1,73 +1,73 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
-    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
-    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
-    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.1" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="AutoMapper" Version="12.0.1" />
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+        <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
+        <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.6" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+        <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+        <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+        <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.1" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="MarketStat.Tests\UnitTests.Services\obj\project.assets.json" />
-    <_ContentIncludedByDefault Remove="MarketStat.Tests\UnitTests.Services\obj\UnitTests.Services.csproj.nuget.dgspec.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\web.config" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\web.config" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\web.config" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\appsettings.Development.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\appsettings.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\MarketStat.deps.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\MarketStat.runtimeconfig.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\appsettings.Development.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\appsettings.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\MarketStat.deps.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\MarketStat.runtimeconfig.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\appsettings.Development.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\appsettings.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\MarketStat.deps.json" />
-    <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\MarketStat.runtimeconfig.json" />
-  </ItemGroup>
+    <ItemGroup>
+        <_ContentIncludedByDefault Remove="MarketStat.Tests\UnitTests.Services\obj\project.assets.json" />
+        <_ContentIncludedByDefault Remove="MarketStat.Tests\UnitTests.Services\obj\UnitTests.Services.csproj.nuget.dgspec.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\web.config" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\web.config" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\web.config" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\appsettings.Development.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\appsettings.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\MarketStat.deps.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\MarketStat.runtimeconfig.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\appsettings.Development.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\appsettings.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\MarketStat.deps.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\MarketStat.runtimeconfig.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\appsettings.Development.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\appsettings.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\MarketStat.deps.json" />
+        <_ContentIncludedByDefault Remove="publish_output_scripted\publish_output\publish_output\MarketStat.runtimeconfig.json" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
-    <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Converter\MarketStat.Common.Converter.csproj" />
-    <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
-    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
-    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Models\MarketStat.Database.Models.csproj" />
-    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Core\MarketStat.Database.Core.csproj" />
-    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Repositories\MarketStat.Database.Repositories.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployerService\MarketStat.Services.Dimensions.DimEmployerService.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Facts\MarketStat.Services.Facts.FactSalaryService\MarketStat.Services.Facts.FactSalaryService.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimDateService\MarketStat.Services.Dimensions.DimDateService.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEducationService\MarketStat.Services.Dimensions.DimEducationService.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployeeService\MarketStat.Services.Dimensions.DimEmployeeService.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimIndustryFieldService\MarketStat.Services.Dimensions.DimIndustryFieldService.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Auth\MarketStat.Services.Auth.AuthService\MarketStat.Services.Auth.AuthService.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimLocationService\MarketStat.Services.Dimensions.DimLocationService.csproj" />
-    <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobService\MarketStat.Services.Dimensions.DimJobService.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
+        <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Converter\MarketStat.Common.Converter.csproj" />
+        <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
+        <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
+        <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Models\MarketStat.Database.Models.csproj" />
+        <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Core\MarketStat.Database.Core.csproj" />
+        <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Repositories\MarketStat.Database.Repositories.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployerService\MarketStat.Services.Dimensions.DimEmployerService.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Facts\MarketStat.Services.Facts.FactSalaryService\MarketStat.Services.Facts.FactSalaryService.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimDateService\MarketStat.Services.Dimensions.DimDateService.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEducationService\MarketStat.Services.Dimensions.DimEducationService.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimEmployeeService\MarketStat.Services.Dimensions.DimEmployeeService.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimIndustryFieldService\MarketStat.Services.Dimensions.DimIndustryFieldService.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Auth\MarketStat.Services.Auth.AuthService\MarketStat.Services.Auth.AuthService.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimLocationService\MarketStat.Services.Dimensions.DimLocationService.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobService\MarketStat.Services.Dimensions.DimJobService.csproj" />
+    </ItemGroup>
 
 </Project>

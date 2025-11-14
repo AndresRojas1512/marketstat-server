@@ -87,4 +87,41 @@ public class DimEmployeeService : IDimEmployeeService
         await _dimEmployeeRepository.DeleteEmployeeAsync(employeeId);
         _logger.LogInformation("Service: Deleted DimEmployee {EmployeeId}", employeeId);
     }
+
+    public async Task<DimEmployee> PartialUpdateEmployeeAsync(int employeeId, string? employeeRefId,
+        DateOnly? careerStartDate, int? educationId, short? graduationYear)
+    {
+        _logger.LogInformation("Service: Attempting to partially update DimEmployee {EmployeeId}", employeeId);
+        try
+        {
+            var existingEmployee = await _dimEmployeeRepository.GetEmployeeByIdAsync(employeeId);
+
+            var newRefId = employeeRefId ?? existingEmployee.EmployeeRefId;
+            var newCareerStart = careerStartDate ?? existingEmployee.CareerStartDate;
+            var newEducationId = educationId ?? existingEmployee.EducationId;
+            var newGradYear = graduationYear ?? existingEmployee.GraduationYear;
+
+            DimEmployeeValidator.ValidateForUpdate(employeeId, newRefId, existingEmployee.BirthDate, newCareerStart,
+                existingEmployee.Gender, newEducationId, newGradYear);
+
+            existingEmployee.EmployeeRefId = newRefId;
+            existingEmployee.CareerStartDate = newCareerStart;
+            existingEmployee.EducationId = newEducationId;
+            existingEmployee.GraduationYear = newGradYear;
+
+            await _dimEmployeeRepository.UpdateEmployeeAsync(existingEmployee);
+            _logger.LogInformation("Service: Partially update DimEmployee {EmployeeId}", employeeId);
+            return existingEmployee;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Service: Cannot partially update employee {EmployeeId}. Not found.", employeeId);
+            throw;
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "Service: Conflict when partially updating employee {EmployeeId}.", employeeId);
+            throw;
+        }
+    }
 }

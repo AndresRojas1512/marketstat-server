@@ -125,7 +125,26 @@ public class DimEmployeeController : ControllerBase
 
         return NoContent();
     }
-    
+
+    [HttpPatch("{id:int}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> PatchEmployee(int id, [FromBody] PartialUpdateDimEmployeeDto patchDto)
+    {
+        if (id <= 0)
+        {
+            return BadRequest(new { Message = "Invalid EmployeeId." });
+        }
+        await _dimEmployeeService.PartialUpdateEmployeeAsync(id, patchDto.EmployeeRefId, patchDto.CareerStartDate, patchDto.EducationId,
+            patchDto.GraduationYear);
+        return NoContent();
+    }
+
     /// <summary>
     /// Deletes an employee
     /// </summary>

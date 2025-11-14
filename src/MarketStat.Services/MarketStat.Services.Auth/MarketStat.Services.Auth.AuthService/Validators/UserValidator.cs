@@ -12,10 +12,6 @@ public static class UserValidator
     private const int MaxEmailLength = 255;
     private const int MaxFullNameLength = 255;
 
-    // private static readonly Regex PasswordPolicyRegex = new Regex(
-    //    @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", 
-    //    RegexOptions.Compiled);
-
     public static void ValidateRegistration(RegisterUserDto dto)
     {
         if (dto == null)
@@ -31,10 +27,6 @@ public static class UserValidator
         {
             throw new ArgumentException($"Username must be between {MinUsernameLength} and {MaxUsernameLength} characters.", nameof(dto.Username));
         }
-        // if (!Regex.IsMatch(dto.Username, @"^[a-zA-Z0-9_.-]+$"))
-        // {
-        //    throw new ArgumentException("Username contains invalid characters.", nameof(dto.Username));
-        // }
 
         if (string.IsNullOrWhiteSpace(dto.Password))
         {
@@ -44,14 +36,6 @@ public static class UserValidator
         {
             throw new ArgumentException($"Password must be between {MinPasswordLength} and {MaxPasswordLength} characters.", nameof(dto.Password));
         }
-        // if (!PasswordPolicyRegex.IsMatch(dto.Password))
-        // {
-        //     throw new ArgumentException(
-        //         "Password does not meet complexity requirements. " +
-        //         "It must contain at least one uppercase letter, one lowercase letter, one digit, " +
-        //         "one special character, and be at least 8 characters long.", 
-        //         nameof(dto.Password));
-        // }
 
         if (string.IsNullOrWhiteSpace(dto.Email))
         {
@@ -104,6 +88,49 @@ public static class UserValidator
         if (string.IsNullOrWhiteSpace(dto.Password))
         {
             throw new ArgumentException("Password is required for login.", nameof(dto.Password));
+        }
+    }
+
+    public static void ValidateProfileUpdate(string? fullName, string? email)
+    {
+        if (fullName != null)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                throw new ArgumentException("Full name cannot be empty.", nameof(fullName));
+            }
+
+            if (fullName.Length > MaxFullNameLength)
+            {
+                throw new ArgumentException($"Full name cannot exceed {MaxFullNameLength} characters.",
+                    nameof(fullName));
+            }
+        }
+
+        if (email != null)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException("Email is required.", nameof(email));
+            }
+
+            if (email.Length > MaxEmailLength)
+            {
+                throw new ArgumentException($"Email cannot exceed {MaxEmailLength} characters.", nameof(email));
+            }
+
+            try
+            {
+                var mailAddress = new MailAddress(email);
+                if (mailAddress.Address != email.Trim())
+                {
+                    throw new ArgumentException("Email format is invalid.", nameof(email));
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException("Email format is invalid.", nameof(email), ex);
+            }
         }
     }
 }

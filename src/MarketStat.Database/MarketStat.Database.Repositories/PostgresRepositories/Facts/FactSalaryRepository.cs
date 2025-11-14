@@ -216,7 +216,11 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
                         f.DimDate.FullDate < overallEndDate);
 
         var dbResults = await baseQuery
-            .GroupBy(f => GetPeriodStartDate(f.DimDate!.FullDate, granularity))
+            .GroupBy(f => 
+                granularity == TimeGranularity.Year ? new DateOnly(f.DimDate!.FullDate.Year, 1, 1) :
+                granularity == TimeGranularity.Quarter ? new DateOnly(f.DimDate!.FullDate.Year, ((f.DimDate!.FullDate.Month - 1) / 3) * 3 + 1, 1) :
+                new DateOnly(f.DimDate!.FullDate.Year, f.DimDate!.FullDate.Month, 1)
+            )
             .Select(g => new
             {
                 PeriodStart = g.Key,
