@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  db:
+    build:
+      context: ../docker/postgres
+  
+    container_name: ms_it_db
+
+    ports:
+      - "5434:5432"
+
+    environment:
+      - POSTGRES_PASSWORD=postgres
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d marketstat"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
