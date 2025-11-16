@@ -24,28 +24,27 @@ GRANT CONNECT ON DATABASE marketstat TO marketstat_administrator;
 GRANT CONNECT ON DATABASE marketstat TO marketstat_analyst;
 GRANT CONNECT ON DATABASE marketstat TO marketstat_public_guest;
 
--- Grant permissions for roles on the schema
+-- Grant schema permissions
 GRANT USAGE, CREATE ON SCHEMA marketstat TO marketstat_administrator;
 GRANT USAGE, CREATE ON SCHEMA marketstat TO marketstat_analyst;
-GRANT USAGE ON SCHEMA marketstat TO marketstat_public_guest; -- Guest should only have USAGE
+GRANT USAGE ON SCHEMA marketstat TO marketstat_public_guest; -- Guest only needs USAGE
 
 \echo 'Setting default privileges for tables and sequences'
 
--- Privileges for objects created by the ADMINISTRATOR (tests)
-ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
-    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO marketstat_analyst; -- API can r/w
-ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
-    GRANT SELECT ON TABLES TO marketstat_public_guest; -- Guest can read
-ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
-    GRANT USAGE, SELECT ON SEQUENCES TO marketstat_analyst, marketstat_public_guest;
-
--- Privileges for objects created by the ANALYST (API)
+-- === Privileges for objects created by the API (analyst) ===
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_analyst IN SCHEMA marketstat
-    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO marketstat_administrator; -- Tests can r/w
+    GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO marketstat_administrator; -- Admin (tests) needs full rights
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_analyst IN SCHEMA marketstat
     GRANT SELECT ON TABLES TO marketstat_public_guest; -- Guest can read
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_analyst IN SCHEMA marketstat
     GRANT USAGE, SELECT ON SEQUENCES TO marketstat_administrator, marketstat_public_guest;
 
+-- === Privileges for objects created by the Tests (admin) ===
+ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
+    GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO marketstat_analyst; -- API needs full rights
+ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
+    GRANT SELECT ON TABLES TO marketstat_public_guest; -- Guest can read
+ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
+    GRANT USAGE, SELECT ON SEQUENCES TO marketstat_analyst, marketstat_public_guest;
 
 \echo 'PostgreSQL role setup complete.'
