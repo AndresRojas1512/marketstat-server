@@ -27,6 +27,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
+    <ProjectReference Include="..\MarketStat.Integration.Tests\MarketStat.Integration.Tests.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Database\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
   </ItemGroup>
   
   <ItemGroup>

@@ -4,19 +4,74 @@ using FluentAssertions;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Payloads;
+using MarketStat.Database.Context;
+using MarketStat.Database.Models;
+using MarketStat.Database.Models.MarketStat.Database.Models.Account;
+using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
+using MarketStat.Integration.Tests;
 
 namespace MarketStat.Tests.E2E;
 
-public class AnalyticsE2E
+[Collection("Integration")]
+public class AnalyticsE2E : IAsyncLifetime
 {
     private readonly HttpClient _http;
     private readonly string _baseUrl;
+    
+    private readonly IntegrationTestFixture _fixture;
+    private readonly MarketStatDbContext _dbContext;
 
-    public AnalyticsE2E()
+    public AnalyticsE2E(IntegrationTestFixture fixture)
     {
+        _fixture = fixture;
+        _dbContext = _fixture.CreateContext();
         _http = new HttpClient();
         _baseUrl = Environment.GetEnvironmentVariable("E2E_BASE_URL")
                    ?? "http://localhost:8080";
+    }
+    
+    public async Task InitializeAsync()
+    {
+        // 1. Clean the database from the previous integration test run
+        await _fixture.ResetDatabaseAsync();
+
+        // 2. Seed *only* the admin user needed for this test
+        // NOTE: Use the correct password hash from your API's DataSeeder
+        _dbContext.Users.Add(new UserDbModel
+        {
+            UserId = 1,
+            Username = "admin@demo",
+            Email = "admin@demo.com",
+            FullName = "Test Admin",
+            IsAdmin = true,
+            IsActive = true,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin#123")
+        });
+        
+        // 3. Seed the salary data that the test assertions are checking for
+        // (This data was also being wiped by the reset)
+        _dbContext.DimDates.Add(new DimDateDbModel { DateId = 1, FullDate = new DateOnly(2024, 1, 1), Year = 2024, Quarter = 1, Month = 1 });
+        _dbContext.DimLocations.Add(new DimLocationDbModel { LocationId = 1, CityName = "Moscow", OblastName = "Moscow", DistrictName = "Central" });
+        _dbContext.DimIndustryFields.Add(new DimIndustryFieldDbModel { IndustryFieldId = 1, IndustryFieldName = "IT", IndustryFieldCode = "A.01"});
+        _dbContext.DimEmployees.Add(new DimEmployeeDbModel { EmployeeId = 1, EmployeeRefId = "emp-1", BirthDate = new DateOnly(1990, 1, 1), CareerStartDate = new DateOnly(2015, 1, 1) });
+        await _dbContext.SaveChangesAsync();
+        
+        _dbContext.DimJobs.Add(new DimJobDbModel { JobId = 1, StandardJobRoleTitle = "Engineer", HierarchyLevelName = "Mid", IndustryFieldId = 1 });
+        _dbContext.DimEmployers.Add(new DimEmployerDbModel { EmployerId = 1, EmployerName = "Tech Corp", IndustryFieldId = 1 });
+        await _dbContext.SaveChangesAsync();
+        
+        _dbContext.FactSalaries.AddRange(
+            new FactSalaryDbModel { SalaryFactId = 1, DateId = 1, LocationId = 1, JobId = 1, EmployerId = 1, EmployeeId = 1, SalaryAmount = 100000 },
+            new FactSalaryDbModel { SalaryFactId = 2, DateId = 1, LocationId = 1, JobId = 1, EmployerId = 1, EmployeeId = 1, SalaryAmount = 110000 },
+            new FactSalaryDbModel { SalaryFactId = 3, DateId = 1, LocationId = 1, JobId = 1, EmployerId = 1, EmployeeId = 1, SalaryAmount = 120000 }
+        );
+        await _dbContext.SaveChangesAsync();
+    }
+    
+    public Task DisposeAsync()
+    {
+        // This will clean up after the E2E test finishes
+        return _fixture.ResetDatabaseAsync();
     }
 
     [Fact(DisplayName = "MVP flow: login -> analytics endpoints succeed")]
