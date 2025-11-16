@@ -41,7 +41,6 @@ public class IntegrationTestFixture : IAsyncLifetime
         {
             await context.Database.MigrateAsync();
         }
-
         await using var conn = new NpgsqlConnection(AdminConnectionString);
         await conn.OpenAsync();
 
