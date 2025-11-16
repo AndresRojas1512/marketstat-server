@@ -2,15 +2,26 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 WORKDIR /src
 
-COPY ./../../../. /src
+# 1. Copy the *contents* of the repo's 'src' folder into our WORKDIR '/src'
+# This places MarketStat.sln at /src/MarketStat.sln
+COPY ../../../src/. .
 
+# 2. Copy the *contents* of the repo's 'test-infra' folder into '/src/test-infra'
+COPY ../../../test-infra/. ./test-infra
+
+# 3. Install dependencies
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y tshark && \
     rm -rf /var/lib/apt/lists/*
 
-RUN dotnet restore src/MarketStat.sln
-RUN dotnet build src/MarketStat.sln -c Release --no-restore
+# 4. Restore the .sln file (now at /src/MarketStat.sln)
+RUN dotnet restore MarketStat.sln
 
-RUN chmod +x /src/test-infra/docker/runner/entrypoint.sh
+# 5. Build the .sln file (now at /src/MarketStat.sln)
+RUN dotnet build MarketStat.sln -c Release --no-restore
 
-ENTRYPOINT ["/src/test-infra/docker/runner/entrypoint.sh"]
+# 6. Chmod the entrypoint (now at /src/test-infra/docker/runner/entrypoint.sh)
+RUN chmod +x test-infra/docker/runner/entrypoint.sh
+
+# 7. Run the entrypoint
+ENTRYPOINT ["test-infra/docker/runner/entrypoint.sh"]
