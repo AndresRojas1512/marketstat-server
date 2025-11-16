@@ -34,7 +34,8 @@ services:
 
   tests:
     build:
-      context: ../docker/runner
+      context: ../../
+      dockerfile: test-infra/docker/runner/Dockerfile
     container_name: ms_ci_tests
     depends_on:
       api:

@@ -2,12 +2,13 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 WORKDIR /src
 
-# 1. Copy the *contents* of the repo's 'src' folder into our WORKDIR '/src'
+# 1. Copy the 'src' folder contents into our WORKDIR '/src'
 # This places MarketStat.sln at /src/MarketStat.sln
-COPY ../../../src/. .
+COPY src/. .
 
-# 2. Copy the *contents* of the repo's 'test-infra' folder into '/src/test-infra'
-COPY ../../../test-infra/. ./test-infra
+# 2. Copy the 'test-infra' folder contents into '/src/test-infra'
+# This is the single, correct line for test-infra
+COPY test-infra/. ./test-infra
 
 # 3. Install dependencies
 RUN apt-get update && \
