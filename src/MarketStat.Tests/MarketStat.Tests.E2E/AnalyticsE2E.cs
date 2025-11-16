@@ -48,8 +48,6 @@ public class AnalyticsE2E : IAsyncLifetime
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin#123")
         });
         
-        // 3. Seed the salary data that the test assertions are checking for
-        // (This data was also being wiped by the reset)
         _dbContext.DimDates.Add(new DimDateDbModel { DateId = 1, FullDate = new DateOnly(2024, 1, 1), Year = 2024, Quarter = 1, Month = 1 });
         _dbContext.DimLocations.Add(new DimLocationDbModel { LocationId = 1, CityName = "Moscow", OblastName = "Moscow", DistrictName = "Central" });
         _dbContext.DimIndustryFields.Add(new DimIndustryFieldDbModel { IndustryFieldId = 1, IndustryFieldName = "IT", IndustryFieldCode = "A.01"});
