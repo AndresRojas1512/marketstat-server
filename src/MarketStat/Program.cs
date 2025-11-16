@@ -213,6 +213,28 @@ try
 
     app.MapControllers();
 
+    if (app.Environment.IsDevelopment())
+    {
+        Log.Information("Development environment detected. Checking for data to seed...");
+        using (var scope = app.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<MarketStatDbContext>();
+                var logger = services.GetRequiredService<ILogger<Program>>();
+
+                await context.Database.MigrateAsync();
+                await DataSeeder.SeedDevelopmentDataAsync(context, logger);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred during DB migration or seeding");
+                throw;
+            }
+        }
+    }
+
     Log.Information("--- MarketStat API: Host built, starting application ---");
     app.Run();
 
