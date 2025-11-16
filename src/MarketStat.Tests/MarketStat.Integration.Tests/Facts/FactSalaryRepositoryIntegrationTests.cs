@@ -23,9 +23,10 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
         _sut = new FactSalaryRepository(_dbContext);
     }
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        return SeedDimensionsAsync(_dbContext);
+        await _fixture.ResetDatabaseAsync();
+        await SeedDimensionsAsync(_dbContext);
     }
 
     public Task DisposeAsync()
