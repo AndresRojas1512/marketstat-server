@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 WORKDIR /src
 
-COPY ./../../../ /src
+COPY ./../../../. /src
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y tshark && \
