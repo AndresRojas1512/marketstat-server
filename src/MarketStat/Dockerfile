@@ -25,7 +25,7 @@ COPY src/MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.
 COPY src/MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.Dimensions.DimLocationService/MarketStat.Services.Dimensions.DimLocationService.csproj src/MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.Dimensions.DimLocationService/
 COPY src/MarketStat.Services/MarketStat.Services.Facts/MarketStat.Services.Facts.FactSalaryService/MarketStat.Services.Facts.FactSalaryService.csproj src/MarketStat.Services/MarketStat.Services.Facts/MarketStat.Services.Facts.FactSalaryService/
 
-RUN dotnet restore src/MarketStat.sln
+RUN dotnet restore MarketStat.sln
 
 COPY src/ .
 
