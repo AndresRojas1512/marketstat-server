@@ -25,6 +25,12 @@ COPY src/MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.
 COPY src/MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.Dimensions.DimLocationService/MarketStat.Services.Dimensions.DimLocationService.csproj MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.Dimensions.DimLocationService/
 COPY src/MarketStat.Services/MarketStat.Services.Facts/MarketStat.Services.Facts.FactSalaryService/MarketStat.Services.Facts.FactSalaryService.csproj MarketStat.Services/MarketStat.Services.Facts/MarketStat.Services.Facts.FactSalaryService/
 
+COPY src/MarketStat.Tests/MarketStat.Services.Tests/MarketStat.Services.Tests.csproj MarketStat.Tests/MarketStat.Services.Tests/
+COPY src/MarketStat.Tests/MarketStat.Repository.Tests/MarketStat.Repository.Tests.csproj MarketStat.Tests/MarketStat.Repository.Tests/
+COPY src/MarketStat.Tests/MarketStat.Tests.TestData/MarketStat.Tests.TestData.csproj MarketStat.Tests/MarketStat.Tests.TestData/
+COPY src/MarketStat.Tests/MarketStat.Integration.Tests/MarketStat.Integration.Tests.csproj MarketStat.Tests/MarketStat.Integration.Tests/
+COPY src/MarketStat.Tests/MarketStat.Tests.E2E/MarketStat.Tests.E2E.csproj MarketStat.Tests/MarketStat.Tests.E2E/
+
 RUN dotnet restore MarketStat.sln
 
 COPY src/ .
