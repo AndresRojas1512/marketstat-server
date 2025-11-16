@@ -29,8 +29,8 @@ public class MarketStatDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("marketstat");
         base.OnModelCreating(modelBuilder);
+        modelBuilder.HasDefaultSchema("marketstat");
         
         modelBuilder.Entity<DimEmployerDbModel>(b =>
         {

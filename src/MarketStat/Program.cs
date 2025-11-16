@@ -20,6 +20,7 @@ using MarketStat.Services.Auth.AuthService;
 using MarketStat.Services.Dimensions.DimLocationService;
 using MarketStat.Services.Dimensions.DimJobService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
@@ -64,6 +65,8 @@ try
     {
         opts.UseNpgsql(connectionString, npgsqlOptionsAction: sqlOptions =>
             {
+                sqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "marketstat"); 
+                
                 sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorCodesToAdd: null);
             })
             .UseSnakeCaseNamingConvention();
