@@ -29,7 +29,8 @@ GRANT USAGE, CREATE ON SCHEMA marketstat TO marketstat_administrator;
 GRANT USAGE, CREATE ON SCHEMA marketstat TO marketstat_analyst;
 GRANT USAGE ON SCHEMA marketstat TO marketstat_public_guest; -- Guest only needs USAGE
 
-GRANT marketstat_administrator TO marketstat_analyst;
+-- GRANT marketstat_administrator TO marketstat_analyst;
+GRANT marketstat_analyst TO marketstat_administrator;
 
 \echo 'Setting default privileges for tables and sequences'
 
