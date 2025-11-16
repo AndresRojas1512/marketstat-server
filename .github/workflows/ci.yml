@@ -1,22 +1,17 @@
 name: MarketStat CI/CD Pipeline
 
-# 1. TRIGGERS: Run this on push or pull request to the main branches
 on:
   push:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
 
-# 2. PERMISSIONS: Give the workflow permission to write to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
 jobs:
-  # --------------------------------------------------
-  # JOB 1: Build all Docker images and run all tests
-  # --------------------------------------------------
   build_and_test:
     name: Build & Run All Tests
     runs-on: ubuntu-latest
@@ -26,7 +21,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build and run the full test stack
-        # This is the main command for the entire pipeline.
         run: docker compose -f test-infra/compose/docker-compose.ci.yml up --build --abort-on-container-exit
 
       - name: Upload test results (even if tests failed)
@@ -34,13 +28,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
-          # The 'reports' volume in docker-compose.ci.yml makes this path available
           path: reports/allure-results/
           retention-days: 1 
 
-  # --------------------------------------------------
-  # JOB 2: Publish the Allure Report to GitHub Pages
-  # --------------------------------------------------
   publish_report:
     name: Publish Test Report
     if: always() 
