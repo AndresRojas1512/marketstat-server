@@ -11,6 +11,8 @@
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
         <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
         <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+        <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.11" />
+        <PackageReference Include="HotChocolate.Data" Version="15.1.11" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -68,6 +70,10 @@
         <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Auth\MarketStat.Services.Auth.AuthService\MarketStat.Services.Auth.AuthService.csproj" />
         <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimLocationService\MarketStat.Services.Dimensions.DimLocationService.csproj" />
         <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobService\MarketStat.Services.Dimensions.DimJobService.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="GraphQL\Mutations\Dimensions\" />
     </ItemGroup>
 
 </Project>

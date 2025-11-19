@@ -15,6 +15,8 @@ using System.Security.Claims;
 using System.Text;
 using MarketStat.Database.Core.Repositories.Account;
 using MarketStat.Database.Repositories.PostgresRepositories.Account;
+using MarketStat.GraphQL.Mutations.Facts;
+using MarketStat.GraphQL.Queries.Facts;
 using MarketStat.Middleware;
 using MarketStat.Services.Auth.AuthService;
 using MarketStat.Services.Dimensions.DimLocationService;
@@ -108,6 +110,17 @@ try
     
     builder.Services.AddControllers();
     builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
+    builder.Services
+        .AddGraphQLServer()
+        .AddQueryType(q => q.Name("Query"))
+        .AddTypeExtension<FactSalaryQuery>()
+        .AddMutationType(m => m.Name("Mutation"))
+        .AddTypeExtension<FactSalaryMutation>()
+        .AddProjections()
+        .AddFiltering()
+        .AddSorting();
+    
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
     {
@@ -216,27 +229,7 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
-
-    // if (!app.Environment.IsProduction() && !app.Environment.IsEnvironment("E2ETesting"))
-    // {
-    //     using (var scope = app.Services.CreateScope())
-    //     {
-    //         var services = scope.ServiceProvider;
-    //         try
-    //         {
-    //             var context = services.GetRequiredService<MarketStatDbContext>();
-    //             var logger = services.GetRequiredService<ILogger<Program>>();
-    //
-    //             logger.LogInformation("Applying database migrations for non-production environment...");
-    //             await context.Database.MigrateAsync();
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             Log.Error(ex, "An error occurred during DB migration");
-    //             throw;
-    //         }
-    //     }
-    // }
+    app.MapGraphQL("/api/graphql");
 
     Log.Information("--- MarketStat API: Host built, starting application ---");
     app.Run();
