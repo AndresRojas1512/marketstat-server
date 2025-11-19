@@ -9,7 +9,7 @@ services:
     
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ../../src/reports:/reports
+      - ../../src/allure-results:/allure-results
     
     environment:
-      - ALLURE_DIRECTORY=/reports/allure-results
+      - ALLURE_DIRECTORY=/allure-results
