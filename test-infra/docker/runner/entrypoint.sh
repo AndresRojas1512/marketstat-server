@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
 
-# Requirement #6: Stop immediately if any command fails
 set -e
 
-# FIX 1: Explicitly create the directory. 
-# This prevents "No such file or directory" errors later.
 mkdir -p /reports/allure-results
 
-# Clean up old results inside the container
 echo "Cleaning old test results in container..."
-# We use find -delete instead of rm -rf * to avoid shell globbing errors on empty dirs
 find /reports/allure-results -mindepth 1 -delete
 
 echo "=================================================="
@@ -35,7 +30,7 @@ echo "=================================================="
 dotnet test MarketStat.Tests/MarketStat.Tests.E2E/MarketStat.Tests.E2E.csproj -c Release
 
 echo "=================================================="
-echo "✅ SUCCESS: ALL TEST STAGES PASSED"
+echo "SUCCESS: ALL TEST STAGES PASSED"
 echo "=================================================="
 
 if [ -d "/reports/allure-results" ]; then
