@@ -28,7 +28,8 @@ echo "SUCCESS: ALL TEST STAGES PASSED"
 echo "=================================================="
 
 if [ -d "/allure-results" ]; then
-    chown -R $(stat -c "%u:%g" /src) /allure-results
+    echo "Fixing permissions for /allure-results..."
+    chmod -R 777 /allure-results
 else
-    echo "Warning: /allure-results does not exist. Skipping chown."
+    echo "Warning: /allure-results does not exist. Skipping permission fix."
 fi
