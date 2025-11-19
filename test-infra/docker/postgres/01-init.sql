@@ -24,7 +24,6 @@ GRANT CONNECT ON DATABASE marketstat TO marketstat_administrator;
 GRANT CONNECT ON DATABASE marketstat TO marketstat_analyst;
 GRANT CONNECT ON DATABASE marketstat TO marketstat_public_guest;
 
--- Grant schema permissions
 GRANT USAGE, CREATE ON SCHEMA marketstat TO marketstat_administrator;
 GRANT USAGE, CREATE ON SCHEMA marketstat TO marketstat_analyst;
 GRANT USAGE ON SCHEMA marketstat TO marketstat_public_guest; -- Guest only needs USAGE
