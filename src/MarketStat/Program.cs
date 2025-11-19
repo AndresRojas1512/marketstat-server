@@ -118,10 +118,12 @@ try
         .AddQueryType(q => q.Name("Query"))
         .AddTypeExtension<FactSalaryQuery>()
         .AddTypeExtension<DimDateQuery>()
+        .AddTypeExtension<DimEducationQuery>()
         
         .AddMutationType(m => m.Name("Mutation"))
         .AddTypeExtension<FactSalaryMutation>()
         .AddTypeExtension<DimDateMutation>()
+        .AddTypeExtension<DimEducationMutation>()
         
         .AddProjections()
         .AddFiltering()
