@@ -15,7 +15,9 @@ using System.Security.Claims;
 using System.Text;
 using MarketStat.Database.Core.Repositories.Account;
 using MarketStat.Database.Repositories.PostgresRepositories.Account;
+using MarketStat.GraphQL.Mutations.Dimensions;
 using MarketStat.GraphQL.Mutations.Facts;
+using MarketStat.GraphQL.Queries.Dimensions;
 using MarketStat.GraphQL.Queries.Facts;
 using MarketStat.Middleware;
 using MarketStat.Services.Auth.AuthService;
@@ -115,8 +117,12 @@ try
         .AddGraphQLServer()
         .AddQueryType(q => q.Name("Query"))
         .AddTypeExtension<FactSalaryQuery>()
+        .AddTypeExtension<DimDateQuery>()
+        
         .AddMutationType(m => m.Name("Mutation"))
         .AddTypeExtension<FactSalaryMutation>()
+        .AddTypeExtension<DimDateMutation>()
+        
         .AddProjections()
         .AddFiltering()
         .AddSorting();
