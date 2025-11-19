@@ -217,26 +217,26 @@ try
 
     app.MapControllers();
 
-    if (!app.Environment.IsProduction() && !app.Environment.IsEnvironment("E2ETesting"))
-    {
-        using (var scope = app.Services.CreateScope())
-        {
-            var services = scope.ServiceProvider;
-            try
-            {
-                var context = services.GetRequiredService<MarketStatDbContext>();
-                var logger = services.GetRequiredService<ILogger<Program>>();
-
-                logger.LogInformation("Applying database migrations for non-production environment...");
-                await context.Database.MigrateAsync();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "An error occurred during DB migration");
-                throw;
-            }
-        }
-    }
+    // if (!app.Environment.IsProduction() && !app.Environment.IsEnvironment("E2ETesting"))
+    // {
+    //     using (var scope = app.Services.CreateScope())
+    //     {
+    //         var services = scope.ServiceProvider;
+    //         try
+    //         {
+    //             var context = services.GetRequiredService<MarketStatDbContext>();
+    //             var logger = services.GetRequiredService<ILogger<Program>>();
+    //
+    //             logger.LogInformation("Applying database migrations for non-production environment...");
+    //             await context.Database.MigrateAsync();
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             Log.Error(ex, "An error occurred during DB migration");
+    //             throw;
+    //         }
+    //     }
+    // }
 
     Log.Information("--- MarketStat API: Host built, starting application ---");
     app.Run();
