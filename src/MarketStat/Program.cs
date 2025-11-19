@@ -120,12 +120,14 @@ try
         .AddTypeExtension<DimDateQuery>()
         .AddTypeExtension<DimEducationQuery>()
         .AddTypeExtension<DimEmployeeQuery>()
+        .AddTypeExtension<DimEmployerQuery>()
         
         .AddMutationType(m => m.Name("Mutation"))
         .AddTypeExtension<FactSalaryMutation>()
         .AddTypeExtension<DimDateMutation>()
         .AddTypeExtension<DimEducationMutation>()
         .AddTypeExtension<DimEmployeeMutation>()
+        .AddTypeExtension<DimEmployerMutation>()
         
         .AddProjections()
         .AddFiltering()
