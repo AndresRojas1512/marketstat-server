@@ -30,3 +30,5 @@ dotnet test MarketStat.Tests/MarketStat.Tests.E2E/MarketStat.Tests.E2E.csproj -c
 echo "=================================================="
 echo "SUCCESS: ALL TEST STAGES PASSED"
 echo "=================================================="
+
+chown -R $(stat -c "%u:%g" /reports) /reports/allure-results
