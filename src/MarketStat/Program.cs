@@ -58,15 +58,16 @@ try
         );
     });
     
-    var connectionString = builder.Configuration.GetConnectionString("MarketStat")
-                           ?? throw new InvalidOperationException("Missing connection string 'MarketStat'.");
-    
-    builder.Services.AddDbContext<MarketStatDbContext>(opts =>
+    builder.Services.AddDbContext<MarketStatDbContext>((serviceProvider, opts) =>
     {
+        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        var connectionString = configuration.GetConnectionString("MarketStat") 
+                               ?? throw new InvalidOperationException("Missing connection string 'MarketStat'.");
+
         opts.UseNpgsql(connectionString, npgsqlOptionsAction: sqlOptions =>
             {
                 sqlOptions.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "marketstat"); 
-                
+            
                 sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorCodesToAdd: null);
             })
             .UseSnakeCaseNamingConvention();
@@ -216,9 +217,8 @@ try
 
     app.MapControllers();
 
-    if (app.Environment.IsDevelopment())
+    if (!app.Environment.IsProduction() && !app.Environment.IsEnvironment("E2ETesting"))
     {
-        Log.Information("Development environment detected. Checking for data to seed...");
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
@@ -227,12 +227,12 @@ try
                 var context = services.GetRequiredService<MarketStatDbContext>();
                 var logger = services.GetRequiredService<ILogger<Program>>();
 
+                logger.LogInformation("Applying database migrations for non-production environment...");
                 await context.Database.MigrateAsync();
-                await DataSeeder.SeedDevelopmentDataAsync(context, logger);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "An error occurred during DB migration or seeding");
+                Log.Error(ex, "An error occurred during DB migration");
                 throw;
             }
         }
@@ -252,3 +252,5 @@ finally
     Log.Information("--- MarketStat API: Shutting down ---");
     Log.CloseAndFlush();
 }
+
+public partial class Program { }

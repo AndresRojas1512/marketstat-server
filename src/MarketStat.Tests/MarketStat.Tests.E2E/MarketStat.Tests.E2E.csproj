@@ -14,8 +14,11 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="FluentAssertions" Version="6.7.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Respawn" Version="6.2.1" />
     <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.8.1" />
     <PackageReference Include="xunit" Version="2.6.6" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
   </ItemGroup>
@@ -27,12 +30,20 @@
   <ItemGroup>
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
+    <ProjectReference Include="..\..\MarketStat\MarketStat.csproj" />
+    <ProjectReference Include="..\MarketStat.Tests.TestData\MarketStat.Tests.TestData.csproj" />
     <ProjectReference Include="..\MarketStat.Integration.Tests\MarketStat.Integration.Tests.csproj" />
     <ProjectReference Include="..\..\MarketStat.Database\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <Content Include="xunit.runner.json">
+    <None Include="../xunit.runner.json" Link="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="../allureConfig.json" Link="allureConfig.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

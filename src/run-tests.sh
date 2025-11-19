@@ -2,6 +2,8 @@
 
 set -e
 
+export ALLURE_DIRECTORY=$(pwd)/allure-results
+
 echo "Starting test run..."
 
 echo "Cleaning old test results..."

@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Allure.Xunit" Version="2.14.1" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.8.1" />
     <PackageReference Include="xunit" Version="2.6.6" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
     
@@ -42,9 +43,15 @@
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Exceptions\MarketStat.Common.Exceptions.csproj" />
     <ProjectReference Include="..\MarketStat.Tests.TestData\MarketStat.Tests.TestData.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <Content Include="appsettings.Integration.json">
+    <None Include="../xunit.runner.json" Link="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="../allureConfig.json" Link="allureConfig.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
