@@ -122,6 +122,7 @@ try
         .AddTypeExtension<DimEmployeeQuery>()
         .AddTypeExtension<DimEmployerQuery>()
         .AddTypeExtension<DimIndustryFieldQuery>()
+        .AddTypeExtension<DimJobQuery>()
         
         .AddMutationType(m => m.Name("Mutation"))
         .AddTypeExtension<FactSalaryMutation>()
@@ -130,6 +131,7 @@ try
         .AddTypeExtension<DimEmployeeMutation>()
         .AddTypeExtension<DimEmployerMutation>()
         .AddTypeExtension<DimIndustryFieldMutation>()
+        .AddTypeExtension<DimJobMutation>()
         
         .AddProjections()
         .AddFiltering()
