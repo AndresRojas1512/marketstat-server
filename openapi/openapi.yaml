@@ -976,7 +976,6 @@ tags:
   - name: DimJob
   - name: DimLocation
   - name: FactSalary
-  - name: Analytics
 
 
 
@@ -2498,7 +2497,7 @@ paths:
   /factsalaries/distribution:
     get:
       tags:
-        - Analytics
+        - FactSalary
       summary: Get salary distribution
       description: "Calculates histogram buckets for salary distribution. Requires 'Analyst' or 'Admin' role."
       security:
@@ -2555,7 +2554,7 @@ paths:
   /factsalaries/summary:
     get:
       tags:
-        - Analytics
+        - FactSalary
       summary: Get salary summary statistics
       description: "Calculates summary statistics (avg, count, percentiles) for a given filter set. Requires 'Analyst' or 'Admin' role."
       security:
@@ -2614,7 +2613,7 @@ paths:
   /factsalaries/timeseries:
     get:
       tags:
-        - Analytics
+        - FactSalary
       summary: Get salary time series
       description: "Calculates average salary over time. Requires 'Analyst' or 'Admin' role."
       security:
@@ -2679,7 +2678,7 @@ paths:
   /factsalaries/public/roles:
     get:
       tags:
-        - Analytics
+        - FactSalary
       summary: Get public role statistics
       description: "A public endpoint to get average salaries for top job roles, filtered by location and industry. Hides results with low record counts."
       security: []

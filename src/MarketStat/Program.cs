@@ -77,7 +77,7 @@ try
                 sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorCodesToAdd: null);
             })
             .UseSnakeCaseNamingConvention();
-    });
+    }, ServiceLifetime.Transient);
     
     if (builder.Services.All(s => s.ServiceType != typeof(IDbContextFactory<MarketStatDbContext>)))
     {

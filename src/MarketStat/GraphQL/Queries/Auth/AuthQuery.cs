@@ -16,13 +16,16 @@ public class AuthQuery
         [Service] IAuthService authService,
         [Service] IMapper mapper)
     {
-        var userIdString = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userIdString = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) 
+                           ?? claimsPrincipal.FindFirstValue("nameid");
         
         if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
         {
-            throw new GraphQLException(new Error("Invalid authentication token.", "AUTH_INVALID_TOKEN"));
+            throw new GraphQLException(new Error("Invalid authentication token. User ID missing.", "AUTH_INVALID_TOKEN"));
         }
+
         var domainUser = await authService.GetUserProfileAsync(userId);
+
         return mapper.Map<UserDto>(domainUser);
     }
 }

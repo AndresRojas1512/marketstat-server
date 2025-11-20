@@ -30,10 +30,15 @@ public class AuthMutation
     }
 
     [Authorize]
-    public async Task<UserDto> UpdateProfile(PartialUpdateUserDto input, ClaimsPrincipal claimsPrincipal,
-        [Service] IAuthService authService, [Service] IMapper mapper)
+    public async Task<UserDto> UpdateProfile(
+        PartialUpdateUserDto input,
+        ClaimsPrincipal claimsPrincipal,
+        [Service] IAuthService authService,
+        [Service] IMapper mapper)
     {
-        var userIdString = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userIdString = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) 
+                           ?? claimsPrincipal.FindFirstValue("nameid");
+
         if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
         {
             throw new GraphQLException(new Error("Invalid authentication token.", "AUTH_INVALID_TOKEN"));
