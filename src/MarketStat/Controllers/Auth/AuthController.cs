@@ -82,29 +82,4 @@ public class AuthController : ControllerBase
         _logger.LogInformation("User {Username} logged in successfully.", loginDto.Username);
         return Ok(responseDto);
     }
-
-    [HttpPatch("profile/me")]
-    [Authorize]
-    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<UserDto>> PartiallyUpdateProfileAsync([FromBody] PartialUpdateUserDto patchDto)
-    {
-        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
-        {
-            _logger.LogWarning("PartialUpdateProfile: Could not find user ID in claims.");
-            return Unauthorized(new { Message = "Invalid authentication token." });
-        }
-        _logger.LogInformation("User {UserId} attempting to update profile", userId);
-        var updatedDomainUser = await _authService.PartialUpdateProfileAsync(
-            userId,
-            patchDto.FullName,
-            patchDto.Email
-        );
-        var userDto = _mapper.Map<UserDto>(updatedDomainUser);
-        return Ok(userDto);
-    }
 }

@@ -1040,40 +1040,40 @@ paths:
         '500':
           description: Internal server error.
   
-  /auth/profile/me:
-    patch:
-      tags:
-        - Auth
-      summary: Partially updates the current user's profile
-      description: "Allows an authenticated user to update their own profile information (FullName, Email). The user is identified by their JWT."
-      security:
-        - bearerAuth: []
-      requestBody:
-        description: The fields to update on the user's profile.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PartialUpdateUserDto'
-      responses:
-        '200':
-          description: The user profile was updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserDto'
-        '400':
-          $ref: '#/components/responses/BadRequestResponse'
-        '401':
-          $ref: '#/components/responses/UnauthorizedResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundResponse'
-        '409':
-          description: "Conflict - The request could not be completed (e.g., the new email is already taken)."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorPayload'
+  # /auth/profile/me:
+  #   patch:
+  #     tags:
+  #       - Auth
+  #     summary: Partially updates the current user's profile
+  #     description: "Allows an authenticated user to update their own profile information (FullName, Email). The user is identified by their JWT."
+  #     security:
+  #       - bearerAuth: []
+  #     requestBody:
+  #       description: The fields to update on the user's profile.
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/PartialUpdateUserDto'
+  #     responses:
+  #       '200':
+  #         description: The user profile was updated successfully.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/UserDto'
+  #       '400':
+  #         $ref: '#/components/responses/BadRequestResponse'
+  #       '401':
+  #         $ref: '#/components/responses/UnauthorizedResponse'
+  #       '404':
+  #         $ref: '#/components/responses/NotFoundResponse'
+  #       '409':
+  #         description: "Conflict - The request could not be completed (e.g., the new email is already taken)."
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorPayload'
   
   # DimDate
 

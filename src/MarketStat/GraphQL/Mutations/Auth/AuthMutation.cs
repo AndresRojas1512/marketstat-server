@@ -28,28 +28,4 @@ public class AuthMutation
             User = mapper.Map<UserDto>(authResult.User)
         };
     }
-
-    [Authorize]
-    public async Task<UserDto> UpdateProfile(
-        PartialUpdateUserDto input,
-        ClaimsPrincipal claimsPrincipal,
-        [Service] IAuthService authService,
-        [Service] IMapper mapper)
-    {
-        var userIdString = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) 
-                           ?? claimsPrincipal.FindFirstValue("nameid");
-
-        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
-        {
-            throw new GraphQLException(new Error("Invalid authentication token.", "AUTH_INVALID_TOKEN"));
-        }
-
-        var updatedDomainUser = await authService.PartialUpdateProfileAsync(
-            userId,
-            input.FullName,
-            input.Email
-        );
-
-        return mapper.Map<UserDto>(updatedDomainUser);
-    }
 }
