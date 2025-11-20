@@ -15,8 +15,10 @@ using System.Security.Claims;
 using System.Text;
 using MarketStat.Database.Core.Repositories.Account;
 using MarketStat.Database.Repositories.PostgresRepositories.Account;
+using MarketStat.GraphQL.Mutations.Auth;
 using MarketStat.GraphQL.Mutations.Dimensions;
 using MarketStat.GraphQL.Mutations.Facts;
+using MarketStat.GraphQL.Queries.Auth;
 using MarketStat.GraphQL.Queries.Dimensions;
 using MarketStat.GraphQL.Queries.Facts;
 using MarketStat.Middleware;
@@ -115,6 +117,7 @@ try
 
     builder.Services
         .AddGraphQLServer()
+        .AddAuthorization()
         .AddQueryType(q => q.Name("Query"))
         .AddTypeExtension<FactSalaryQuery>()
         .AddTypeExtension<DimDateQuery>()
@@ -123,6 +126,8 @@ try
         .AddTypeExtension<DimEmployerQuery>()
         .AddTypeExtension<DimIndustryFieldQuery>()
         .AddTypeExtension<DimJobQuery>()
+        .AddTypeExtension<DimLocationQuery>()
+        .AddTypeExtension<AuthQuery>()
         
         .AddMutationType(m => m.Name("Mutation"))
         .AddTypeExtension<FactSalaryMutation>()
@@ -132,6 +137,8 @@ try
         .AddTypeExtension<DimEmployerMutation>()
         .AddTypeExtension<DimIndustryFieldMutation>()
         .AddTypeExtension<DimJobMutation>()
+        .AddTypeExtension<DimLocationMutation>()
+        .AddTypeExtension<AuthMutation>()
         
         .AddProjections()
         .AddFiltering()

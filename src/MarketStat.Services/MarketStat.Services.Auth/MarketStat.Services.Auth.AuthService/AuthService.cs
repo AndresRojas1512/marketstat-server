@@ -17,77 +17,73 @@ public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
-    private readonly IMapper _mapper;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository userRepository,
         IConfiguration configuration,
-        IMapper mapper,
         ILogger<AuthService> logger)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<UserDto> RegisterAsync(RegisterUserDto registerDto)
+    public async Task<User> RegisterAsync(string username, string password, string email, string fullName, bool isAdmin)
     {
-        UserValidator.ValidateRegistration(registerDto);
-        _logger.LogInformation("Attempting to register user: {Username}", registerDto.Username);
+        UserValidator.ValidateRegistration(username, password, email, fullName);
+        _logger.LogInformation("Attempting to register user: {Username}", username);
 
-        if (await _userRepository.UserExistsAsync(registerDto.Username, registerDto.Email))
+        if (await _userRepository.UserExistsAsync(username, email))
         {
-            _logger.LogWarning("Registration failed for {Username}: Username or email already exists.", registerDto.Username);
+            _logger.LogWarning("Registration failed for {Username}: Username or email already exists.", username);
             throw new ConflictException("User with the same username or email already exists.");
         }
 
-        string passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
+        string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
             
         var newUserDomain = new User() 
         {
-            Username = registerDto.Username,
+            Username = username,
             PasswordHash = passwordHash,
-            Email = registerDto.Email,
-            FullName = registerDto.FullName,
+            Email = email,
+            FullName = fullName,
             IsActive = true,
             CreatedAt = DateTimeOffset.UtcNow,
-            IsAdmin = registerDto.IsAdmin
+            IsAdmin = isAdmin
         };
 
-        var createdUserDomain = await _userRepository.AddUserAsync(newUserDomain);
-        _logger.LogInformation("User {Username} registered successfully with ID {UserId} (IsEtlUser: {IsEtlUser})", 
-            createdUserDomain.Username, createdUserDomain.UserId, createdUserDomain.IsAdmin);
-
-        return _mapper.Map<UserDto>(createdUserDomain);
+        var createdUser = await _userRepository.AddUserAsync(newUserDomain);
+        _logger.LogInformation("User {Username} registered successfully with ID {UserId} (IsAdminUser: {IsAdminUser})", 
+            createdUser.Username, createdUser.UserId, createdUser.IsAdmin);
+        return createdUser;
     }
 
-    public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginDto)
+    public async Task<AuthResult> LoginAsync(string username, string password)
     {
-        UserValidator.ValidateLogin(loginDto);
-        _logger.LogInformation("Attempting login for user: {Username}", loginDto.Username);
+        UserValidator.ValidateLogin(username, password);
+        _logger.LogInformation("Attempting login for user: {Username}", username);
 
         User userDomain;
         try
         {
-            userDomain = await _userRepository.GetUserByUsernameAsync(loginDto.Username);
+            userDomain = await _userRepository.GetUserByUsernameAsync(username);
         }
         catch (NotFoundException)
         {
-            _logger.LogWarning("Login failed for user {Username}: User not found.", loginDto.Username);
+            _logger.LogWarning("Login failed for user {Username}: User not found.", username);
             throw new Common.Exceptions.AuthenticationException("Invalid username or password.");
         }
 
         if (!userDomain.IsActive)
         {
-            _logger.LogWarning("Login failed for user {Username}: Account is not active.", loginDto.Username);
+            _logger.LogWarning("Login failed for user {Username}: Account is not active.", username);
             throw new Common.Exceptions.AuthenticationException("User account is inactive.");
         }
 
-        if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, userDomain.PasswordHash))
+        if (!BCrypt.Net.BCrypt.Verify(password, userDomain.PasswordHash))
         {
-            _logger.LogWarning("Login failed for user {Username}: Invalid password.", loginDto.Username);
+            _logger.LogWarning("Login failed for user {Username}: Invalid password.", username);
             throw new Common.Exceptions.AuthenticationException("Invalid username or password.");
         }
 
@@ -152,15 +148,15 @@ public class AuthService : IAuthService
         _logger.LogInformation("User {Username} (RoleClaim: {UserRoleClaim}) logged in successfully. Token generated.", 
             userDomain.Username, roleClaimValue);
 
-        return new AuthResponseDto
+        return new AuthResult
         {
             Token = tokenString,
             Expiration = token.ValidTo,
-            User = _mapper.Map<UserDto>(userDomain)
+            User = userDomain
         };
     }
 
-    public async Task<UserDto> PartialUpdateProfileAsync(int userId, string? fullName, string? email)
+    public async Task<User> PartialUpdateProfileAsync(int userId, string? fullName, string? email)
     {
         _logger.LogInformation("Service: Attempting to partially update profile for User {UserId}", userId);
         UserValidator.ValidateProfileUpdate(fullName, email);
@@ -173,7 +169,7 @@ public class AuthService : IAuthService
 
             await _userRepository.UpdateUserAsync(existingUser);
             _logger.LogInformation("Service: Successfully updated profile for User {UserId}", userId);
-            return _mapper.Map<UserDto>(existingUser);
+            return existingUser;
         }
         catch (NotFoundException ex)
         {
@@ -185,5 +181,11 @@ public class AuthService : IAuthService
             _logger.LogWarning(ex, "Service: Conflict when updating profile for user {UserId}.", userId);
             throw;
         }
+    }
+
+    public async Task<User> GetUserProfileAsync(int userId)
+    {
+        _logger.LogInformation("Service: Fetching profile for User {UserId}", userId);
+        return await _userRepository.GetUserByIdAsync(userId);
     }
 }

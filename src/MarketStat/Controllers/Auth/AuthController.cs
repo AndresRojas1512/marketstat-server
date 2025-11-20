@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using AutoMapper;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
 using MarketStat.Services.Auth.AuthService;
 using Microsoft.AspNetCore.Authorization;
@@ -11,11 +12,13 @@ namespace MarketStat.Controllers.Auth;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IMapper _mapper;
     private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService, ILogger<AuthController> logger)
+    public AuthController(IAuthService authService, IMapper mapper, ILogger<AuthController> logger)
     {
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -38,8 +41,10 @@ public class AuthController : ControllerBase
         }
 
         _logger.LogInformation("Registration attempt for username: {Username}", registerDto.Username);
-        
-        var userDto = await _authService.RegisterAsync(registerDto);
+
+        var domainUser = await _authService.RegisterAsync(registerDto.Username, registerDto.Password, registerDto.Email,
+            registerDto.FullName, registerDto.IsAdmin);
+        var userDto = _mapper.Map<UserDto>(domainUser);
         
         _logger.LogInformation("User {Username} registered successfully with ID {UserId}", userDto.Username, userDto.UserId);
         
@@ -66,10 +71,16 @@ public class AuthController : ControllerBase
 
         _logger.LogInformation("Login attempt for username: {Username}", loginDto.Username);
         
-        var authResponse = await _authService.LoginAsync(loginDto);
+        var authResult = await _authService.LoginAsync(loginDto.Username, loginDto.Password);
+        var responseDto = new AuthResponseDto
+        {
+            Token = authResult.Token,
+            Expiration = authResult.Expiration,
+            User = _mapper.Map<UserDto>(authResult.User),
+        };
         
         _logger.LogInformation("User {Username} logged in successfully.", loginDto.Username);
-        return Ok(authResponse);
+        return Ok(responseDto);
     }
 
     [HttpPatch("profile/me")]
@@ -88,11 +99,12 @@ public class AuthController : ControllerBase
             return Unauthorized(new { Message = "Invalid authentication token." });
         }
         _logger.LogInformation("User {UserId} attempting to update profile", userId);
-        var updatedUser = await _authService.PartialUpdateProfileAsync(
+        var updatedDomainUser = await _authService.PartialUpdateProfileAsync(
             userId,
             patchDto.FullName,
             patchDto.Email
         );
-        return Ok(updatedUser);
+        var userDto = _mapper.Map<UserDto>(updatedDomainUser);
+        return Ok(userDto);
     }
 }
