@@ -1,0 +1,434 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+"""
+The root Query type for the MarketStat API.
+Combines data access for Salaries, Dimensions, and User Authentication.
+"""
+type Query {
+  # --- FactSalary Queries ---
+  
+  "Gets a specific salary fact record by its ID."
+  getSalaryById(id: Long!): FactSalaryDto!
+
+  "Gets salary fact records based on filter criteria. Supports filtering and sorting."
+  getSalaries(
+    filter: SalaryFilterDtoInput
+    where: FactSalaryDtoFilterInput
+    order: [FactSalaryDtoSortInput!]
+  ): [FactSalaryDto!]!
+
+  "Gets distribution buckets for histograms (Analyst/Admin)."
+  getSalaryDistribution(filter: SalaryFilterDtoInput): [SalaryDistributionBucketDto!]!
+
+  "Gets statistical summary: percentiles and averages (Analyst/Admin)."
+  getSalarySummary(request: SalarySummaryRequestDtoInput): SalarySummaryDto
+
+  "Gets time series data for charting trends over time (Analyst/Admin)."
+  getSalaryTimeSeries(request: SalaryTimeSeriesRequestDtoInput): [SalaryTimeSeriesPointDto!]!
+
+  "Public endpoint for popular roles. Does not require authentication."
+  getPublicRoles(request: PublicRolesRequestDtoInput): [PublicRoleByLocationIndustryDto!]!
+
+  # --- Dimension Queries ---
+
+  "Returns a single date dimension by ID."
+  getDateById(id: Int!): DimDateDto!
+
+  "Returns all date dimensions."
+  getAllDates(where: DimDateDtoFilterInput, order: [DimDateDtoSortInput!]): [DimDateDto!]!
+
+  "Returns a single education dimension by ID."
+  getEducationById(id: Int!): DimEducationDto!
+
+  "Returns all education dimensions."
+  getAllEducations(where: DimEducationDtoFilterInput, order: [DimEducationDtoSortInput!]): [DimEducationDto!]!
+
+  "Returns a single employee dimension by ID."
+  getEmployeeById(id: Int!): DimEmployeeDto!
+
+  "Returns all employee dimensions."
+  getAllEmployees(where: DimEmployeeDtoFilterInput, order: [DimEmployeeDtoSortInput!]): [DimEmployeeDto!]!
+
+  "Returns a single employer dimension by ID."
+  getEmployerById(id: Int!): DimEmployerDto!
+
+  "Returns all employer dimensions."
+  getAllEmployers(where: DimEmployerDtoFilterInput, order: [DimEmployerDtoSortInput!]): [DimEmployerDto!]!
+
+  "Returns a single industry field by ID."
+  getIndustryFieldById(id: Int!): DimIndustryFieldDto!
+
+  "Returns all industry fields."
+  getAllIndustryFields(where: DimIndustryFieldDtoFilterInput, order: [DimIndustryFieldDtoSortInput!]): [DimIndustryFieldDto!]!
+
+  "Returns a single job dimension by ID."
+  getJobById(id: Int!): DimJobDto!
+
+  "Returns all job dimensions."
+  getAllJobs(where: DimJobDtoFilterInput, order: [DimJobDtoSortInput!]): [DimJobDto!]!
+
+  "Lookup: Get distinct standard job roles filtered by industry."
+  getStandardJobRoles(industryFieldId: Int): [String!]!
+
+  "Lookup: Get distinct hierarchy levels filtered by industry and role."
+  getHierarchyLevels(industryFieldId: Int, standardJobRoleTitle: String): [String!]!
+
+  "Returns a single location by ID."
+  getLocationById(id: Int!): DimLocationDto!
+
+  "Returns all locations."
+  getAllLocations(where: DimLocationDtoFilterInput, order: [DimLocationDtoSortInput!]): [DimLocationDto!]!
+
+  "Lookup: Get distinct district names."
+  getDistricts: [String!]!
+
+  "Lookup: Get distinct oblasts within a district."
+  getOblasts(districtName: String!): [String!]!
+
+  "Lookup: Get distinct cities within an oblast."
+  getCities(oblastName: String!): [String!]!
+
+  # --- Auth Queries ---
+
+  "Gets the currently authenticated user's profile."
+  me: UserDto! @authorize
+}
+
+"""
+The root Mutation type for modifying data.
+"""
+type Mutation {
+  # --- Auth Mutations ---
+
+  "Registers a new user."
+  registerUser(input: RegisterUserDtoInput!): UserDto!
+
+  "Logs in a user and returns a JWT token."
+  loginUser(input: LoginRequestDtoInput!): AuthResponseDto!
+
+  "Updates the profile of the currently authenticated user."
+  updateProfile(input: PartialUpdateUserDtoInput!): UserDto! @authorize
+
+  # --- FactSalary Mutations ---
+
+  "Creates a new salary fact record."
+  createSalaryFact(input: CreateFactSalaryDtoInput!): FactSalaryDto!
+
+  "Updates an existing salary fact record."
+  updateSalaryFact(id: Long!, input: UpdateFactSalaryDtoInput!): FactSalaryDto!
+
+  "Deletes a salary fact record by ID."
+  deleteSalaryFact(id: Long!): Boolean!
+
+  # --- Dimension Mutations ---
+
+  "Creates a new date record."
+  createDate(input: CreateDimDateDtoInput!): DimDateDto!
+
+  "Updates an existing date record."
+  updateDate(id: Int!, input: UpdateDimDateDtoInput!): DimDateDto!
+
+  "Deletes a date record by ID."
+  deleteDate(id: Int!): Boolean!
+
+  "Creates a new education record."
+  createEducation(input: CreateDimEducationDtoInput!): DimEducationDto!
+
+  "Updates an existing education record."
+  updateEducation(id: Int!, input: UpdateDimEducationDtoInput!): DimEducationDto!
+
+  "Deletes an education record by ID."
+  deleteEducation(id: Int!): Boolean!
+
+  "Creates a new employee record."
+  createEmployee(input: CreateDimEmployeeDtoInput!): DimEmployeeDto!
+
+  "Updates an existing employee record."
+  updateEmployee(id: Int!, input: UpdateDimEmployeeDtoInput!): DimEmployeeDto!
+
+  "Partially updates an employee (PATCH)."
+  patchEmployee(id: Int!, input: PartialUpdateDimEmployeeDtoInput!): DimEmployeeDto!
+
+  "Deletes an employee record by ID."
+  deleteEmployee(id: Int!): Boolean!
+
+  "Creates a new employer record."
+  createEmployer(input: CreateDimEmployerDtoInput!): DimEmployerDto!
+
+  "Updates an existing employer record."
+  updateEmployer(id: Int!, input: UpdateDimEmployerDtoInput!): DimEmployerDto!
+
+  "Deletes an employer record by ID."
+  deleteEmployer(id: Int!): Boolean!
+
+  "Creates a new industry field."
+  createIndustryField(input: CreateDimIndustryFieldDtoInput!): DimIndustryFieldDto!
+
+  "Updates an existing industry field."
+  updateIndustryField(id: Int!, input: UpdateDimIndustryFieldDtoInput!): DimIndustryFieldDto!
+
+  "Deletes an industry field by ID."
+  deleteIndustryField(id: Int!): Boolean!
+
+  "Creates a new job record."
+  createJob(input: CreateDimJobDtoInput!): DimJobDto!
+
+  "Updates an existing job record."
+  updateJob(id: Int!, input: UpdateDimJobDtoInput!): DimJobDto!
+
+  "Deletes a job record by ID."
+  deleteJob(id: Int!): Boolean!
+
+  "Creates a new location record."
+  createLocation(input: CreateDimLocationDtoInput!): DimLocationDto!
+
+  "Updates an existing location record."
+  updateLocation(id: Int!, input: UpdateDimLocationDtoInput!): DimLocationDto!
+
+  "Deletes a location record by ID."
+  deleteLocation(id: Int!): Boolean!
+}
+
+# --- Object Types ---
+
+type FactSalaryDto {
+  salaryFactId: Long!
+  dateId: Int!
+  locationId: Int!
+  employerId: Int!
+  jobId: Int!
+  employeeId: Int!
+  salaryAmount: Decimal!
+}
+
+type DimLocationDto {
+  locationId: Int!
+  cityName: String!
+  oblastName: String!
+  districtName: String!
+}
+
+type DimJobDto {
+  jobId: Int!
+  jobRoleTitle: String!
+  standardJobRoleTitle: String!
+  hierarchyLevelName: String!
+  industryFieldId: Int!
+  industryField: DimIndustryFieldDto
+}
+
+type DimIndustryFieldDto {
+  industryFieldId: Int!
+  industryFieldCode: String!
+  industryFieldName: String!
+}
+
+type DimEmployerDto {
+  employerId: Int!
+  employerName: String!
+  inn: String!
+  ogrn: String!
+  kpp: String!
+  registrationDate: Date!
+  legalAddress: String!
+  contactEmail: String!
+  contactPhone: String!
+  industryFieldId: Int!
+  industryField: DimIndustryFieldDto
+}
+
+type DimEmployeeDto {
+  employeeId: Int!
+  employeeRefId: String!
+  birthDate: Date!
+  careerStartDate: Date!
+  gender: String
+  educationId: Int
+  graduationYear: Int
+}
+
+type DimEducationDto {
+  educationId: Int!
+  specialtyName: String!
+  specialtyCode: String!
+  educationLevelName: String!
+}
+
+type DimDateDto {
+  dateId: Int!
+  fullDate: Date!
+  year: Int!
+  quarter: Int!
+  month: Int!
+}
+
+type UserDto {
+  userId: Int!
+  username: String!
+  email: String!
+  fullName: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  lastLoginAt: DateTime
+}
+
+type AuthResponseDto {
+  token: String!
+  expiration: DateTime!
+  user: UserDto!
+}
+
+type SalaryDistributionBucketDto {
+  lowerBound: Decimal!
+  upperBound: Decimal!
+  bucketCount: Long!
+}
+
+type SalarySummaryDto {
+  percentile25: Decimal
+  percentile50: Decimal
+  percentile75: Decimal
+  percentileTarget: Decimal
+  averageSalary: Decimal
+  totalCount: Long!
+}
+
+type SalaryTimeSeriesPointDto {
+  periodStart: Date!
+  avgSalary: Decimal
+  salaryCountInPeriod: Long!
+}
+
+type PublicRoleByLocationIndustryDto {
+  standardJobRoleTitle: String!
+  averageSalary: Decimal!
+  salaryRecordCount: Long!
+}
+
+# --- Inputs ---
+
+input SalaryFilterDtoInput {
+  standardJobRoleTitle: String
+  hierarchyLevelName: String
+  industryFieldName: String
+  districtName: String
+  oblastName: String
+  cityName: String
+  dateStart: Date
+  dateEnd: Date
+}
+
+input SalarySummaryRequestDtoInput {
+  targetPercentile: Int! = 90
+  standardJobRoleTitle: String
+  hierarchyLevelName: String
+  industryFieldName: String
+  districtName: String
+  oblastName: String
+  cityName: String
+  dateStart: Date
+  dateEnd: Date
+}
+
+input SalaryTimeSeriesRequestDtoInput {
+  granularity: TimeGranularity! = MONTH
+  periods: Int! = 12
+  standardJobRoleTitle: String
+  hierarchyLevelName: String
+  industryFieldName: String
+  districtName: String
+  oblastName: String
+  cityName: String
+  dateStart: Date
+  dateEnd: Date
+}
+
+input PublicRolesRequestDtoInput {
+  minRecordCount: Int! = 10
+  standardJobRoleTitle: String
+  hierarchyLevelName: String
+  industryFieldName: String
+  districtName: String
+  oblastName: String
+  cityName: String
+  dateStart: Date
+  dateEnd: Date
+}
+
+input CreateFactSalaryDtoInput {
+  dateId: Int!
+  locationId: Int!
+  employerId: Int!
+  jobId: Int!
+  employeeId: Int!
+  salaryAmount: Decimal!
+}
+
+input UpdateFactSalaryDtoInput {
+  dateId: Int!
+  locationId: Int!
+  employerId: Int!
+  jobId: Int!
+  employeeId: Int!
+  salaryAmount: Decimal!
+}
+
+input CreateDimLocationDtoInput {
+  cityName: String!
+  oblastName: String!
+  districtName: String!
+}
+
+input UpdateDimLocationDtoInput {
+  cityName: String!
+  oblastName: String!
+  districtName: String!
+}
+
+# ... (Assume similar input types for other dimensions, mapped from your C# DTOs) ...
+# For brevity, standard Crud DTOs follow the pattern: Create[Name]DtoInput
+
+input LoginRequestDtoInput {
+  username: String!
+  password: String!
+}
+
+input RegisterUserDtoInput {
+  username: String!
+  password: String!
+  email: String!
+  fullName: String!
+  isAdmin: Boolean! = false
+}
+
+input PartialUpdateUserDtoInput {
+  fullName: String
+  email: String
+}
+
+input PartialUpdateDimEmployeeDtoInput {
+  employeeRefId: String
+  careerStartDate: Date
+  educationId: Int
+  graduationYear: Short
+}
+
+# --- Enums & Scalars ---
+
+enum TimeGranularity {
+  YEAR
+  QUARTER
+  MONTH
+}
+
+"The @authorize directive enforces authentication/authorization."
+directive @authorize(roles: [String!], policy: String) on FIELD_DEFINITION | OBJECT
+
+scalar Date
+scalar DateTime
+scalar Decimal
+scalar Long
+scalar Short
