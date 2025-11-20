@@ -29,5 +29,25 @@ services:
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: ms_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@marketstat.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+      SCRIPT_NAME: /admin
+    depends_on:
+      - db
+
+  gateway:
+    image: nginx:alpine
+    container_name: ms_gateway
     ports:
-      - "8080:8080"
+      - "8080:80"
+    volumes:
+      - ../docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../docker/nginx/static:/usr/share/nginx/html
+    depends_on:
+      - api
+      - pgadmin
