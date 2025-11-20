@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MarketStat.Controllers.Facts;
 
 [ApiController]
-[Route("api/factsalaries")]
+[Route("api/v1/factsalaries")]
 [Authorize]
 public class FactSalaryController : ControllerBase
 {

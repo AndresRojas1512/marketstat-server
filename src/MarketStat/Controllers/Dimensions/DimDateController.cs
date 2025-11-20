@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MarketStat.Controllers.Dimensions;
 
 [ApiController]
-[Route("api/dimdates")]
+[Route("api/v1/dimdates")]
 [Authorize]
 public class DimDateController : ControllerBase
 {

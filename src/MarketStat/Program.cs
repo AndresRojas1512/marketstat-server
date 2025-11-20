@@ -252,7 +252,7 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
-    app.MapGraphQL("/api/graphql");
+    app.MapGraphQL("/api/v2");
 
     Log.Information("--- MarketStat API: Host built, starting application ---");
     app.Run();

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MarketStat.Controllers.Auth;
 
 [ApiController]
-[Route("api/auth")]
+[Route("api/v1/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;

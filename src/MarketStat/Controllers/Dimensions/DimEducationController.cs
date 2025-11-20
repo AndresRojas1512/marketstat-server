@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MarketStat.Controllers.Dimensions;
 
 [ApiController]
-[Route("api/dimeducations")]
+[Route("api/v1/dimeducations")]
 [Authorize]
 public class DimEducationController : ControllerBase
 {

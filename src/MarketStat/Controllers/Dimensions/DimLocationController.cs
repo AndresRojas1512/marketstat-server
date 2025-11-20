@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MarketStat.Controllers.Dimensions;
 
 [ApiController]
-[Route("api/dimlocations")]
+[Route("api/v1/dimlocations")]
 [Authorize]
 public class DimLocationController : ControllerBase
 {
