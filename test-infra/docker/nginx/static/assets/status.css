@@ -1,0 +1,77 @@
+:root {
+    --bg-color: #1a1a2e;
+    --card-bg: #16213e;
+    --text-primary: #e94560;
+    --text-secondary: #b2b2b2;
+    --accent: #0f3460;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: white;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.dashboard {
+    width: 80%;
+    max-width: 800px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--text-primary);
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background-color: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+
+.card:hover { transform: translateY(-5px); }
+
+.main-card {
+    grid-column: span 3;
+    background: linear-gradient(45deg, var(--accent), var(--card-bg));
+}
+
+.value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+    color: var(--text-primary);
+}
+
+h3 { margin: 0; color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+
+.state-container {
+    display: flex;
+    justify-content: space-around;
+    background-color: var(--card-bg);
+    padding: 1rem;
+    border-radius: 50px;
+}
+
+.state-item { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+.dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; }
+.reading .dot { background-color: #f1c40f; }
+.writing .dot { background-color: #2ecc71; }
+.waiting .dot { background-color: #3498db; }

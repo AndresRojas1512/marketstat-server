@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Server Status</title>
+    <link rel="stylesheet" href="/assets/status.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>NGINX System Status</h1>
+            <div id="refresh-timer">Auto-refreshing...</div>
+        </header>
+
+        <div class="grid-container">
+            <div class="card main-card">
+                <h3>Active Connections</h3>
+                <div class="value" id="active-conns">-</div>
+                <div class="label">Current open sockets</div>
+            </div>
+
+            <div class="card">
+                <h3>Accepted</h3>
+                <div class="value" id="accepted">-</div>
+            </div>
+
+            <div class="card">
+                <h3>Handled</h3>
+                <div class="value" id="handled">-</div>
+            </div>
+
+            <div class="card">
+                <h3>Total Requests</h3>
+                <div class="value" id="requests">-</div>
+            </div>
+        </div>
+
+        <div class="state-container">
+            <div class="state-item reading">
+                <span class="dot"></span> Reading: <span id="reading">-</span>
+            </div>
+            <div class="state-item writing">
+                <span class="dot"></span> Writing: <span id="writing">-</span>
+            </div>
+            <div class="state-item waiting">
+                <span class="dot"></span> Waiting: <span id="waiting">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/status.js"></script>
+</body>
+</html>
