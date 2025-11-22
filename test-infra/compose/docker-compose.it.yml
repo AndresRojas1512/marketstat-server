@@ -58,6 +58,10 @@ services:
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
+      - SERVICE_NAME=marketstat-write
+      - SERVICE_8080_NAME=marketstat-write
+    expose:
+      - "8080"
   
   api_ro_1:
     build:
@@ -74,6 +78,10 @@ services:
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
+      - SERVICE_NAME=marketstat-read
+      - SERVICE_8080_NAME=marketstat-read
+    expose:
+      - "8080"
   
   api_ro_2:
     build:
@@ -90,6 +98,10 @@ services:
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
+      - SERVICE_NAME=marketstat-read
+      - SERVICE_8080_NAME=marketstat-read
+    expose:
+      - "8080"
   
   api_mirror:
     build:
@@ -105,6 +117,27 @@ services:
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
+    expose:
+      - "8080"
+
+  consul:
+    image: hashicorp/consul:1.18
+    container_name: ms_consul
+    restart: always
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    command: agent -server -bind=0.0.0.0 -client=0.0.0.0 -bootstrap-expect=1 -ui
+  
+  registrator:
+    image: hypolas/registrator:latest
+    container_name: ms_registrator
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+    command: -internal consul://ms_consul:8500
+    depends_on:
+      - consul
 
   pgadmin:
     image: dpage/pgadmin4:8
@@ -131,10 +164,7 @@ services:
       - ../docker/nginx/certs:/etc/nginx/certs
     depends_on:
       - api
-      - api_ro_1
-      - api_ro_2
-      - api_mirror
-      - pgadmin
+      - consul
   
   loki:
     image: grafana/loki:2.9.2
