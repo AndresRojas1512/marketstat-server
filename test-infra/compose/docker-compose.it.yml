@@ -10,11 +10,35 @@ services:
       - "5434:5432"
     environment:
       - POSTGRES_PASSWORD=postgres
+    command: |
+      postgres
+      -c wal_level=replica
+      -c hot_standby=on
+      -c max_wal_senders=10
+      -c max_replication_slots=10
+      -c hot_standby_feedback=on
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d marketstat"]
       interval: 3s
       timeout: 3s
       retries: 10
+  
+  db_replica:
+    image: postgres:16-alpine
+    container_name: ms_demo_db_replica
+    restart: always
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - ../docker/postgres/replica-entrypoint.sh:/usr/local/bin/replica-entrypoint.sh
+    entrypoint: ["replica-entrypoint.sh"]
+    command: ["postgres"]
+    depends_on:
+      db:
+        condition: service_healthy
 
   api:
     build:
@@ -27,7 +51,55 @@ services:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - RunMigrations=true
       - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+  
+  api_ro_1:
+    build:
+      context: ../../
+      dockerfile: src/MarketStat/Dockerfile
+    container_name: ms_demo_api_ro_1
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+  
+  api_ro_2:
+    build:
+      context: ../../
+      dockerfile: src/MarketStat/Dockerfile
+    container_name: ms_demo_api_ro_2
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+  
+  api_mirror:
+    build:
+      context: ../../
+      dockerfile: src/MarketStat/Dockerfile
+    container_name: ms_demo_api_mirror
+    restart: always
+    depends_on:
+      - db_replica
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MarketStat=Host=db_replica;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
@@ -55,3 +127,55 @@ services:
     depends_on:
       - api
       - pgadmin
+  
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: ms_loki
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ../docker/loki/loki-config.yaml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+  
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: ms_promtail
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../docker/promtail/promtail-config.yaml:/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
+  
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ms_grafana
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SERVER_ROOT_URL=http://localhost:8080/monitoring/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    entrypoint:
+      - sh
+      - -e
+      - -c
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy 
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    depends_on:
+      - loki

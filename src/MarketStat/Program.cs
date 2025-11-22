@@ -256,46 +256,51 @@ try
     app.MapControllers();
     app.MapGraphQL("/api/v2");
 
-    using (var scope = app.Services.CreateScope())
+    var runMigrations = Convert.ToBoolean(builder.Configuration["RunMigrations"] ?? "false");
+
+    if (runMigrations)
     {
-        var services = scope.ServiceProvider;
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        var configuration = services.GetRequiredService<IConfiguration>();
-        try
+        using (var scope = app.Services.CreateScope())
         {
-            var defaultConnectionString = configuration.GetConnectionString("MarketStat");
-            var adminCb = new NpgsqlConnectionStringBuilder(defaultConnectionString)
+            var services = scope.ServiceProvider;
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            var configuration = services.GetRequiredService<IConfiguration>();
+            try
             {
-                Username = "marketstat_administrator",
-                Password = "andresrmlnx15",
-                IncludeErrorDetail = true
-            };
-            
-            logger.LogInformation("Initializing Database Migration context as 'marketstat_administrator'...");
-            var adminOptions = new DbContextOptionsBuilder<MarketStatDbContext>()
-                .UseNpgsql(adminCb.ConnectionString, sqlOpts =>
+                var defaultConnectionString = configuration.GetConnectionString("MarketStat");
+                var adminCb = new NpgsqlConnectionStringBuilder(defaultConnectionString)
                 {
-                    sqlOpts.MigrationsHistoryTable("__EFMigrationsHistory", "marketstat");
-                    sqlOpts.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
-                })
-                .UseSnakeCaseNamingConvention()
-                .Options;
-            using var adminContext = new MarketStatDbContext(adminOptions);
-            if ((await adminContext.Database.GetPendingMigrationsAsync()).Any())
-            {
-                logger.LogInformation("Pending migrations found. Applying them now...");
-                await adminContext.Database.MigrateAsync();
-                logger.LogInformation("Database schema successfully updated by Administrator.");
+                    Username = "marketstat_administrator",
+                    Password = "andresrmlnx15",
+                    IncludeErrorDetail = true
+                };
+            
+                logger.LogInformation("Initializing Database Migration context as 'marketstat_administrator'...");
+                var adminOptions = new DbContextOptionsBuilder<MarketStatDbContext>()
+                    .UseNpgsql(adminCb.ConnectionString, sqlOpts =>
+                    {
+                        sqlOpts.MigrationsHistoryTable("__EFMigrationsHistory", "marketstat");
+                        sqlOpts.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+                    })
+                    .UseSnakeCaseNamingConvention()
+                    .Options;
+                using var adminContext = new MarketStatDbContext(adminOptions);
+                if ((await adminContext.Database.GetPendingMigrationsAsync()).Any())
+                {
+                    logger.LogInformation("Pending migrations found. Applying them now...");
+                    await adminContext.Database.MigrateAsync();
+                    logger.LogInformation("Database schema successfully updated by Administrator.");
+                }
+                else
+                {
+                    logger.LogInformation("Database is already up to date.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                logger.LogInformation("Database is already up to date.");
+                logger.LogCritical(ex, "Database migration failed. The application cannot stat.");
+                throw;
             }
-        }
-        catch (Exception ex)
-        {
-            logger.LogCritical(ex, "Database migration failed. The application cannot stat.");
-            throw;
         }
     }
 
