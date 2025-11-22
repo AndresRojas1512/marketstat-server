@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-MarketStat.Data-113fa63f-7789-4c09-bc6b-8531afff728d</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MarketStat.Contracts\MarketStat.Contracts.csproj" />
+    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Context\MarketStat.Database.Context.csproj" />
+    <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Repositories\MarketStat.Database.Repositories.csproj" />
+    <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
+  </ItemGroup>
+</Project>

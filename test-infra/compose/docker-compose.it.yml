@@ -41,6 +41,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ms_rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - SERVICE_5672_NAME=rabbitmq
+      - SERVICE_15672_NAME=rabbitmq-ui
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
   api:
     build:
@@ -217,3 +232,6 @@ services:
         /run.sh
     depends_on:
       - loki
+  
+volumes:
+  rabbitmq_data:
