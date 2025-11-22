@@ -1,7 +1,24 @@
 using MarketStat.Domain;
+using MarketStat.Domain.Consumers.Facts;
+using MassTransit;
 
-var builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddHostedService<Worker>();
+IHost host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((hostContext, services) =>
+    {
+        services.AddMassTransit(x =>
+        {
+            x.AddConsumer<FactSalaryDomainConsumer>();
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host("rabbitmq", "/", h =>
+                {
+                    h.Username("guest");
+                    h.Password("guest");
+                });
+                cfg.ConfigureEndpoints(context);
+            });
+        });
+    })
+    .Build();
 
-var host = builder.Build();
-host.Run();
+await host.RunAsync();

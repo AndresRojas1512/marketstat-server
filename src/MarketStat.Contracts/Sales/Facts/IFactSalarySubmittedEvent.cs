@@ -1,6 +1,6 @@
-namespace MarketStat.Contracts.Sales;
+namespace MarketStat.Contracts.Sales.Facts;
 
-public interface ISalarySubmittedEvent
+public interface IFactSalarySubmittedEvent
 {
     Guid SubmissionId { get; }
     bool Success { get; }

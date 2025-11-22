@@ -56,84 +56,11 @@ services:
       - SERVICE_15672_NAME=rabbitmq-ui
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-
-  api:
-    build:
-      context: ../../
-      dockerfile: src/MarketStat/Dockerfile
-    container_name: ms_demo_api
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - RunMigrations=true
-      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
-      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
-      - JwtSettings__Issuer=marketstat-demo
-      - JwtSettings__Audience=marketstat-demo
-      - SERVICE_NAME=marketstat-write
-      - SERVICE_8080_NAME=marketstat-write
-    expose:
-      - "8080"
-  
-  api_ro_1:
-    build:
-      context: ../../
-      dockerfile: src/MarketStat/Dockerfile
-    container_name: ms_demo_api_ro_1
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
-      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
-      - JwtSettings__Issuer=marketstat-demo
-      - JwtSettings__Audience=marketstat-demo
-      - SERVICE_NAME=marketstat-read
-      - SERVICE_8080_NAME=marketstat-read
-    expose:
-      - "8080"
-  
-  api_ro_2:
-    build:
-      context: ../../
-      dockerfile: src/MarketStat/Dockerfile
-    container_name: ms_demo_api_ro_2
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
-      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
-      - JwtSettings__Issuer=marketstat-demo
-      - JwtSettings__Audience=marketstat-demo
-      - SERVICE_NAME=marketstat-read
-      - SERVICE_8080_NAME=marketstat-read
-    expose:
-      - "8080"
-  
-  api_mirror:
-    build:
-      context: ../../
-      dockerfile: src/MarketStat/Dockerfile
-    container_name: ms_demo_api_mirror
-    restart: always
-    depends_on:
-      - db_replica
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__MarketStat=Host=db_replica;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
-      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
-      - JwtSettings__Issuer=marketstat-demo
-      - JwtSettings__Audience=marketstat-demo
-    expose:
-      - "8080"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   consul:
     image: hashicorp/consul:1.18
@@ -153,17 +80,152 @@ services:
     command: -internal consul://ms_consul:8500
     depends_on:
       - consul
-
-  pgadmin:
-    image: dpage/pgadmin4:8
-    container_name: ms_pgadmin
+  
+  gateway_1:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Gateway" }
+    container_name: ms_svc_gateway_1
     restart: always
+    depends_on: { rabbitmq: { condition: service_healthy } }
     environment:
-      PGADMIN_DEFAULT_EMAIL: "admin@marketstat.com"
-      PGADMIN_DEFAULT_PASSWORD: "admin"
-      SCRIPT_NAME: /admin
-    depends_on:
-      - db
+      - ASPNETCORE_ENVIRONMENT=Development
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+      - SERVICE_NAME=marketstat-gateway
+      - SERVICE_8080_NAME=marketstat-gateway
+    expose:
+      - "8080"
+  
+  gateway_2:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Gateway" }
+    container_name: ms_svc_gateway_2
+    restart: always
+    depends_on: { rabbitmq: { condition: service_healthy } }
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+      - SERVICE_NAME=marketstat-gateway
+      - SERVICE_8080_NAME=marketstat-gateway
+    expose:
+      - "8080"
+  
+  gateway_3:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Gateway" }
+    container_name: ms_svc_gateway_3
+    restart: always
+    depends_on: { rabbitmq: { condition: service_healthy } }
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+      - SERVICE_NAME=marketstat-gateway
+      - SERVICE_8080_NAME=marketstat-gateway
+    expose:
+      - "8080"
+  
+  domain_1:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Domain" }
+    container_name: ms_svc_domain_1
+    restart: always
+    depends_on: { rabbitmq: { condition: service_healthy } }
+    environment:
+      - SERVICE_NAME=marketstat-domain
+  
+  domain_2:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Domain" }
+    container_name: ms_svc_domain_2
+    restart: always
+    depends_on: { rabbitmq: { condition: service_healthy } }
+    environment:
+      - SERVICE_NAME=marketstat-domain
+  
+  domain_3:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Domain" }
+    container_name: ms_svc_domain_3
+    restart: always
+    depends_on: { rabbitmq: { condition: service_healthy } }
+    environment:
+      - SERVICE_NAME=marketstat-domain
+
+  data_1:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Data" }
+    container_name: ms_svc_data_1
+    restart: always
+    depends_on: 
+      db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
+      - SERVICE_NAME=marketstat-data
+  
+  data_2:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Data" }
+    container_name: ms_svc_data_2
+    restart: always
+    depends_on: 
+      db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
+      - SERVICE_NAME=marketstat-data
+  
+  data_3:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Data" }
+    container_name: ms_svc_data_3
+    restart: always
+    depends_on: 
+      db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
+      - SERVICE_NAME=marketstat-data
+  
+  gateway_mirror:
+    build:
+      context: ../../src
+      dockerfile: Dockerfile.microservice
+      args: { PROJECT_NAME: "MarketStat.Gateway" }
+    container_name: ms_svc_gateway_mirror
+    restart: always
+    depends_on: { rabbitmq: { condition: service_healthy } }
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+      - SERVICE_NAME=marketstat-gateway-mirror
+    expose:
+      - "8080"
 
   gateway:
     image: nginx:alpine
@@ -178,8 +240,22 @@ services:
       - ../docker/nginx/static:/usr/share/nginx/html
       - ../docker/nginx/certs:/etc/nginx/certs
     depends_on:
-      - api
+      - gateway_1
+      - gateway_2
+      - gateway_3
+      - gateway_mirror
       - consul
+  
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: ms_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@marketstat.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+      SCRIPT_NAME: /admin
+    depends_on:
+      - db
   
   loki:
     image: grafana/loki:2.9.2
