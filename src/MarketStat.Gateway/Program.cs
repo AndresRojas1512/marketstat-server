@@ -1,4 +1,5 @@
 using System.Text;
+using MarketStat.Contracts.Facts;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -20,6 +21,7 @@ builder.Services.AddMassTransit(x =>
         });
         cfg.ConfigureEndpoints(context);
     });
+    x.AddRequestClient<IGetFactSalaryRequest>();
 });
 
 var jwtKey = builder.Configuration["JwtSettings:Key"];

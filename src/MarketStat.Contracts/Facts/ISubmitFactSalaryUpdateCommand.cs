@@ -1,7 +1,8 @@
-namespace MarketStat.Contracts.Sales.Facts;
+namespace MarketStat.Contracts.Facts;
 
-public interface ISubmitFactSalaryCommand
+public interface ISubmitFactSalaryUpdateCommand
 {
+    long SalaryFactId { get; }
     int DateId { get; }
     int LocationId { get; }
     int EmployerId { get; }

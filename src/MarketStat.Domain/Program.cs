@@ -1,4 +1,3 @@
-using MarketStat.Domain;
 using MarketStat.Domain.Consumers.Facts;
 using MassTransit;
 

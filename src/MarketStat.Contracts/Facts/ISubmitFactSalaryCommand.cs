@@ -1,6 +1,6 @@
-namespace MarketStat.Contracts.Sales.Facts;
+namespace MarketStat.Contracts.Facts;
 
-public interface IPersistFactSalaryCommand
+public interface ISubmitFactSalaryCommand
 {
     int DateId { get; }
     int LocationId { get; }

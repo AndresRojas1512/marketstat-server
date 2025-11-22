@@ -1,4 +1,4 @@
-namespace MarketStat.Contracts.Sales.Facts;
+namespace MarketStat.Contracts.Facts;
 
 public interface IFactSalarySubmittedEvent
 {
