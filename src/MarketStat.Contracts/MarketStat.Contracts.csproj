@@ -14,4 +14,13 @@
     <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dimensions\DimEducation\" />
+    <Folder Include="Dimensions\DimEmployee\" />
+    <Folder Include="Dimensions\DimEmployer\" />
+    <Folder Include="Dimensions\DimIndustryField\" />
+    <Folder Include="Dimensions\DimJob\" />
+    <Folder Include="Dimensions\DimLocation\" />
+  </ItemGroup>
+
 </Project>

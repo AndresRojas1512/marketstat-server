@@ -1,4 +1,4 @@
-namespace MarketStat.Services.Facts.FactSalaryService.Validators;
+namespace MarketStat.Common.Validators.Facts;
 
 public static class FactSalaryValidator
 {

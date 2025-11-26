@@ -1,4 +1,5 @@
 using MarketStat.Domain.Consumers.Auth;
+using MarketStat.Domain.Consumers.Dimensions;
 using MarketStat.Domain.Consumers.Facts;
 using MassTransit;
 
@@ -9,6 +10,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         {
             x.AddConsumer<FactSalaryDomainConsumer>();
             x.AddConsumer<AuthDomainConsumer>();
+            x.AddConsumer<DimDateDomainConsumer>();
             
             x.UsingRabbitMq((context, cfg) =>
             {

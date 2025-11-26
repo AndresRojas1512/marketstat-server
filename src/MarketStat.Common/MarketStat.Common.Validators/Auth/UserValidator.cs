@@ -1,7 +1,6 @@
 using System.Net.Mail;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
 
-namespace MarketStat.Services.Auth.AuthService.Validators;
+namespace MarketStat.Common.Validators.Auth;
 
 public static class UserValidator
 {

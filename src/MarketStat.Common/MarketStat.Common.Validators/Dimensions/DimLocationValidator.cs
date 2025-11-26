@@ -1,4 +1,4 @@
-namespace MarketStat.Services.Dimencions.DimLocationService.Validators;
+namespace MarketStat.Common.Validators.Dimensions;
 
 public class DimLocationValidator
 {

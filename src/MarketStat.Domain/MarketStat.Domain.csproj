@@ -15,5 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MarketStat.Contracts\MarketStat.Contracts.csproj" />
+    <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Validators\MarketStat.Common.Validators.csproj" />
   </ItemGroup>
 </Project>

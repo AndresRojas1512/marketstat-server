@@ -1,4 +1,4 @@
-namespace MarketStat.Services.Dimensions.DimEducationService.Validators;
+namespace MarketStat.Common.Validators.Dimensions;
 
 public class DimEducationValidator
 {

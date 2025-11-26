@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using AutoMapper;
 using MarketStat.Common.Core.MarketStat.Common.Core.Account;
 using MarketStat.Common.Exceptions;
-using MarketStat.Services.Auth.AuthService.Validators;
+using MarketStat.Common.Validators.Auth;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 

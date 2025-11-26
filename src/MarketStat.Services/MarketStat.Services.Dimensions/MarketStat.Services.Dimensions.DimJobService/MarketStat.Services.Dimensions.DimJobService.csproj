@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
     <ProjectReference Include="..\..\..\MarketStat.Database\MarketStat.Database.Core\MarketStat.Database.Core.csproj" />
+    <ProjectReference Include="..\..\..\MarketStat.Common\MarketStat.Common.Validators\MarketStat.Common.Validators.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,7 +1,7 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
+using MarketStat.Common.Validators.Dimensions;
 using MarketStat.Database.Core.Repositories.Dimensions;
-using MarketStat.Services.Dimensions.DimEducationService.Validators;
 using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Services.Dimensions.DimEducationService;

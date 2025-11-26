@@ -1,10 +1,10 @@
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Facts;
-using MarketStat.Services.Facts.FactSalaryService.Validators;
 using Microsoft.Extensions.Logging;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
 using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
+using MarketStat.Common.Validators.Facts;
 using MarketStat.Database.Core.Repositories.Dimensions;
 
 namespace MarketStat.Services.Facts.FactSalaryService;

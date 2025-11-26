@@ -1,4 +1,4 @@
-namespace MarketStat.Services.Dimensions.DimEmployeeService.Validators;
+namespace MarketStat.Common.Validators.Dimensions;
 
 public static class DimEmployeeValidator
 {

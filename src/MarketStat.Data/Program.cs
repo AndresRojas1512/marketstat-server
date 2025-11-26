@@ -1,4 +1,5 @@
 using MarketStat.Data.Consumers.Auth;
+using MarketStat.Data.Consumers.Dimensions;
 using MarketStat.Data.Consumers.Facts;
 using MarketStat.Data.Consumers.Facts.Analytics;
 using MarketStat.Data.Services;
@@ -27,6 +28,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddScoped<IDimJobRepository, DimJobRepository>();
         services.AddScoped<IDimIndustryFieldRepository, DimIndustryFieldRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IDimDateRepository, DimDateRepository>();
 
         services.AddScoped<FilterResolver>();
         services.AddAutoMapper(typeof(Program));
@@ -38,6 +40,8 @@ IHost host = Host.CreateDefaultBuilder(args)
             x.AddConsumer<FactSalaryAnalyticsConsumer>();
             x.AddConsumer<AuthDataConsumer>();
             x.AddConsumer<AuthLoginConsumer>();
+            x.AddConsumer<DimDateDataConsumer>();
+            x.AddConsumer<DimDateReadConsumer>();
             
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -50,18 +54,22 @@ IHost host = Host.CreateDefaultBuilder(args)
                 cfg.ReceiveEndpoint("market-stat-data-writes", e =>
                 {
                     e.ConfigureConsumer<FactSalaryDataConsumer>(context);
+                    e.ConfigureConsumer<DimDateDataConsumer>(context);
                 });
 
                 cfg.ReceiveEndpoint("market-stat-data-reads", e =>
                 {
                     e.ConfigureConsumer<GetFactSalaryConsumer>(context);
                     e.ConfigureConsumer<FactSalaryAnalyticsConsumer>(context);
+                    e.ConfigureConsumer<DimDateReadConsumer>(context);
                 });
                 
                 cfg.ReceiveEndpoint("market-stat-data-auth", e => {
                     e.ConfigureConsumer<AuthDataConsumer>(context);
                     e.ConfigureConsumer<AuthLoginConsumer>(context);
                 });
+                
+                
             });
         });
     })

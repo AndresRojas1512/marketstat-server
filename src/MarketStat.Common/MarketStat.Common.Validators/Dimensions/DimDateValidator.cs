@@ -1,4 +1,4 @@
-namespace MarketStat.Services.Dimensions.DimDateService.Validators;
+namespace MarketStat.Common.Validators.Dimensions;
 
 public class DimDateValidator
 {

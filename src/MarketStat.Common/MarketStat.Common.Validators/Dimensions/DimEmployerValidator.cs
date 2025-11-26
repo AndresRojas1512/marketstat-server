@@ -1,4 +1,4 @@
-namespace MarketStat.Services.Dimensions.DimEmployerService.Validators;
+namespace MarketStat.Common.Validators.Dimensions;
 public static class DimEmployerValidator
 {
     private const int MaxNameLength = 255;
