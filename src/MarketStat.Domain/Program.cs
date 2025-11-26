@@ -13,6 +13,7 @@ IHost host = Host.CreateDefaultBuilder(args)
             x.AddConsumer<DimDateDomainConsumer>();
             x.AddConsumer<DimEducationDomainConsumer>();
             x.AddConsumer<DimEmployeeDomainConsumer>();
+            x.AddConsumer<DimEmployerDomainConsumer>();
             
             x.UsingRabbitMq((context, cfg) =>
             {

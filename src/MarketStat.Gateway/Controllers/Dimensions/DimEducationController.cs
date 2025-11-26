@@ -1,10 +1,14 @@
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimEducation;
 using MarketStat.Contracts.Dimensions.DimEducation;
 using MassTransit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketStat.Gateway.Controllers.Dimensions;
 
+[ApiController]
+[Route("api/v1/dimeducations")]
+[Authorize]
 public class DimEducationController : ControllerBase
 {
     private readonly IPublishEndpoint _publishEndpoint;

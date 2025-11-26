@@ -15,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Dimensions\DimEmployer\" />
     <Folder Include="Dimensions\DimIndustryField\" />
     <Folder Include="Dimensions\DimJob\" />
     <Folder Include="Dimensions\DimLocation\" />

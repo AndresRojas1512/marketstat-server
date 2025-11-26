@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MarketStat.Gateway.Controllers.Dimensions;
 
+[ApiController]
+[Route("api/v1/dimemployees")]
+[Authorize]
 public class DimEmployeeController : ControllerBase
 {
     private readonly IPublishEndpoint _publishEndpoint;
