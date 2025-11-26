@@ -2,6 +2,7 @@ using MarketStat.Data.Consumers.Auth;
 using MarketStat.Data.Consumers.Dimensions;
 using MarketStat.Data.Consumers.Dimensions.DimDate;
 using MarketStat.Data.Consumers.Dimensions.DimEducation;
+using MarketStat.Data.Consumers.Dimensions.DimEmployee;
 using MarketStat.Data.Consumers.Facts;
 using MarketStat.Data.Consumers.Facts.Analytics;
 using MarketStat.Data.Services;
@@ -32,6 +33,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDimDateRepository, DimDateRepository>();
         services.AddScoped<IDimEducationRepository, DimEducationRepository>();
+        services.AddScoped<IDimEmployeeRepository, DimEmployeeRepository>();
 
         services.AddScoped<FilterResolver>();
         services.AddAutoMapper(typeof(Program));
@@ -50,6 +52,9 @@ IHost host = Host.CreateDefaultBuilder(args)
 
             x.AddConsumer<DimEducationDataConsumer>();
             x.AddConsumer<DimEducationReadConsumer>();
+
+            x.AddConsumer<DimEmployeeDataConsumer>();
+            x.AddConsumer<DimEmployeeReadConsumer>();
             
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -64,6 +69,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                     e.ConfigureConsumer<FactSalaryDataConsumer>(context);
                     e.ConfigureConsumer<DimDateDataConsumer>(context);
                     e.ConfigureConsumer<DimEducationDataConsumer>(context);
+                    e.ConfigureConsumer<DimEmployeeDataConsumer>(context);
                 });
 
                 cfg.ReceiveEndpoint("market-stat-data-reads", e =>
@@ -72,14 +78,13 @@ IHost host = Host.CreateDefaultBuilder(args)
                     e.ConfigureConsumer<FactSalaryAnalyticsConsumer>(context);
                     e.ConfigureConsumer<DimDateReadConsumer>(context);
                     e.ConfigureConsumer<DimEducationReadConsumer>(context);
+                    e.ConfigureConsumer<DimEmployeeReadConsumer>(context);
                 });
                 
                 cfg.ReceiveEndpoint("market-stat-data-auth", e => {
                     e.ConfigureConsumer<AuthDataConsumer>(context);
                     e.ConfigureConsumer<AuthLoginConsumer>(context);
                 });
-                
-                
             });
         });
     })
