@@ -15,6 +15,7 @@ public class FactSalaryController : ControllerBase
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IRequestClient<IGetFactSalaryRequest> _readClient;
+    private readonly IRequestClient<IGetFactSalariesByFilterRequest> _filterClient;
     private readonly IRequestClient<IGetFactSalaryDistributionRequest> _distributionClient;
     private readonly IRequestClient<IGetFactSalarySummaryRequest> _summaryClient;
     private readonly IRequestClient<IGetFactSalaryTimeSeriesRequest> _timeSeriesClient;
@@ -22,6 +23,7 @@ public class FactSalaryController : ControllerBase
     private readonly ILogger<FactSalaryController> _logger;
 
     public FactSalaryController(IPublishEndpoint publishEndpoint, IRequestClient<IGetFactSalaryRequest> readClient,
+        IRequestClient<IGetFactSalariesByFilterRequest> filterClient,
         IRequestClient<IGetFactSalaryDistributionRequest> distributionClient,
         IRequestClient<IGetFactSalarySummaryRequest> summaryClient,
         IRequestClient<IGetFactSalaryTimeSeriesRequest> timeSeriesClient,
@@ -29,6 +31,7 @@ public class FactSalaryController : ControllerBase
     {
         _publishEndpoint = publishEndpoint;
         _readClient = readClient;
+        _filterClient = filterClient;
         _distributionClient = distributionClient;
         _summaryClient = summaryClient;
         _timeSeriesClient = timeSeriesClient;
@@ -82,6 +85,17 @@ public class FactSalaryController : ControllerBase
             });
         }
         return NotFound(new { Message = $"Salary {id} not found." });
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetSalariesByFilter([FromQuery] SalaryFilterDto filterDto)
+    {
+        var response = await _filterClient.GetResponse<IGetFactSalariesByFilterResponse>(new
+        {
+            Filter = filterDto
+        });
+        return Ok(response.Message.Salaries);
     }
 
     [HttpPut("{id:long}")]

@@ -1,3 +1,4 @@
+using MarketStat.Domain.Consumers.Auth;
 using MarketStat.Domain.Consumers.Facts;
 using MassTransit;
 
@@ -7,6 +8,8 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddMassTransit(x =>
         {
             x.AddConsumer<FactSalaryDomainConsumer>();
+            x.AddConsumer<AuthDomainConsumer>();
+            
             x.UsingRabbitMq((context, cfg) =>
             {
                 cfg.Host("rabbitmq", "/", h =>

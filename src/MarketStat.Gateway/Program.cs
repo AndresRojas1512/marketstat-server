@@ -1,4 +1,5 @@
 using System.Text;
+using MarketStat.Contracts.Auth;
 using MarketStat.Contracts.Facts;
 using MarketStat.Contracts.Facts.Analytics;
 using MassTransit;
@@ -23,11 +24,12 @@ builder.Services.AddMassTransit(x =>
         cfg.ConfigureEndpoints(context);
     });
     x.AddRequestClient<IGetFactSalaryRequest>();
-    
+    x.AddRequestClient<IGetFactSalariesByFilterRequest>();
     x.AddRequestClient<IGetFactSalaryDistributionRequest>();
     x.AddRequestClient<IGetFactSalarySummaryRequest>();
     x.AddRequestClient<IGetFactSalaryTimeSeriesRequest>();
     x.AddRequestClient<IGetPublicRolesRequest>();
+    x.AddRequestClient<ILoginRequest>();
 });
 
 var jwtKey = builder.Configuration["JwtSettings:Key"];

@@ -1,18 +1,28 @@
+using AutoMapper;
+using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Exceptions;
 using MarketStat.Contracts.Facts;
+using MarketStat.Data.Services;
 using MarketStat.Database.Core.Repositories.Facts;
 using MassTransit;
 
 namespace MarketStat.Data.Consumers.Facts;
 
-public class GetFactSalaryConsumer : IConsumer<IGetFactSalaryRequest>
+public class GetFactSalaryConsumer : 
+    IConsumer<IGetFactSalaryRequest>,
+    IConsumer<IGetFactSalariesByFilterRequest>
 {
     private readonly IFactSalaryRepository _repository;
+    private readonly FilterResolver _resolver;
     private readonly ILogger<GetFactSalaryConsumer> _logger;
+    private readonly IMapper _mapper;
 
-    public GetFactSalaryConsumer(IFactSalaryRepository repository, ILogger<GetFactSalaryConsumer> logger)
+    public GetFactSalaryConsumer(IFactSalaryRepository repository, FilterResolver resolver, IMapper mapper, ILogger<GetFactSalaryConsumer> logger)
     {
         _repository = repository;
+        _resolver = resolver;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -40,5 +50,27 @@ public class GetFactSalaryConsumer : IConsumer<IGetFactSalaryRequest>
                 context.Message.SalaryFactId
             });
         }
+    }
+
+    public async Task Consume(ConsumeContext<IGetFactSalariesByFilterRequest> context)
+    {
+        _logger.LogInformation("Data: Processing Filtered Salaries Request...");
+        var domainRequest = _mapper.Map<AnalysisFilterRequest>(context.Message.Filter);
+        var resolved = await _resolver.ResolveAsync(domainRequest);
+
+        if (resolved == null)
+        {
+            await context.RespondAsync<IGetFactSalariesByFilterResponse>(new
+            {
+                Salaries = new List<FactSalaryDto>()
+            });
+            return;
+        }
+        var result = await _repository.GetFactSalariesByFilterAsync(resolved);
+        var dtos = _mapper.Map<List<FactSalaryDto>>(result);
+        await context.RespondAsync<IGetFactSalariesByFilterResponse>(new
+        {
+            Salaries = dtos
+        });
     }
 }

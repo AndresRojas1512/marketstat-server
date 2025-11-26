@@ -1,9 +1,12 @@
+using MarketStat.Data.Consumers.Auth;
 using MarketStat.Data.Consumers.Facts;
 using MarketStat.Data.Consumers.Facts.Analytics;
 using MarketStat.Data.Services;
 using MarketStat.Database.Context;
+using MarketStat.Database.Core.Repositories.Account;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Core.Repositories.Facts;
+using MarketStat.Database.Repositories.PostgresRepositories.Account;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Database.Repositories.PostgresRepositories.Facts;
 using MassTransit;
@@ -13,14 +16,17 @@ using Npgsql;
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
     {
+        services.AddSingleton<IConfiguration>(hostContext.Configuration);
         var connString = hostContext.Configuration.GetConnectionString("MarketStat");
         services.AddDbContext<MarketStatDbContext>(opts =>
             opts.UseNpgsql(connString, o => o.EnableRetryOnFailure())
                 .UseSnakeCaseNamingConvention());
+        
         services.AddScoped<IFactSalaryRepository, FactSalaryRepository>();
         services.AddScoped<IDimLocationRepository, DimLocationRepository>();
         services.AddScoped<IDimJobRepository, DimJobRepository>();
         services.AddScoped<IDimIndustryFieldRepository, DimIndustryFieldRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
         services.AddScoped<FilterResolver>();
         services.AddAutoMapper(typeof(Program));
@@ -30,6 +36,8 @@ IHost host = Host.CreateDefaultBuilder(args)
             x.AddConsumer<FactSalaryDataConsumer>();
             x.AddConsumer<GetFactSalaryConsumer>();
             x.AddConsumer<FactSalaryAnalyticsConsumer>();
+            x.AddConsumer<AuthDataConsumer>();
+            x.AddConsumer<AuthLoginConsumer>();
             
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -48,6 +56,11 @@ IHost host = Host.CreateDefaultBuilder(args)
                 {
                     e.ConfigureConsumer<GetFactSalaryConsumer>(context);
                     e.ConfigureConsumer<FactSalaryAnalyticsConsumer>(context);
+                });
+                
+                cfg.ReceiveEndpoint("market-stat-data-auth", e => {
+                    e.ConfigureConsumer<AuthDataConsumer>(context);
+                    e.ConfigureConsumer<AuthLoginConsumer>(context);
                 });
             });
         });
