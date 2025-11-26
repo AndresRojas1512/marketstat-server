@@ -1,6 +1,7 @@
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
 using MarketStat.Contracts.Facts;
+using MarketStat.Contracts.Facts.Analytics;
 using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,12 +15,24 @@ public class FactSalaryController : ControllerBase
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IRequestClient<IGetFactSalaryRequest> _readClient;
+    private readonly IRequestClient<IGetFactSalaryDistributionRequest> _distributionClient;
+    private readonly IRequestClient<IGetFactSalarySummaryRequest> _summaryClient;
+    private readonly IRequestClient<IGetFactSalaryTimeSeriesRequest> _timeSeriesClient;
+    private readonly IRequestClient<IGetPublicRolesRequest> _publicRolesClient;
     private readonly ILogger<FactSalaryController> _logger;
 
-    public FactSalaryController(IPublishEndpoint publishEndpoint, IRequestClient<IGetFactSalaryRequest> readClient, ILogger<FactSalaryController> logger)
+    public FactSalaryController(IPublishEndpoint publishEndpoint, IRequestClient<IGetFactSalaryRequest> readClient,
+        IRequestClient<IGetFactSalaryDistributionRequest> distributionClient,
+        IRequestClient<IGetFactSalarySummaryRequest> summaryClient,
+        IRequestClient<IGetFactSalaryTimeSeriesRequest> timeSeriesClient,
+        IRequestClient<IGetPublicRolesRequest> publicRolesClient, ILogger<FactSalaryController> logger)
     {
         _publishEndpoint = publishEndpoint;
         _readClient = readClient;
+        _distributionClient = distributionClient;
+        _summaryClient = summaryClient;
+        _timeSeriesClient = timeSeriesClient;
+        _publicRolesClient = publicRolesClient;
         _logger = logger;
     }
 
@@ -55,7 +68,7 @@ public class FactSalaryController : ControllerBase
         {
             SalaryFactId = id
         });
-        if (response.Is(out Response<IGetFactSalaryResponse> success))
+        if (response.Is(out Response<IGetFactSalaryResponse>? success))
         {
             return Ok(new FactSalaryDto
             {
@@ -113,5 +126,49 @@ public class FactSalaryController : ControllerBase
             SalaryFactId = id
         });
         return Accepted();
+    }
+
+    [HttpGet("distribution")]
+    [Authorize(Roles = "Admin, Analyst")]
+    public async Task<IActionResult> GetSalaryDistribution([FromQuery] SalaryFilterDto filters)
+    {
+        var response = await _distributionClient.GetResponse<IGetFactSalaryDistributionResponse>(new
+        {
+            Filter = filters
+        });
+        return Ok(response.Message.Buckets);
+    }
+
+    [HttpGet("summary")]
+    [Authorize(Roles = "Admin, Analyst")]
+    public async Task<IActionResult> GetSalarySummary([FromQuery] SalarySummaryRequestDto requestDto)
+    {
+        var response = await _summaryClient.GetResponse<IGetFactSalarySummaryResponse>(new
+        {
+            Filter = requestDto
+        });
+        return Ok(response.Message.Summary);
+    }
+
+    [HttpGet("timeseries")]
+    [Authorize(Roles = "Admin, Analyst")]
+    public async Task<IActionResult> GetSalaryTimeSeries([FromQuery] SalaryTimeSeriesRequestDto requestDto)
+    {
+        var response = await _timeSeriesClient.GetResponse<IGetFactSalaryTimeSeriesResponse>(new
+        {
+            Filter = requestDto
+        });
+        return Ok(response.Message.Points);
+    }
+
+    [HttpGet("public/roles")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPublicRoles([FromQuery] PublicRolesRequestDto requestDto)
+    {
+        var response = await _publicRolesClient.GetResponse<IGetPublicRolesResponse>(new
+        {
+            Filter = requestDto
+        });
+        return Ok(response.Message.Roles);
     }
 }

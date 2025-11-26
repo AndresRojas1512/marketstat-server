@@ -8,22 +8,32 @@ DO $$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'marketstat_administrator') THEN
         CREATE ROLE marketstat_administrator LOGIN PASSWORD 'andresrmlnx15';
+    ELSE
+        ALTER ROLE marketstat_administrator WITH PASSWORD 'andresrmlnx15';
     END IF;
 
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname= 'marketstat_analyst') THEN
         CREATE ROLE marketstat_analyst LOGIN PASSWORD 'msanalyst';
+    ELSE
+        ALTER ROLE marketstat_analyst WITH PASSWORD 'msanalyst';
     END IF;
     
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'marketstat_public_guest') THEN
         CREATE ROLE marketstat_public_guest LOGIN PASSWORD 'msguest';
+    ELSE
+        ALTER ROLE marketstat_public_guest WITH PASSWORD 'msguest';
     END IF;
 
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'marketstat_reader') THEN
         CREATE ROLE marketstat_reader LOGIN PASSWORD 'msreader';
+    ELSE
+        ALTER ROLE marketstat_reader WITH PASSWORD 'msreader';
     END IF;
 
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'replicator') THEN
         CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'replicatorpass';
+    ELSE
+        ALTER ROLE replicator WITH PASSWORD 'replicatorpass';
     END IF;
 END$$;
 
@@ -45,19 +55,25 @@ GRANT marketstat_reader TO marketstat_administrator;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_analyst IN SCHEMA marketstat
     GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO marketstat_administrator;
+
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_analyst IN SCHEMA marketstat
     GRANT SELECT ON TABLES TO marketstat_reader;
+
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_analyst IN SCHEMA marketstat
     GRANT SELECT ON TABLES TO marketstat_public_guest;
+
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_analyst IN SCHEMA marketstat
     GRANT USAGE, SELECT ON SEQUENCES TO marketstat_administrator, marketstat_reader, marketstat_public_guest;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
     GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON TABLES TO marketstat_analyst;
+
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
     GRANT SELECT ON TABLES TO marketstat_reader;
+
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
     GRANT SELECT ON TABLES TO marketstat_public_guest;
+    
 ALTER DEFAULT PRIVILEGES FOR ROLE marketstat_administrator IN SCHEMA marketstat
     GRANT USAGE, SELECT ON SEQUENCES TO marketstat_analyst, marketstat_reader, marketstat_public_guest;
 

@@ -1,34 +1,8 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG PROJECT_NAME
-WORKDIR /src
-
-COPY *.sln .
-COPY MarketStat.Gateway/*.csproj MarketStat.Gateway/
-COPY MarketStat.Domain/*.csproj MarketStat.Domain/
-COPY MarketStat.Data/*.csproj MarketStat.Data/
-COPY MarketStat.Contracts/*.csproj MarketStat.Contracts/
-
-COPY MarketStat.Common/MarketStat.Common.Converter/*.csproj MarketStat.Common/MarketStat.Common.Converter/
-COPY MarketStat.Common/MarketStat.Common.Core/*.csproj MarketStat.Common/MarketStat.Common.Core/
-COPY MarketStat.Common/MarketStat.Common.Dto/*.csproj MarketStat.Common/MarketStat.Common.Dto/
-COPY MarketStat.Common/MarketStat.Common.Enums/*.csproj MarketStat.Common/MarketStat.Common.Enums/
-COPY MarketStat.Common/MarketStat.Common.Exceptions/*.csproj MarketStat.Common/MarketStat.Common.Exceptions/
-COPY MarketStat.Database/MarketStat.Database.Context/*.csproj MarketStat.Database/MarketStat.Database.Context/
-COPY MarketStat.Database/MarketStat.Database.Core/*.csproj MarketStat.Database/MarketStat.Database.Core/
-COPY MarketStat.Database/MarketStat.Database.Models/*.csproj MarketStat.Database/MarketStat.Database.Models/
-COPY MarketStat.Database/MarketStat.Database.Repositories/*.csproj MarketStat.Database/MarketStat.Database.Repositories/
-
-RUN dotnet restore ${PROJECT_NAME}/${PROJECT_NAME}.csproj
-
-COPY . .
-
-WORKDIR /src/${PROJECT_NAME}
-RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
-
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/publish .
-
 ARG PROJECT_NAME
+
+COPY ${PROJECT_NAME}/bin/Release/net8.0/publish/ .
+
 ENV DLL_NAME=${PROJECT_NAME}.dll
 ENTRYPOINT dotnet $DLL_NAME
