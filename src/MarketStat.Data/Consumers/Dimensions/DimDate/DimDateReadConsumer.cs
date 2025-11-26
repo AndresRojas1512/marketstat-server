@@ -3,7 +3,7 @@ using MarketStat.Contracts.Dimensions.DimDate;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MassTransit;
 
-namespace MarketStat.Data.Consumers.Dimensions;
+namespace MarketStat.Data.Consumers.Dimensions.DimDate;
 
 public class DimDateReadConsumer :
     IConsumer<IGetDimDateRequest>,

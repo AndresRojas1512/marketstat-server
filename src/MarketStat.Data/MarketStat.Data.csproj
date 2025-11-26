@@ -22,6 +22,7 @@
     <ProjectReference Include="..\MarketStat.Database\MarketStat.Database.Repositories\MarketStat.Database.Repositories.csproj" />
     <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
     <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Validators\MarketStat.Common.Validators.csproj" />
+    <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

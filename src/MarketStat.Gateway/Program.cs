@@ -1,6 +1,7 @@
 using System.Text;
 using MarketStat.Contracts.Auth;
 using MarketStat.Contracts.Dimensions.DimDate;
+using MarketStat.Contracts.Dimensions.DimEducation;
 using MarketStat.Contracts.Facts;
 using MarketStat.Contracts.Facts.Analytics;
 using MassTransit;
@@ -35,6 +36,9 @@ builder.Services.AddMassTransit(x =>
     
     x.AddRequestClient<IGetDimDateRequest>();
     x.AddRequestClient<IGetAllDimDatesRequest>();
+    
+    x.AddRequestClient<IGetDimEducationRequest>();
+    x.AddRequestClient<IGetAllDimEducationsRequest>();
 });
 
 var jwtKey = builder.Configuration["JwtSettings:Key"];

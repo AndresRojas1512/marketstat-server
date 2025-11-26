@@ -1,11 +1,9 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
-using MarketStat.Common.Validators.Dimensions;
 using MarketStat.Contracts.Dimensions.DimDate;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MassTransit;
 
-namespace MarketStat.Data.Consumers.Dimensions;
+namespace MarketStat.Data.Consumers.Dimensions.DimDate;
 
 public class DimDateDataConsumer :
     IConsumer<IPersistDimDateCommand>,
@@ -29,7 +27,7 @@ public class DimDateDataConsumer :
         var month = msg.FullDate.Month;
         var quarter = (month - 1) / 3 + 1;
         
-        var date = new DimDate(0, msg.FullDate, year, quarter, month);
+        var date = new Common.Core.MarketStat.Common.Core.Dimensions.DimDate(0, msg.FullDate, year, quarter, month);
 
         try
         {
@@ -50,7 +48,7 @@ public class DimDateDataConsumer :
         var month = msg.FullDate.Month;
         var quarter = (month - 1) / 3 + 1;
 
-        var date = new DimDate(msg.DateId, msg.FullDate, year, quarter, month);
+        var date = new Common.Core.MarketStat.Common.Core.Dimensions.DimDate(msg.DateId, msg.FullDate, year, quarter, month);
         try
         {
             await _repository.UpdateDateAsync(date);
