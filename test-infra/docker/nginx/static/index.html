@@ -5,125 +5,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MarketStat Gateway</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-            line-height: 1.6;
-        }
-        header {
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
-        }
-        h1 { color: #2c3e50; margin-top: 0; }
-        h2 { color: #34495e; font-size: 1.2rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; margin-top: 2rem;}
-        
-        .card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #dddddd;
+            --link-color: #0066cc;
+            --header-bg: #f5f5f5;
+            --card-bg: #ffffff;
         }
 
-        ul {
-            list-style-type: none;
-            padding: 0;
+        body {
+            font-family: Consolas, "Monaco", "Courier New", monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 { margin: 0; font-size: 1.8rem; color: #000; }
+        p { margin: 5px 0 0 0; color: #666; }
+
+        h2 {
+            font-size: 1.2rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .link-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-        
-        li a {
-            display: block;
-            background-color: #fff;
-            border: 1px solid #e0e0e0;
-            padding: 1rem;
-            border-radius: 4px;
-            color: #3498db;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-        
-        li a:hover {
-            background-color: #3498db;
-            color: white;
-            border-color: #3498db;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+            gap: 15px;
         }
 
-        .sketch-container {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
+        .nav-link {
+            display: block;
+            padding: 15px;
+            background: var(--header-bg);
+            border: 1px solid var(--border-color);
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: bold;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        
-        .sketch-placeholder {
-            background: #ecf0f1;
-            border: 2px dashed #bdc3c7;
-            width: 200px;
-            height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #7f8c8d;
-            font-style: italic;
-            border-radius: 4px;
+
+        .nav-link:hover {
+            background: #e6e6e6;
+            border-color: #bbb;
+            text-decoration: underline;
         }
-        
-        footer {
-            margin-top: 4rem;
-            text-align: center;
+
+        .nav-link .desc {
+            display: block;
+            font-size: 0.85rem;
+            color: #555;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .screenshot-item {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            background: #fafafa;
+        }
+
+        .screenshot-img {
+            width: 100%;
+            height: auto;
+            border: 1px solid #eee;
+            display: block;
+        }
+
+        .caption {
+            padding-top: 10px;
             font-size: 0.9rem;
-            color: #7f8c8d;
+            color: #444;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: 50px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            text-align: center;
+            color: #888;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>MarketStat System Gateway</h1>
-        <p>Secure entry point for the Salary Analysis Platform (Russian Market)</p>
+        <h1>MarketStat :: Service Gateway</h1>
+        <p>Environment: <strong>Development/Integration</strong> | Status: <strong>Active</strong></p>
     </header>
 
-    <div class="card">
-        <h2>System Navigation</h2>
-        <ul>
-            <li><a href="/api/v1">REST API Docs (Swagger)</a></li>
-            <li><a href="/api/v2">GraphQL Playground</a></li>
+    <div class="section">
+        <h2>System Endpoints</h2>
+        <div class="link-grid">
+            <a href="/api/v1" class="nav-link">
+                API Documentation
+                <span class="desc">Swagger UI / OpenAPI</span>
+            </a>
             
-            <li><a href="/admin/">Database Admin (PgAdmin)</a></li>
+            <a href="/admin/" class="nav-link">
+                Database Admin
+                <span class="desc">PgAdmin 4 Interface</span>
+            </a>
+
+            <a href="/status" class="nav-link">
+                System Status
+                <span class="desc">NGINX Metrics Dashboard</span>
+            </a>
+
+            <a href="/documentation" class="nav-link">
+                Documentation
+                <span class="desc">Project Readme & Architecture</span>
+            </a>
             
-            <li><a href="/status">Server Status (NGINX)</a></li>
-            
-            <li><a href="/documentation">System Documentation</a></li>
-            
-            <li><a href="/legacy">Legacy Interface</a></li>
-            
-            <li><a href="/">Root (SPA Placeholder)</a></li>
-            <li><a href="/reserved/">Reserved Area</a></li>
-        </ul>
+            <a href="/legacy" class="nav-link">
+                Legacy Interface
+                <span class="desc">Archive / Old Versions</span>
+            </a>
+
+            <a href="/" class="nav-link">
+                Root (SPA Placeholder)
+                <span class="desc">Future React/Angular App</span>
+            </a>
+
+            <a href="/reserved/" class="nav-link">
+                Reserved Area
+                <span class="desc">Protected Static Route</span>
+            </a>
+        </div>
     </div>
 
-    <div class="card">
-        <h2>Project Sketches (Req #6)</h2>
-        <p>Future UI Concepts:</p>
-        <div class="sketch-container">
-            <div class="sketch-placeholder">Dashboard Concept</div>
-            <div class="sketch-placeholder">Analytics View</div>
-            <div class="sketch-placeholder">Login Screen</div>
+    <div class="section">
+        <h2>Implementation Preview</h2>
+        <div class="screenshot-grid">
+            <div class="screenshot-item">
+                <img src="/diagrams/tech-diagrams/svg/login-screenshot.png" alt="Login" class="screenshot-img">
+                <div class="caption">Auth: Login Flow</div>
+            </div>
+            <div class="screenshot-item">
+                <img src="/diagrams/tech-diagrams/svg/register-screenshot.png" alt="Register" class="screenshot-img">
+                <div class="caption">Auth: Registration Flow</div>
+            </div>
+            <div class="screenshot-item">
+                <img src="/diagrams/tech-diagrams/svg/filter-screenshot.png" alt="Filtering" class="screenshot-img">
+                <div class="caption">Data: Filtering Interface</div>
+            </div>
+            <div class="screenshot-item">
+                <img src="/diagrams/tech-diagrams/svg/benchmark-screenshot.png" alt="Benchmarks" class="screenshot-img">
+                <div class="caption">Data: Analytical Benchmarks</div>
+            </div>
         </div>
     </div>
 
     <footer>
-        <p>&copy; 2025 MarketStat Team. Powered by NGINX & .NET 8.</p>
+        MarketStat Infrastructure v1.0 | Powered by NGINX & .NET 8
     </footer>
 
 </body>
