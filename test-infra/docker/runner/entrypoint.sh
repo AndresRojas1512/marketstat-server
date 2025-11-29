@@ -41,7 +41,7 @@ kill -SIGINT $TSHARK_PID || true
 
 # Wait for TShark to flush and exit
 wait $TSHARK_PID || true
-sleep 2src/MarketStat.Tests/MarketStat.Tests.E2E/MarketStat.Tests.E2E.csproj
+sleep 2
 
 echo "=================================================="
 echo "TESTS FINISHED. COLLECTING RESULTS..."
