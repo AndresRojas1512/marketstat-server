@@ -42,6 +42,7 @@
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Core\MarketStat.Common.Core.csproj" />
     <ProjectReference Include="..\..\MarketStat.Common\MarketStat.Common.Exceptions\MarketStat.Common.Exceptions.csproj" />
     <ProjectReference Include="..\MarketStat.Tests.TestData\MarketStat.Tests.TestData.csproj" />
+    <ProjectReference Include="..\..\MarketStat.Services\MarketStat.Services.Facts\MarketStat.Services.Facts.FactSalaryService\MarketStat.Services.Facts.FactSalaryService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
