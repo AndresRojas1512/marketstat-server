@@ -2,10 +2,8 @@
 
 set -e
 
-# 1. Prepare the shared volume
 mkdir -p /allure-results
 echo "Cleaning old test results in container..."
-# Clean the mounted volume to ensure we don't upload old data
 rm -rf /allure-results/*
 
 echo "=================================================="
@@ -22,22 +20,29 @@ dotnet test MarketStat.Tests/MarketStat.Integration.Tests/MarketStat.Integration
 echo "=================================================="
 echo "STAGE 3: E2E TESTS"
 echo "=================================================="
-dotnet test MarketStat.Tests/MarketStat.Tests.E2E/MarketStat.Tests.E2E.csproj -c Release
+echo "Starting TShark capture on port 5050..."
+tshark -i lo -f "tcp port 5050" -w /allure-results/e2e_traffic.pcap &
+TSHARK_PID=$!
+
+sleep 2
+
+dotnet test MarketStat.Tests/MarketStat.Tests.E2E/MarketStat.Tests.E2E.csproj -c Release --logger "trx;LogFileName=e2e_tests.trx"
+
+echo "Stopping TShark..."
+kill $TSHARK_PID || true
 
 echo "=================================================="
 echo "TESTS FINISHED. COLLECTING RESULTS..."
 echo "=================================================="
 
-# 2. COLLECTION STEP (CRITICAL FIX)
-# Find all JSON results hidden in the build folders and copy them to the mounted volume.
-# This mimics your working local script.
 find . -type f -path "*/allure-results/*.json" -exec cp {} /allure-results/ \;
 
-# Verify we found files
-file_count=$(ls /allure-results | wc -l)
-echo "Collected $file_count result files."
+if [ -f /allure-results/e2e_traffic.pcap ]; then
+    echo "SUCCESS: Traffic capture generated (e2e_traffic.pcap)."
+else
+    echo "WARNING: No traffic capture file found."
+fi
 
-# 3. Fix permissions so GitHub Actions can upload the files
 chmod -R 777 /allure-results
 
 echo "SUCCESS: ALL STAGES PASSED & RESULTS COLLECTED"

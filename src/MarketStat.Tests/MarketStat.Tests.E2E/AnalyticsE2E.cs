@@ -22,12 +22,16 @@ public class AnalyticsE2E : IAsyncLifetime
     {
         _resetDatabase = factory.ResetDatabaseAsync;
         _scopeFactory = factory.Services.GetRequiredService<IServiceScopeFactory>();
-        _client = factory.CreateClient();
+        _client = factory.CreateRealHttpClient();
     }
 
     public Task InitializeAsync() => _resetDatabase();
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    public Task DisposeAsync()
+    {
+        _client.Dispose();
+        return Task.CompletedTask;
+    }
 
     [Fact]
     public async Task GetPublicRoles_WithMixedData_ReturnsOnlyRolesAboveThresholdAndOrderedBySalary()
@@ -42,7 +46,6 @@ public class AnalyticsE2E : IAsyncLifetime
             var location = new DimLocationBuilder().WithId(1).Build();
             var industry = new DimIndustryFieldBuilder().WithId(1).Build();
             
-            // FIX: Create and Add DimEducation
             var education = new DimEducationBuilder().WithId(1).Build(); 
 
             var employer = new DimEmployerBuilder().WithId(1).WithIndustryFieldId(industry.IndustryFieldId).Build();
@@ -54,7 +57,6 @@ public class AnalyticsE2E : IAsyncLifetime
             dbContext.Add(DimLocationConverter.ToDbModel(location));
             dbContext.Add(DimIndustryFieldConverter.ToDbModel(industry));
             
-            // FIX: Add Education to DB context
             dbContext.Add(DimEducationConverter.ToDbModel(education)); 
 
             dbContext.Add(DimEmployerConverter.ToDbModel(employer));

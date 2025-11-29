@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Respawn;
 using Testcontainers.PostgreSql;
@@ -13,9 +14,10 @@ namespace MarketStat.Tests.E2E;
 public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _dbContainer;
-    
     private Respawner _respawner = default!;
     private NpgsqlConnection _connection = default!;
+
+    private const string BaseUrl = "http://127.0.0.1:5000";
 
     public MarketStatE2ETestWebAppFactory()
     {
@@ -25,6 +27,18 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
             .WithUsername("postgres")
             .WithPassword("postgres")
             .Build();
+    }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        builder.ConfigureWebHost(webBuilder =>
+        {
+            webBuilder.UseKestrel();
+            webBuilder.UseUrls(BaseUrl);
+        });
+        var host = base.CreateHost(builder);
+        host.Start();
+        return host;
     }
     
     public async Task InitializeAsync()
@@ -65,6 +79,14 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
                 { "ConnectionStrings:MarketStat", _dbContainer.GetConnectionString() }
             });
         });
+    }
+
+    public HttpClient CreateRealHttpClient()
+    {
+        return new HttpClient
+        {
+            BaseAddress = new Uri(BaseUrl)
+        };
     }
 
     public async Task ResetDatabaseAsync()
