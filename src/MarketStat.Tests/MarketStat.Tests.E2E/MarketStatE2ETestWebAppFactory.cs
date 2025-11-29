@@ -16,6 +16,8 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     private readonly PostgreSqlContainer _dbContainer;
     private Respawner _respawner = default!;
     private NpgsqlConnection _connection = default!;
+    
+    public IHost? KestrelHost { get; private set; }
 
     private const string BaseUrl = "http://127.0.0.1:5000";
 
@@ -38,6 +40,7 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
         });
         var host = base.CreateHost(builder);
         host.Start();
+        KestrelHost = host;
         return host;
     }
     
@@ -71,7 +74,6 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("E2ETesting");
-
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>

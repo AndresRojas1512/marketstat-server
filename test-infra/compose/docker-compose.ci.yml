@@ -6,6 +6,10 @@ services:
       context: ../../
       dockerfile: test-infra/docker/runner/Dockerfile
     container_name: ms_ci_tests
+
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
     
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

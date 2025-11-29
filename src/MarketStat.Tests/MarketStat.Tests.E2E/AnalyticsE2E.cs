@@ -21,7 +21,11 @@ public class AnalyticsE2E : IAsyncLifetime
     public AnalyticsE2E(MarketStatE2ETestWebAppFactory factory)
     {
         _resetDatabase = factory.ResetDatabaseAsync;
-        _scopeFactory = factory.Services.GetRequiredService<IServiceScopeFactory>();
+        if (factory.KestrelHost == null)
+        {
+            using var _ = factory.CreateDefaultClient(); 
+        }
+        _scopeFactory = factory.KestrelHost!.Services.GetRequiredService<IServiceScopeFactory>();
         _client = factory.CreateRealHttpClient();
     }
 
