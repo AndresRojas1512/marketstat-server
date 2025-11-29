@@ -54,14 +54,7 @@ public class IntegrationTestFixture : IAsyncLifetime
             SchemasToInclude = new[] {"marketstat"},
             TablesToIgnore = new Respawn.Graph.Table[]
             {
-                new Respawn.Graph.Table("__EFMigrationsHistory", "marketstat"),
-                new Respawn.Graph.Table("dim_date", "marketstat"),
-                new Respawn.Graph.Table("dim_location", "marketstat"),
-                new Respawn.Graph.Table("dim_industry_field", "marketstat"),
-                new Respawn.Graph.Table("dim_education", "marketstat"),
-                new Respawn.Graph.Table("dim_job", "marketstat"),
-                new Respawn.Graph.Table("dim_employer", "marketstat"),
-                new Respawn.Graph.Table("dim_employee", "marketstat"),
+                new Respawn.Graph.Table("__EFMigrationsHistory", "marketstat")
             }
         });
     }
@@ -81,6 +74,8 @@ public class IntegrationTestFixture : IAsyncLifetime
         await using var conn = new NpgsqlConnection(AdminConnectionString);
         await conn.OpenAsync();
         await _respawner.ResetAsync(conn);
+        using var context = CreateContext();
+        await SeedStaticDimensionsAsync(context);
     }
     
     private async Task SeedStaticDimensionsAsync(MarketStatDbContext context)
