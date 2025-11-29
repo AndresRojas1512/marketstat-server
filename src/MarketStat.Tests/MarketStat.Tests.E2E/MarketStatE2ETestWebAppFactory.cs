@@ -36,26 +36,15 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     
     public async Task InitializeAsync()
     {
-        // 1. Start Container
+        // 1. Start Database Container ONLY
         await _dbContainer.StartAsync();
+        
+        // 2. Setup Connection and Respawner
         var connectionString = _dbContainer.GetConnectionString();
         _connection = new NpgsqlConnection(connectionString);
         await _connection.OpenAsync();
         
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseNpgsql(connectionString)
-            .UseSnakeCaseNamingConvention()
-            .Options;
-
-        // 2. Apply Migrations & Initial Seed
-        await using (var context = new MarketStatDbContext(options))
-        {
-            await context.Database.MigrateAsync();
-            await SeedStaticDimensionsAsync(context);
-        }
-
-        // 3. Configure Respawner
-        // NOTE: We remove the explicit schema from TablesToIgnore to ensure better matching
+        // Initialize Respawner immediately
         _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
@@ -72,34 +61,46 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
                 new Respawn.Graph.Table("dim_employee")
             }
         });
-
-        // 4. Manually Start Kestrel Host
-        // We override the host creation here to ensure it binds to the TCP socket
-        // required for traffic capture.
-        var builder = Host.CreateDefaultBuilder()
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Program>();
-                webBuilder.UseKestrel();
-                webBuilder.UseUrls(BaseUrl);
-                
-                webBuilder.UseEnvironment("E2ETesting");
-                
-                webBuilder.ConfigureAppConfiguration((context, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        { "ConnectionStrings:MarketStat", connectionString }
-                    });
-                });
-            });
         
-        KestrelHost = builder.Build();
-        await KestrelHost.StartAsync();
+        // 3. Apply Migrations & Initial Seed
+        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
+            .UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention()
+            .Options;
+
+        await using var context = new MarketStatDbContext(options);
+        await context.Database.MigrateAsync();
+        await SeedStaticDimensionsAsync(context);
     }
+    
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        // Configure the host to use Kestrel on the specific port for TShark
+        builder.ConfigureWebHost(webBuilder =>
+        {
+            webBuilder.UseKestrel();
+            webBuilder.UseUrls(BaseUrl); // Bind to 5050
+        });
 
-    protected override IHost CreateHost(IHostBuilder builder) => base.CreateHost(builder);
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "ConnectionStrings:MarketStat", _dbContainer.GetConnectionString() },
+                { "ASPNETCORE_ENVIRONMENT", "E2ETesting" }
+            });
+        });
 
+        // Let the base factory create the host with all default WAF configurations
+        var host = base.CreateHost(builder);
+        
+        // Capture the reference and start it explicitly to ensure TCP socket binding
+        KestrelHost = host;
+        host.Start(); 
+        
+        return host;
+    }
+    
     public HttpClient CreateRealHttpClient()
     {
         return new HttpClient { BaseAddress = new Uri(BaseUrl) };
@@ -107,11 +108,7 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     public async Task ResetDatabaseAsync()
     {
-        // 1. Wipe data (Should only wipe Fact tables due to Ignore, but we play safe)
         await _respawner.ResetAsync(_connection);
-
-        // 2. SELF-HEALING: "Heal" the database by re-seeding if dimensions were wiped.
-        // This prevents the Foreign Key Violation (23503) errors.
         var options = new DbContextOptionsBuilder<MarketStatDbContext>()
             .UseNpgsql(_dbContainer.GetConnectionString())
             .UseSnakeCaseNamingConvention()
@@ -123,11 +120,6 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     public new async Task DisposeAsync()
     {
-        if (KestrelHost != null)
-        {
-            await KestrelHost.StopAsync();
-            KestrelHost.Dispose();
-        }
         await _connection.DisposeAsync();
         await _dbContainer.DisposeAsync();
     }
@@ -135,15 +127,9 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     private async Task SeedStaticDimensionsAsync(MarketStatDbContext context)
     {
         var count = await context.DimDates.CountAsync();
-        Console.WriteLine($"[SEED DEBUG] DimDates count before seed: {count}");
-        
-        // Check if data exists. If Respawner worked correctly, this returns true and we exit fast.
-        // If Respawner wiped it, this returns false and we re-seed.
-        if (await context.DimDates.AnyAsync()) return;
-        
-        Console.WriteLine("[SEED DEBUG] Seeding dimensions...");
+        if (await context.DimDates.AnyAsync()) 
+            return;
         await using var transaction = await context.Database.BeginTransactionAsync();
-
         context.DimDates.AddRange(
             new DimDateDbModel { DateId = 1, FullDate = new DateOnly(2024, 1, 1), Year = 2024, Quarter = 1, Month = 1 },
             new DimDateDbModel { DateId = 5, FullDate = new DateOnly(2019, 1, 1), Year = 2019, Quarter = 1, Month = 1 }
@@ -173,6 +159,5 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
         await context.SaveChangesAsync();
 
         await transaction.CommitAsync();
-        Console.WriteLine("[SEED DEBUG] Seeding complete");
     }
 }

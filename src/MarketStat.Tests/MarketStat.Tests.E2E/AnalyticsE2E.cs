@@ -21,14 +21,16 @@ public class AnalyticsE2E : IAsyncLifetime
     public AnalyticsE2E(MarketStatE2ETestWebAppFactory factory)
     {
         _resetDatabase = factory.ResetDatabaseAsync;
-        
-        // Ensure Host is ready (Handle Lazy Init)
-        if (factory.KestrelHost == null)
-        {
-            try { using var _ = factory.CreateClient(); } catch (InvalidCastException) {}
-        }
 
+        // Trigger the Host creation via the Factory standard mechanism.
+        // This calls CreateHost(), which starts Kestrel on port 5050.
+        // We discard the internal client because we want your "Real" HTTP client.
+        using var _ = factory.CreateClient(); 
+
+        // Now KestrelHost is guaranteed to be populated
         _scopeFactory = factory.KestrelHost!.Services.GetRequiredService<IServiceScopeFactory>();
+        
+        // Create the client that hits http://127.0.0.1:5050
         _client = factory.CreateRealHttpClient();
     }
 
