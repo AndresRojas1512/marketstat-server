@@ -55,13 +55,13 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
             TablesToIgnore = new Respawn.Graph.Table[]
             {
                 new Respawn.Graph.Table("__EFMigrationsHistory", "marketstat"),
-                new Respawn.Graph.Table("dim_date", "marketstat"),
-                new Respawn.Graph.Table("dim_location", "marketstat"),
-                new Respawn.Graph.Table("dim_industry_field", "marketstat"),
-                new Respawn.Graph.Table("dim_education", "marketstat"),
-                new Respawn.Graph.Table("dim_job", "marketstat"),
-                new Respawn.Graph.Table("dim_employer", "marketstat"),
-                new Respawn.Graph.Table("dim_employee", "marketstat")
+                // new Respawn.Graph.Table("dim_date", "marketstat"),
+                // new Respawn.Graph.Table("dim_location", "marketstat"),
+                // new Respawn.Graph.Table("dim_industry_field", "marketstat"),
+                // new Respawn.Graph.Table("dim_education", "marketstat"),
+                // new Respawn.Graph.Table("dim_job", "marketstat"),
+                // new Respawn.Graph.Table("dim_employer", "marketstat"),
+                // new Respawn.Graph.Table("dim_employee", "marketstat")
             }
         });
     }
