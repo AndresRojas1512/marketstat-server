@@ -18,10 +18,9 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     private Respawner _respawner = default!;
     private NpgsqlConnection _connection = default!;
     
-    // Expose the Host so tests can access Services (Scoped Factories)
+    // We keep your working logic for the Host property
     public IHost? KestrelHost { get; private set; }
 
-    // CRITICAL: This must match the port in entrypoint.sh for TShark capture
     private const string BaseUrl = "http://127.0.0.1:5050";
 
     public MarketStatE2ETestWebAppFactory()
@@ -36,52 +35,51 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     
     public async Task InitializeAsync()
     {
-        // 1. Start Database Container ONLY
         await _dbContainer.StartAsync();
-        
-        // 2. Setup Connection and Respawner
         var connectionString = _dbContainer.GetConnectionString();
         _connection = new NpgsqlConnection(connectionString);
         await _connection.OpenAsync();
         
-        // Initialize Respawner immediately
+        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
+            .UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention()
+            .Options;
+
+        await using (var context = new MarketStatDbContext(options))
+        {
+            await context.Database.MigrateAsync();
+            // MOVED SEEDING HERE: This ensures it runs once globally
+            await SeedStaticDimensionsAsync(context);
+        }
+
+        // FIX: Added "marketstat" schema to all tables. 
+        // Without this, Respawner wipes them because it can't match "dim_date" to "marketstat.dim_date".
         _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
             SchemasToInclude = new[] { "marketstat" },
             TablesToIgnore = new Respawn.Graph.Table[]
             {
-                new Respawn.Graph.Table("__EFMigrationsHistory"),
-                new Respawn.Graph.Table("dim_date"),
-                new Respawn.Graph.Table("dim_location"),
-                new Respawn.Graph.Table("dim_industry_field"),
-                new Respawn.Graph.Table("dim_education"),
-                new Respawn.Graph.Table("dim_job"),
-                new Respawn.Graph.Table("dim_employer"),
-                new Respawn.Graph.Table("dim_employee")
+                new Respawn.Graph.Table("__EFMigrationsHistory", "marketstat"),
+                new Respawn.Graph.Table("dim_date", "marketstat"),
+                new Respawn.Graph.Table("dim_location", "marketstat"),
+                new Respawn.Graph.Table("dim_industry_field", "marketstat"),
+                new Respawn.Graph.Table("dim_education", "marketstat"),
+                new Respawn.Graph.Table("dim_job", "marketstat"),
+                new Respawn.Graph.Table("dim_employer", "marketstat"),
+                new Respawn.Graph.Table("dim_employee", "marketstat")
             }
         });
-        
-        // 3. Apply Migrations & Initial Seed
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseNpgsql(connectionString)
-            .UseSnakeCaseNamingConvention()
-            .Options;
-
-        await using var context = new MarketStatDbContext(options);
-        await context.Database.MigrateAsync();
-        await SeedStaticDimensionsAsync(context);
     }
-    
+
+    // Kept exactly as your "Working" version
     protected override IHost CreateHost(IHostBuilder builder)
     {
-        // Configure the host to use Kestrel on the specific port for TShark
         builder.ConfigureWebHost(webBuilder =>
         {
             webBuilder.UseKestrel();
-            webBuilder.UseUrls(BaseUrl); // Bind to 5050
+            webBuilder.UseUrls(BaseUrl);
         });
-
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -90,46 +88,43 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
                 { "ASPNETCORE_ENVIRONMENT", "E2ETesting" }
             });
         });
-
-        // Let the base factory create the host with all default WAF configurations
         var host = base.CreateHost(builder);
-        
-        // Capture the reference and start it explicitly to ensure TCP socket binding
         KestrelHost = host;
-        host.Start(); 
-        
+        host.Start();
         return host;
     }
-    
+
     public HttpClient CreateRealHttpClient()
     {
-        return new HttpClient { BaseAddress = new Uri(BaseUrl) };
+        return new HttpClient
+        {
+            BaseAddress = new Uri(BaseUrl)
+        };
     }
 
     public async Task ResetDatabaseAsync()
     {
+        // Now that the Ignore list is correct, this will NOT wipe dimensions.
         await _respawner.ResetAsync(_connection);
-        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
-            .UseNpgsql(_dbContainer.GetConnectionString())
-            .UseSnakeCaseNamingConvention()
-            .Options;
-
-        await using var context = new MarketStatDbContext(options);
-        await SeedStaticDimensionsAsync(context);
     }
 
     public new async Task DisposeAsync()
     {
+        if (KestrelHost != null)
+        {
+            await KestrelHost.StopAsync();
+            KestrelHost.Dispose();
+        }
         await _connection.DisposeAsync();
         await _dbContainer.DisposeAsync();
     }
     
     private async Task SeedStaticDimensionsAsync(MarketStatDbContext context)
     {
-        var count = await context.DimDates.CountAsync();
-        if (await context.DimDates.AnyAsync()) 
-            return;
+        if (await context.DimDates.AnyAsync()) return;
+
         await using var transaction = await context.Database.BeginTransactionAsync();
+
         context.DimDates.AddRange(
             new DimDateDbModel { DateId = 1, FullDate = new DateOnly(2024, 1, 1), Year = 2024, Quarter = 1, Month = 1 },
             new DimDateDbModel { DateId = 5, FullDate = new DateOnly(2019, 1, 1), Year = 2019, Quarter = 1, Month = 1 }

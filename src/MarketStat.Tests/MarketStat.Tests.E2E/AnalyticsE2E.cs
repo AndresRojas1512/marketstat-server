@@ -21,16 +21,21 @@ public class AnalyticsE2E : IAsyncLifetime
     public AnalyticsE2E(MarketStatE2ETestWebAppFactory factory)
     {
         _resetDatabase = factory.ResetDatabaseAsync;
-
-        // Trigger the Host creation via the Factory standard mechanism.
-        // This calls CreateHost(), which starts Kestrel on port 5050.
-        // We discard the internal client because we want your "Real" HTTP client.
-        using var _ = factory.CreateClient(); 
-
-        // Now KestrelHost is guaranteed to be populated
-        _scopeFactory = factory.KestrelHost!.Services.GetRequiredService<IServiceScopeFactory>();
         
-        // Create the client that hits http://127.0.0.1:5050
+        // Kept your safe initialization check
+        if (factory.KestrelHost == null)
+        {
+            try
+            {
+                using var _ = factory.CreateClient();
+            }
+            catch (InvalidCastException)
+            {
+                // Expected invalid cast due to Kestrel replacement
+            }
+        }
+
+        _scopeFactory = factory.KestrelHost!.Services.GetRequiredService<IServiceScopeFactory>();
         _client = factory.CreateRealHttpClient();
     }
 
@@ -45,44 +50,44 @@ public class AnalyticsE2E : IAsyncLifetime
     [Fact]
     public async Task GetPublicRoles_WithMixedData_ReturnsOnlyRolesAboveThresholdAndOrderedBySalary()
     {
-        // ARRANGE: Seed ONLY Facts (Dimensions 1, 2, 3 already exist from Factory)
+        // ARRANGE: Seed ONLY Facts. 
+        // Dimensions (Job 1, Job 2, Job 3, Date 1, Location 1, etc.) exist from Factory.
         await using (var scope = _scopeFactory.CreateAsyncScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<MarketStatDbContext>();
 
             var facts = new List<MarketStat.Common.Core.MarketStat.Common.Core.Facts.FactSalary>();
 
-            // 15 records for Job 1 (Senior Architect)
+            // 15 records for Job 1 (Senior Architect) - Pre-seeded ID 1
             for (int i = 0; i < 15; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(1) // Refers to seeded Job 1
+                    .WithJobId(1) 
                     .WithSalaryAmount(200000) 
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
             }
 
-            // 12 records for Job 2 (Junior Support)
+            // 12 records for Job 2 (Junior Support) - Pre-seeded ID 2
             for (int i = 0; i < 12; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(2) // Refers to seeded Job 2
+                    .WithJobId(2) 
                     .WithSalaryAmount(50000)
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
             }
 
-            // 5 records for Job 3 (Rare Specialist)
+            // 5 records for Job 3 (Rare Specialist) - Pre-seeded ID 3
             for (int i = 0; i < 5; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(3) // Refers to seeded Job 3
+                    .WithJobId(3) 
                     .WithSalaryAmount(120000)
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
             }
 
-            // Insert Facts
             dbContext.FactSalaries.AddRange(facts.Select(f => FactSalaryConverter.ToDbModel(f)));
             await dbContext.SaveChangesAsync();
         }
