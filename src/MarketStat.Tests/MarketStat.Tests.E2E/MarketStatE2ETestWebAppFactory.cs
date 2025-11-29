@@ -19,7 +19,7 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     
     public IHost? KestrelHost { get; private set; }
 
-    private const string BaseUrl = "http://127.0.0.1:5000";
+    private const string BaseUrl = "http://127.0.0.1:5050";
 
     public MarketStatE2ETestWebAppFactory()
     {
@@ -63,6 +63,7 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
                 webBuilder.UseStartup<Program>();
                 webBuilder.UseKestrel();
                 webBuilder.UseUrls(BaseUrl);
+                webBuilder.UseEnvironment("E2ETesting");
                 webBuilder.ConfigureAppConfiguration((context, config) =>
                 {
                     config.AddInMemoryCollection(new Dictionary<string, string?>
