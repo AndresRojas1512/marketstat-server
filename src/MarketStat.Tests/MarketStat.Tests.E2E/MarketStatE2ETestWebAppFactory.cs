@@ -46,7 +46,6 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
         {
             await context.Database.MigrateAsync();
         }
-
         _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
@@ -56,24 +55,27 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
                 new Respawn.Graph.Table("__EFMigrationsHistory", "marketstat")
             }
         });
+    }
 
-        var builder = Host.CreateDefaultBuilder()
-            .ConfigureWebHostDefaults(webBuilder =>
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        builder.ConfigureWebHost(webBuilder =>
+        {
+            webBuilder.UseKestrel();
+            webBuilder.UseUrls(BaseUrl);
+        });
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                webBuilder.UseStartup<Program>();
-                webBuilder.UseKestrel();
-                webBuilder.UseUrls(BaseUrl);
-                webBuilder.UseEnvironment("E2ETesting");
-                webBuilder.ConfigureAppConfiguration((context, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        { "ConnectionStrings:MarketStat", connectionString }
-                    });
-                });
+                { "ConnectionStrings:MarketStat", _dbContainer.GetConnectionString() },
+                { "ASPNETCORE_ENVIRONMENT", "E2ETesting" }
             });
-        KestrelHost = builder.Build();
-        await KestrelHost.StartAsync();
+        });
+        var host = base.CreateHost(builder);
+        KestrelHost = host;
+        host.Start();
+        return host;
     }
 
     public HttpClient CreateRealHttpClient()
