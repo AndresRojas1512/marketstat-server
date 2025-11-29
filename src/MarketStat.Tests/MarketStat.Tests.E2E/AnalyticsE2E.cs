@@ -22,7 +22,6 @@ public class AnalyticsE2E : IAsyncLifetime
     {
         _resetDatabase = factory.ResetDatabaseAsync;
         
-        // Your logic to trigger Host start
         if (factory.KestrelHost == null)
         {
             try
@@ -49,15 +48,12 @@ public class AnalyticsE2E : IAsyncLifetime
     [Fact]
     public async Task GetPublicRoles_WithMixedData_ReturnsOnlyRolesAboveThresholdAndOrderedBySalary()
     {
-        // ARRANGE: Seed ONLY Facts.
-        // The Dimensions (Job 1, Date 1, etc.) are guaranteed to exist by factory.ResetDatabaseAsync
         await using (var scope = _scopeFactory.CreateAsyncScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<MarketStatDbContext>();
 
             var facts = new List<MarketStat.Common.Core.MarketStat.Common.Core.Facts.FactSalary>();
 
-            // 15 records for Job 1 (Senior Architect) - Refers to Seeded Job 1
             for (int i = 0; i < 15; i++)
             {
                 facts.Add(new FactSalaryBuilder()
@@ -67,7 +63,6 @@ public class AnalyticsE2E : IAsyncLifetime
                     .Build());
             }
 
-            // 12 records for Job 2 (Junior Support) - Refers to Seeded Job 2
             for (int i = 0; i < 12; i++)
             {
                 facts.Add(new FactSalaryBuilder()
@@ -77,7 +72,6 @@ public class AnalyticsE2E : IAsyncLifetime
                     .Build());
             }
 
-            // 5 records for Job 3 (Rare Specialist) - Refers to Seeded Job 3
             for (int i = 0; i < 5; i++)
             {
                 facts.Add(new FactSalaryBuilder()
@@ -91,10 +85,8 @@ public class AnalyticsE2E : IAsyncLifetime
             await dbContext.SaveChangesAsync();
         }
 
-        // ACT
         var response = await _client.GetAsync("/api/factsalaries/public/roles?minRecordCount=10");
 
-        // ASSERT
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var result = await response.Content.ReadFromJsonAsync<List<PublicRoleByLocationIndustryDto>>();

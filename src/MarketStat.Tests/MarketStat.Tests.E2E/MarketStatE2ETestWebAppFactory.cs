@@ -47,11 +47,9 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
         await using (var context = new MarketStatDbContext(options))
         {
             await context.Database.MigrateAsync();
-            // 1. Initial Seed on Startup
             await SeedStaticDimensionsAsync(context);
         }
 
-        // We keep the Respawner simple. Even if it wipes dimensions, we will heal them.
         _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
@@ -65,7 +63,6 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
-        // Your original working logic
         builder.ConfigureWebHost(webBuilder =>
         {
             webBuilder.UseKestrel();
@@ -92,11 +89,7 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     public async Task ResetDatabaseAsync()
     {
-        // 1. Wipe Data
         await _respawner.ResetAsync(_connection);
-
-        // 2. SELF-HEALING: Put the dimensions back immediately.
-        // This fixes the 'fk_fact_date' error.
         var options = new DbContextOptionsBuilder<MarketStatDbContext>()
             .UseNpgsql(_dbContainer.GetConnectionString())
             .UseSnakeCaseNamingConvention()
@@ -117,15 +110,10 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
         await _dbContainer.DisposeAsync();
     }
     
-    // The logic extracted from your test
     private async Task SeedStaticDimensionsAsync(MarketStatDbContext context)
     {
-        // Fast exit if data exists
         if (await context.DimDates.AnyAsync()) return;
-
-        // Use a transaction to be safe
         await using var transaction = await context.Database.BeginTransactionAsync();
-
         context.DimDates.AddRange(
             new DimDateDbModel { DateId = 1, FullDate = new DateOnly(2024, 1, 1), Year = 2024, Quarter = 1, Month = 1 },
             new DimDateDbModel { DateId = 5, FullDate = new DateOnly(2019, 1, 1), Year = 2019, Quarter = 1, Month = 1 }
