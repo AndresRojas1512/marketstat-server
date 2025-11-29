@@ -30,19 +30,6 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
             .WithPassword("postgres")
             .Build();
     }
-
-    protected override IHost CreateHost(IHostBuilder builder)
-    {
-        builder.ConfigureWebHost(webBuilder =>
-        {
-            webBuilder.UseKestrel();
-            webBuilder.UseUrls(BaseUrl);
-        });
-        var host = base.CreateHost(builder);
-        host.Start();
-        KestrelHost = host;
-        return host;
-    }
     
     public async Task InitializeAsync()
     {
@@ -69,18 +56,23 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
                 new Respawn.Graph.Table("__EFMigrationsHistory", "marketstat")
             }
         });
-    }
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.UseEnvironment("E2ETesting");
-        builder.ConfigureAppConfiguration((context, config) =>
-        {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
+        var builder = Host.CreateDefaultBuilder()
+            .ConfigureWebHostDefaults(webBuilder =>
             {
-                { "ConnectionStrings:MarketStat", _dbContainer.GetConnectionString() }
+                webBuilder.UseStartup<Program>();
+                webBuilder.UseKestrel();
+                webBuilder.UseUrls(BaseUrl);
+                webBuilder.ConfigureAppConfiguration((context, config) =>
+                {
+                    config.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        { "ConnectionStrings:MarketStat", connectionString }
+                    });
+                });
             });
-        });
+        KestrelHost = builder.Build();
+        await KestrelHost.StartAsync();
     }
 
     public HttpClient CreateRealHttpClient()
@@ -98,6 +90,11 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     public new async Task DisposeAsync()
     {
+        if (KestrelHost != null)
+        {
+            await KestrelHost.StopAsync();
+            KestrelHost.Dispose();
+        }
         await _connection.DisposeAsync();
         await _dbContainer.DisposeAsync();
     }
