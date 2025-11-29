@@ -21,15 +21,11 @@ public class AnalyticsE2E : IAsyncLifetime
     public AnalyticsE2E(MarketStatE2ETestWebAppFactory factory)
     {
         _resetDatabase = factory.ResetDatabaseAsync;
+        
+        // Ensure Host is ready (Handle Lazy Init)
         if (factory.KestrelHost == null)
         {
-            try
-            {
-                using var _ = factory.CreateClient();
-            }
-            catch (InvalidCastException)
-            {
-            }
+            try { using var _ = factory.CreateClient(); } catch (InvalidCastException) {}
         }
 
         _scopeFactory = factory.KestrelHost!.Services.GetRequiredService<IServiceScopeFactory>();
@@ -47,19 +43,18 @@ public class AnalyticsE2E : IAsyncLifetime
     [Fact]
     public async Task GetPublicRoles_WithMixedData_ReturnsOnlyRolesAboveThresholdAndOrderedBySalary()
     {
-        // ARRANGE: Seed ONLY Facts
+        // ARRANGE: Seed ONLY Facts (Dimensions 1, 2, 3 already exist from Factory)
         await using (var scope = _scopeFactory.CreateAsyncScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<MarketStatDbContext>();
 
-            // NOTE: We assume IDs 1, 2, 3 for Jobs/Dates/etc. exist from the Factory Seed
             var facts = new List<MarketStat.Common.Core.MarketStat.Common.Core.Facts.FactSalary>();
 
             // 15 records for Job 1 (Senior Architect)
             for (int i = 0; i < 15; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(1)
+                    .WithJobId(1) // Refers to seeded Job 1
                     .WithSalaryAmount(200000) 
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
@@ -69,7 +64,7 @@ public class AnalyticsE2E : IAsyncLifetime
             for (int i = 0; i < 12; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(2)
+                    .WithJobId(2) // Refers to seeded Job 2
                     .WithSalaryAmount(50000)
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
@@ -79,12 +74,13 @@ public class AnalyticsE2E : IAsyncLifetime
             for (int i = 0; i < 5; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(3)
+                    .WithJobId(3) // Refers to seeded Job 3
                     .WithSalaryAmount(120000)
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
             }
 
+            // Insert Facts
             dbContext.FactSalaries.AddRange(facts.Select(f => FactSalaryConverter.ToDbModel(f)));
             await dbContext.SaveChangesAsync();
         }
