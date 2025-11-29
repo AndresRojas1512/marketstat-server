@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace MarketStat.Integration.Tests.Facts;
 
 [Collection("Integration")]
-public class FactSalaryServiceIntegrationTests
+public class FactSalaryServiceIntegrationTests : IAsyncLifetime
 {
     private readonly IntegrationTestFixture _fixture;
     private readonly MarketStatDbContext _dbContext;
@@ -39,8 +39,15 @@ public class FactSalaryServiceIntegrationTests
         );
     }
 
-    public Task InitializeAsync() => _fixture.ResetDatabaseAsync();
-    public Task DisposeAsync() => Task.CompletedTask;
+    public Task InitializeAsync()
+    {
+        return _fixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
     
     [Fact]
     public async Task GetSalarySummaryAsync_ShouldResolveCityNameAndCalculateSummary()
