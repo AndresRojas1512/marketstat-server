@@ -18,7 +18,6 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     private Respawner _respawner = default!;
     private NpgsqlConnection _connection = default!;
     
-    // We keep your working logic for the Host property
     public IHost? KestrelHost { get; private set; }
 
     private const string BaseUrl = "http://127.0.0.1:5050";
@@ -48,33 +47,25 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
         await using (var context = new MarketStatDbContext(options))
         {
             await context.Database.MigrateAsync();
-            // MOVED SEEDING HERE: This ensures it runs once globally
+            // 1. Initial Seed on Startup
             await SeedStaticDimensionsAsync(context);
         }
 
-        // FIX: Added "marketstat" schema to all tables. 
-        // Without this, Respawner wipes them because it can't match "dim_date" to "marketstat.dim_date".
+        // We keep the Respawner simple. Even if it wipes dimensions, we will heal them.
         _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
             SchemasToInclude = new[] { "marketstat" },
             TablesToIgnore = new Respawn.Graph.Table[]
             {
-                new Respawn.Graph.Table("__EFMigrationsHistory", "marketstat"),
-                // new Respawn.Graph.Table("dim_date", "marketstat"),
-                // new Respawn.Graph.Table("dim_location", "marketstat"),
-                // new Respawn.Graph.Table("dim_industry_field", "marketstat"),
-                // new Respawn.Graph.Table("dim_education", "marketstat"),
-                // new Respawn.Graph.Table("dim_job", "marketstat"),
-                // new Respawn.Graph.Table("dim_employer", "marketstat"),
-                // new Respawn.Graph.Table("dim_employee", "marketstat")
+                new Respawn.Graph.Table("__EFMigrationsHistory", "marketstat")
             }
         });
     }
 
-    // Kept exactly as your "Working" version
     protected override IHost CreateHost(IHostBuilder builder)
     {
+        // Your original working logic
         builder.ConfigureWebHost(webBuilder =>
         {
             webBuilder.UseKestrel();
@@ -96,16 +87,23 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     public HttpClient CreateRealHttpClient()
     {
-        return new HttpClient
-        {
-            BaseAddress = new Uri(BaseUrl)
-        };
+        return new HttpClient { BaseAddress = new Uri(BaseUrl) };
     }
 
     public async Task ResetDatabaseAsync()
     {
-        // Now that the Ignore list is correct, this will NOT wipe dimensions.
+        // 1. Wipe Data
         await _respawner.ResetAsync(_connection);
+
+        // 2. SELF-HEALING: Put the dimensions back immediately.
+        // This fixes the 'fk_fact_date' error.
+        var options = new DbContextOptionsBuilder<MarketStatDbContext>()
+            .UseNpgsql(_dbContainer.GetConnectionString())
+            .UseSnakeCaseNamingConvention()
+            .Options;
+
+        await using var context = new MarketStatDbContext(options);
+        await SeedStaticDimensionsAsync(context);
     }
 
     public new async Task DisposeAsync()
@@ -119,10 +117,13 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
         await _dbContainer.DisposeAsync();
     }
     
+    // The logic extracted from your test
     private async Task SeedStaticDimensionsAsync(MarketStatDbContext context)
     {
+        // Fast exit if data exists
         if (await context.DimDates.AnyAsync()) return;
 
+        // Use a transaction to be safe
         await using var transaction = await context.Database.BeginTransactionAsync();
 
         context.DimDates.AddRange(
