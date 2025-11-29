@@ -37,42 +37,31 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task GetFactSalariesByFilterAsync_ShouldReturnFilteredData_WhenFiltersAreUsed()
     {
-        // Arrange: Insert specific facts linking to Static Dimensions (Ids 1-5 exist)
         _dbContext.FactSalaries.AddRange(
-            // Matches Filter (DateId 1 = 2024-01-01, Loc 1, Job 1)
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithId(1).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
-            // Matches Filter (DateId 2 = 2024-02-01, Loc 2, Job 1)
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithId(2).WithDateId(2).WithLocationId(2).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
-            // Excluded by JobId (Job 2)
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithId(3).WithDateId(3).WithLocationId(1).WithJobId(2).WithEmployerId(1).WithEmployeeId(1).Build())
         );
         await _dbContext.SaveChangesAsync();
 
         var filters = new ResolvedSalaryFilter
         {
-            LocationIds = new List<int> { 1, 2 }, // Both locations
-            JobIds = new List<int> { 1 },         // Only Job 1
+            LocationIds = new List<int> { 1, 2 },
+            JobIds = new List<int> { 1 },
             DateStart = new DateOnly(2024, 1, 1),
             DateEnd = new DateOnly(2024, 6, 1)
         };
 
-        // Act
         var result = (await _sut.GetFactSalariesByFilterAsync(filters)).ToList();
-
-        // Assert
+        
         result.Should().HaveCount(2);
         result.Select(r => r.SalaryFactId).Should().Contain(new[] { 1L, 2L });
         result.Select(r => r.SalaryFactId).Should().NotContain(3L);
     }
 
-    // 2. Authorized Method: Time Series (Complex Grouping Logic)
     [Fact]
     public async Task GetSalaryTimeSeriesAsync_ShouldGroupSalariesByQuarter_Correctly()
     {
-        // Arrange
-        // DateId 1 = 2024-01-01 (Q1)
-        // DateId 2 = 2024-02-01 (Q1)
-        // DateId 3 = 2024-05-01 (Q2)
         _dbContext.FactSalaries.AddRange(
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithDateId(2).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
@@ -82,22 +71,17 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
 
         var filters = new ResolvedSalaryFilter 
         { 
-            // End date sets the reference point. Requesting 2 periods back from June -> Q1, Q2
             DateEnd = new DateOnly(2024, 6, 1) 
         };
 
-        // Act: Request Quarterly granularity
         var result = await _sut.GetSalaryTimeSeriesAsync(filters, TimeGranularity.Quarter, 2);
 
-        // Assert
         result.Should().HaveCount(2);
 
-        // Q1 (Jan + Feb) -> (100 + 200) / 2 = 150
         var q1 = result.First(p => p.PeriodStart == new DateOnly(2024, 1, 1));
         q1.AvgSalary.Should().Be(150);
         q1.SalaryCountInPeriod.Should().Be(2);
 
-        // Q2 (May) -> 600 / 1 = 600
         var q2 = result.First(p => p.PeriodStart == new DateOnly(2024, 4, 1)); // Q2 starts April 1st
         q2.AvgSalary.Should().Be(600);
         q2.SalaryCountInPeriod.Should().Be(1);
