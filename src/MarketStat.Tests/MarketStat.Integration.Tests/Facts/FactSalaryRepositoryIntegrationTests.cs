@@ -23,55 +23,14 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
         _sut = new FactSalaryRepository(_dbContext);
     }
 
-    public async Task InitializeAsync()
+    public Task InitializeAsync()
     {
-        await _fixture.ResetDatabaseAsync();
-        await SeedDimensionsAsync(_dbContext);
+        return _fixture.ResetDatabaseAsync();
     }
 
     public Task DisposeAsync()
     {
-        return _fixture.ResetDatabaseAsync();
-    }
-    
-    private async Task SeedDimensionsAsync(MarketStatDbContext context)
-    {
-        context.DimDates.AddRange(
-            new DimDateDbModel { DateId = 1, FullDate = new DateOnly(2024, 1, 1), Year = 2024, Quarter = 1, Month = 1 },
-            new DimDateDbModel { DateId = 2, FullDate = new DateOnly(2024, 2, 1), Year = 2024, Quarter = 1, Month = 2 },
-            new DimDateDbModel { DateId = 3, FullDate = new DateOnly(2024, 5, 1), Year = 2024, Quarter = 2, Month = 5 },
-            new DimDateDbModel { DateId = 4, FullDate = new DateOnly(2024, 8, 1), Year = 2024, Quarter = 3, Month = 8 },
-            new DimDateDbModel { DateId = 5, FullDate = new DateOnly(2019, 1, 1), Year = 2019, Quarter = 1, Month = 1 }
-        );
-        
-        context.DimLocations.AddRange(
-            new DimLocationDbModel { LocationId = 1, CityName = "Moscow", OblastName = "Moscow", DistrictName = "Central" },
-            new DimLocationDbModel { LocationId = 2, CityName = "Tula", OblastName = "Tula", DistrictName = "Central" }
-        );
-        
-        context.DimIndustryFields.AddRange(
-            new DimIndustryFieldDbModel { IndustryFieldId = 1, IndustryFieldName = "IT", IndustryFieldCode = "A.01"},
-            new DimIndustryFieldDbModel { IndustryFieldId = 2, IndustryFieldName = "Finance", IndustryFieldCode = "B.02"}
-        );
-        
-        context.DimEmployees.Add(new DimEmployeeDbModel 
-        { 
-            EmployeeId = 1, 
-            EmployeeRefId = "emp-1",
-            BirthDate = new DateOnly(1990, 1, 1),
-            CareerStartDate = new DateOnly(2015, 1, 1)
-        });
-        
-        await context.SaveChangesAsync();
-
-        context.DimJobs.AddRange(
-            new DimJobDbModel { JobId = 1, StandardJobRoleTitle = "Engineer", HierarchyLevelName = "Mid", IndustryFieldId = 1 },
-            new DimJobDbModel { JobId = 2, StandardJobRoleTitle = "Analyst", HierarchyLevelName = "Senior", IndustryFieldId = 2 }
-        );
-        
-        context.DimEmployers.Add(new DimEmployerDbModel { EmployerId = 1, EmployerName = "Tech Corp", IndustryFieldId = 1 });
-        
-        await context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
     
     [Fact]
