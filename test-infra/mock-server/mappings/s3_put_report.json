@@ -1,0 +1,14 @@
+{
+    "request": {
+        "method": "PUT",
+        "urlPattern": "/marketstat-reports/.*"
+    },
+    "response": {
+        "status": 200,
+        "body": "",
+        "headers": {
+            "ETag": "\"mock-s3-etag\"",
+            "Server": "AmazonS3"
+        }
+    }
+}

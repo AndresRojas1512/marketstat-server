@@ -68,6 +68,7 @@
         <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Auth\MarketStat.Services.Auth.AuthService\MarketStat.Services.Auth.AuthService.csproj" />
         <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimLocationService\MarketStat.Services.Dimensions.DimLocationService.csproj" />
         <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Dimensions\MarketStat.Services.Dimensions.DimJobService\MarketStat.Services.Dimensions.DimJobService.csproj" />
+        <ProjectReference Include="..\MarketStat.Services\MarketStat.Services.Storage\MarketStat.Services.Storage.csproj" />
     </ItemGroup>
 
 </Project>

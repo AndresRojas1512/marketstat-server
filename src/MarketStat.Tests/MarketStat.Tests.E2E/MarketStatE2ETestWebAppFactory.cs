@@ -73,7 +73,12 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 { "ConnectionStrings:MarketStat", _dbContainer.GetConnectionString() },
-                { "ASPNETCORE_ENVIRONMENT", "E2ETesting" }
+                { "ASPNETCORE_ENVIRONMENT", "E2ETesting" },
+                { "Storage:ServiceUrl", "http://wiremock:8080" },
+                { "Storage:BucketName", "marketstat-reports" },
+                { "Storage:AccessKey", "mock-key" },
+                { "Storage:SecretKey", "mock-secret" },
+                { "Storage:ForcePathStyle", "true" }
             });
         });
         var host = base.CreateHost(builder);

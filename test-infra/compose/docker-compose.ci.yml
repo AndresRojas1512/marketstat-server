@@ -1,11 +1,22 @@
 version: "3.9"
 
 services:
+  wiremock:
+    image: wiremock/wiremock:latest
+    container_name: ms_mock_s3
+    ports:
+      - "8081:8080"
+    volumes:
+      - ../mock-server/mappings:/home/wiremock/mappings
+
   tests:
     build:
       context: ../../
       dockerfile: test-infra/docker/runner/Dockerfile
     container_name: ms_ci_tests
+
+    depends_on:
+      - wiremock
 
     cap_add:
       - NET_ADMIN

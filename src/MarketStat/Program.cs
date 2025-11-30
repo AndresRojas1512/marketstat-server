@@ -19,6 +19,8 @@ using MarketStat.Middleware;
 using MarketStat.Services.Auth.AuthService;
 using MarketStat.Services.Dimensions.DimLocationService;
 using MarketStat.Services.Dimensions.DimJobService;
+using MarketStat.Services.Storage;
+using MarketStat.Services.Storage.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.IdentityModel.Tokens;
@@ -105,6 +107,9 @@ try
     builder.Services.AddScoped<IDimJobService, DimJobService>();
     builder.Services.AddScoped<IFactSalaryService, FactSalaryService>();
     builder.Services.AddScoped<IAuthService, AuthService>();
+
+    builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("Storage"));
+    builder.Services.AddScoped<IReportStorageService, S3ReportStorageService>();
     
     builder.Services.AddControllers();
     builder.Services.AddAutoMapper(typeof(Program).Assembly);
