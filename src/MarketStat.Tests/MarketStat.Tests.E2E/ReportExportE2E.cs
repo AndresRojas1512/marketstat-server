@@ -1,10 +1,13 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
+using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
 using MarketStat.Database.Context;
+using MarketStat.Services.Auth.AuthService;
 using MarketStat.Tests.TestData.Builders.Facts;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -42,10 +45,35 @@ public class ReportExportE2E : IAsyncLifetime
         _client.Dispose();
         return Task.CompletedTask;
     }
+
+    private async Task AuthenticateAsync()
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
+        var registerDto = new RegisterUserDto()
+        {
+            Username = "report_user",
+            Password = "Password123!",
+            Email = "analyst@test.com",
+            FullName = "Test Analyst",
+            IsAdmin = false
+        };
+
+        await authService.RegisterAsync(registerDto);
+        var loginDto = new LoginRequestDto
+        {
+            Username = registerDto.Username,
+            Password = registerDto.Password
+        };
+        var authResponse = await authService.LoginAsync(loginDto);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authResponse.Token);
+    }
     
     [Fact]
     public async Task ExportSalarySummary_ShouldUploadToS3AndReturnUrl()
     {
+        await AuthenticateAsync();
+        
         await using (var scope = _scopeFactory.CreateAsyncScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<MarketStatDbContext>();
