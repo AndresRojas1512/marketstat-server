@@ -1,5 +1,6 @@
 namespace MarketStat.Database.Repositories.PostgresRepositories.Account;
 
+using System.Diagnostics.CodeAnalysis;
 using MarketStat.Common.Converter.Account;
 using MarketStat.Common.Core.Account;
 using MarketStat.Common.Exceptions;
@@ -64,11 +65,17 @@ public class UserRepository : IUserRepository
 
     public async Task<bool> UserExistsAsync(string username, string email)
     {
+#pragma warning disable CA1304 // Specify CultureInfo
+#pragma warning disable CA1311 // Specify a culture or use an invariant version
+#pragma warning disable CA1862 // Use 'StringComparison' method overrides
         return await _dbContext.Users
             .AsNoTracking()
-            .AnyAsync(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase)
-                           || u.Email.Equals(email, StringComparison.OrdinalIgnoreCase))
+            .AnyAsync(u => u.Username.ToUpper() == username.ToUpper()
+                           || u.Email.ToUpper() == email.ToUpper())
             .ConfigureAwait(false);
+#pragma warning restore CA1862
+#pragma warning restore CA1311
+#pragma warning restore CA1304
     }
 
     public async Task UpdateUserAsync(User user)
