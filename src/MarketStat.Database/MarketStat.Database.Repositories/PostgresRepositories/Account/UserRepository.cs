@@ -1,12 +1,12 @@
-using MarketStat.Common.Converter.MarketStat.Common.Converter.Account;
-using MarketStat.Common.Core.MarketStat.Common.Core.Account;
+namespace MarketStat.Database.Repositories.PostgresRepositories.Account;
+
+using MarketStat.Common.Converter.Account;
+using MarketStat.Common.Core.Account;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Account;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-
-namespace MarketStat.Database.Repositories.PostgresRepositories.Account;
 
 public class UserRepository : IUserRepository
 {
@@ -19,11 +19,12 @@ public class UserRepository : IUserRepository
 
     public async Task<User> AddUserAsync(User user)
     {
+        ArgumentNullException.ThrowIfNull(user);
         var dbUser = UserConverter.ToDbModel(user);
         _dbContext.Users.Add(dbUser);
         try
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx &&
                                            (pgEx.SqlState == PostgresErrorCodes.UniqueViolation))
@@ -31,6 +32,7 @@ public class UserRepository : IUserRepository
             _dbContext.Entry(dbUser).State = EntityState.Detached;
             throw new ConflictException("Username or email already exists.");
         }
+
         return UserConverter.ToDomain(dbUser);
     }
 
@@ -38,7 +40,7 @@ public class UserRepository : IUserRepository
     {
         var dbUser = await _dbContext.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Username == username);
+            .FirstOrDefaultAsync(u => u.Username == username).ConfigureAwait(false);
         if (dbUser == null)
         {
             throw new NotFoundException($"User with username '{username}' not found.");
@@ -51,7 +53,7 @@ public class UserRepository : IUserRepository
     {
         var dbUser = await _dbContext.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.UserId == userId);
+            .FirstOrDefaultAsync(u => u.UserId == userId).ConfigureAwait(false);
         if (dbUser == null)
         {
             throw new NotFoundException($"User with ID {userId} not found.");
@@ -62,16 +64,17 @@ public class UserRepository : IUserRepository
 
     public async Task<bool> UserExistsAsync(string username, string email)
     {
-        string lowerUsername = username.ToLowerInvariant();
-        string lowerEmail = email.ToLowerInvariant();
         return await _dbContext.Users
             .AsNoTracking()
-            .AnyAsync(u => u.Username.ToLower() == lowerUsername || u.Email.ToLower() == lowerEmail);
+            .AnyAsync(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase)
+                           || u.Email.Equals(email, StringComparison.OrdinalIgnoreCase))
+            .ConfigureAwait(false);
     }
 
     public async Task UpdateUserAsync(User user)
     {
-        var dbUser = await _dbContext.Users.FindAsync(user.UserId);
+        ArgumentNullException.ThrowIfNull(user);
+        var dbUser = await _dbContext.Users.FindAsync(user.UserId).ConfigureAwait(false);
         if (dbUser == null)
         {
             throw new NotFoundException($"User with ID {user.UserId} not found for update.");
@@ -84,7 +87,7 @@ public class UserRepository : IUserRepository
 
         try
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx &&
                                            (pgEx.SqlState == PostgresErrorCodes.UniqueViolation))

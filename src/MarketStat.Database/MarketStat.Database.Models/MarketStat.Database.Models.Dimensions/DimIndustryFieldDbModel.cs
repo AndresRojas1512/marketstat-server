@@ -19,13 +19,8 @@ public class DimIndustryFieldDbModel
     [Column("industry_field_name")]
     [StringLength(255)]
     public string IndustryFieldName { get; set; } = string.Empty;
-    
-    public virtual ICollection<DimEmployerDbModel> DimEmployers { get; set; }
-    public virtual ICollection<DimJobDbModel> DimJobs { get; set; }
-    
-    public DimIndustryFieldDbModel() 
-    {
-        DimEmployers = new List<DimEmployerDbModel>();
-        DimJobs = new List<DimJobDbModel>();
-    }
+
+    public virtual ICollection<DimEmployerDbModel> DimEmployers { get; } = new List<DimEmployerDbModel>();
+
+    public virtual ICollection<DimJobDbModel> DimJobs { get; } = new List<DimJobDbModel>();
 }

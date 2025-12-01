@@ -1,10 +1,10 @@
+namespace MarketStat.Controllers.Auth;
+
 using System.Security.Claims;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
+using MarketStat.Common.Dto.Account.User;
 using MarketStat.Services.Auth.AuthService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-namespace MarketStat.Controllers.Auth;
 
 [ApiController]
 [Route("api/auth")]
@@ -31,6 +31,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> Register([FromBody] RegisterUserDto registerDto)
     {
+        ArgumentNullException.ThrowIfNull(registerDto);
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("Registration attempt failed due to invalid model state: {@ModelState}", ModelState);
@@ -38,12 +39,12 @@ public class AuthController : ControllerBase
         }
 
         _logger.LogInformation("Registration attempt for username: {Username}", registerDto.Username);
-        
-        var userDto = await _authService.RegisterAsync(registerDto);
-        
+
+        var userDto = await _authService.RegisterAsync(registerDto).ConfigureAwait(false);
+
         _logger.LogInformation("User {Username} registered successfully with ID {UserId}", userDto.Username, userDto.UserId);
-        
-        return Created(string.Empty, userDto);
+
+        return Created(new Uri(string.Empty, UriKind.Relative), userDto);
     }
 
     /// <summary>
@@ -58,6 +59,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginRequestDto loginDto)
     {
+        ArgumentNullException.ThrowIfNull(loginDto);
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("Login attempt failed due to invalid model state: {@ModelState}", ModelState);
@@ -65,9 +67,9 @@ public class AuthController : ControllerBase
         }
 
         _logger.LogInformation("Login attempt for username: {Username}", loginDto.Username);
-        
-        var authResponse = await _authService.LoginAsync(loginDto);
-        
+
+        var authResponse = await _authService.LoginAsync(loginDto).ConfigureAwait(false);
+
         _logger.LogInformation("User {Username} logged in successfully.", loginDto.Username);
         return Ok(authResponse);
     }
@@ -81,18 +83,19 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<UserDto>> PartiallyUpdateProfileAsync([FromBody] PartialUpdateUserDto patchDto)
     {
+        ArgumentNullException.ThrowIfNull(patchDto);
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
         {
             _logger.LogWarning("PartialUpdateProfile: Could not find user ID in claims.");
             return Unauthorized(new { Message = "Invalid authentication token." });
         }
+
         _logger.LogInformation("User {UserId} attempting to update profile", userId);
         var updatedUser = await _authService.PartialUpdateProfileAsync(
             userId,
             patchDto.FullName,
-            patchDto.Email
-        );
+            patchDto.Email).ConfigureAwait(false);
         return Ok(updatedUser);
     }
 }

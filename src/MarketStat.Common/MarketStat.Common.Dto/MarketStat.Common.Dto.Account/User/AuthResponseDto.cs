@@ -1,6 +1,6 @@
-using System.Text.Json.Serialization;
+namespace MarketStat.Common.Dto.Account.User;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
+using System.Text.Json.Serialization;
 
 public class AuthResponseDto
 {

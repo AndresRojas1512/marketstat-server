@@ -1,10 +1,10 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-
 namespace MarketStat.Tests.TestData.Builders.Dimensions;
+
+using MarketStat.Common.Core.Dimensions;
 
 public class DimEducationBuilder
 {
-    private int _educationId = 0;
+    private int _educationId;
     private string _specialtyName = "Computer Science";
     private string _specialtyCode = "09.03.01";
     private string _educationLevelName = "Bachelor's Degree";
@@ -26,20 +26,19 @@ public class DimEducationBuilder
         _specialtyCode = code;
         return this;
     }
-    
+
     public DimEducationBuilder WithEducationLevelName(string levelName)
     {
         _educationLevelName = levelName;
         return this;
     }
-    
+
     public DimEducation Build()
     {
         return new DimEducation(
             _educationId,
             _specialtyName,
             _specialtyCode,
-            _educationLevelName
-        );
+            _educationLevelName);
     }
 }

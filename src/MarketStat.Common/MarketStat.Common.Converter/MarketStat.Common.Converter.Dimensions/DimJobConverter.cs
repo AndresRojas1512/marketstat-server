@@ -1,24 +1,28 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Models;
 
-namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
+namespace MarketStat.Common.Converter.Dimensions;
 
-public class DimJobConverter
+public static class DimJobConverter
 {
     public static DimJobDbModel ToDbModel(DimJob domain)
     {
+        ArgumentNullException.ThrowIfNull(domain);
+
         return new DimJobDbModel
         {
             JobId = domain.JobId,
             JobRoleTitle = domain.JobRoleTitle,
             StandardJobRoleTitle = domain.StandardJobRoleTitle,
             HierarchyLevelName = domain.HierarchyLevelName,
-            IndustryFieldId = domain.IndustryFieldId
+            IndustryFieldId = domain.IndustryFieldId,
         };
     }
 
     public static DimJob ToDomain(DimJobDbModel dbModel)
     {
+        ArgumentNullException.ThrowIfNull(dbModel);
+
         return new DimJob
         {
             JobId = dbModel.JobId,
@@ -28,7 +32,7 @@ public class DimJobConverter
             IndustryFieldId = dbModel.IndustryFieldId,
             IndustryField = dbModel.IndustryField != null
                 ? DimIndustryFieldConverter.ToDomain(dbModel.IndustryField)
-                : null
+                : null,
         };
     }
 }

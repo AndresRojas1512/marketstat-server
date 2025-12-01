@@ -1,13 +1,13 @@
+namespace MarketStat.Controllers.Facts;
+
 using AutoMapper;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Payloads;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
+using MarketStat.Common.Core.Facts.Analytics.Requests;
+using MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Dto.Facts.Analytics.Payloads;
+using MarketStat.Common.Dto.Facts.Analytics.Requests;
 using MarketStat.Services.Facts.FactSalaryService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-namespace MarketStat.Controllers.Facts;
 
 [ApiController]
 [Route("api/factsalaries")]
@@ -29,6 +29,7 @@ public class FactSalaryController : ControllerBase
     /// Gets a specific salary fact record by its ID.
     /// </summary>
     /// <param name="id">The ID of the salary fact.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpGet("{id:long}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(FactSalaryDto), StatusCodes.Status200OK)]
@@ -44,7 +45,8 @@ public class FactSalaryController : ControllerBase
             _logger.LogWarning("GetSalaryById called with invalid SalaryFactId: {SalaryFactId}", id);
             return BadRequest(new { Message = "Invalid SalaryFactId." });
         }
-        var salaryFactDomain = await _factSalaryService.GetFactSalaryByIdAsync(id);
+
+        var salaryFactDomain = await _factSalaryService.GetFactSalaryByIdAsync(id).ConfigureAwait(false);
         var salaryFactDto = _mapper.Map<FactSalaryDto>(salaryFactDomain);
         _logger.LogInformation("Successfully retrieved salary fact with ID: {SalaryFactId}", id);
         return Ok(salaryFactDto);
@@ -54,6 +56,7 @@ public class FactSalaryController : ControllerBase
     /// Gets salary fact records based on filter criteria (using IDs).
     /// </summary>
     /// <param name="filterDto">The filter criteria.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpGet]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(IEnumerable<FactSalaryDto>), StatusCodes.Status200OK)]
@@ -64,7 +67,7 @@ public class FactSalaryController : ControllerBase
     {
         _logger.LogInformation("Controller: Attempting to get salary facts by filter: {@FilterDto}", filterDto);
         var request = _mapper.Map<AnalysisFilterRequest>(filterDto);
-        var salaryFactsDomain = await _factSalaryService.GetFactSalariesByFilterAsync(request);
+        var salaryFactsDomain = await _factSalaryService.GetFactSalariesByFilterAsync(request).ConfigureAwait(false);
         var salaryFactDtos = _mapper.Map<IEnumerable<FactSalaryDto>>(salaryFactsDomain);
         _logger.LogInformation("Controller: Successfully retrieved {Count} salary facts for filter.", salaryFactDtos.Count());
         return Ok(salaryFactDtos);
@@ -74,6 +77,7 @@ public class FactSalaryController : ControllerBase
     /// Creates a new salary fact record.
     /// </summary>
     /// <param name="createDto">The DTO containing data for the new salary fact.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(FactSalaryDto), StatusCodes.Status201Created)]
@@ -84,16 +88,21 @@ public class FactSalaryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<FactSalaryDto>> CreateSalaryFact([FromBody] CreateFactSalaryDto createDto)
     {
+        ArgumentNullException.ThrowIfNull(createDto);
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+
         _logger.LogInformation("Attempting to create a new salary fact with data: {@CreateDto}", createDto);
-        
+
         var createdSalaryFactDomain = await _factSalaryService.CreateFactSalaryAsync(
-            createDto.DateId, createDto.LocationId, createDto.EmployerId, createDto.JobId,
-            createDto.EmployeeId, createDto.SalaryAmount
-        );
+            createDto.DateId,
+            createDto.LocationId,
+            createDto.EmployerId,
+            createDto.JobId,
+            createDto.EmployeeId,
+            createDto.SalaryAmount).ConfigureAwait(false);
         var resultDto = _mapper.Map<FactSalaryDto>(createdSalaryFactDomain);
         _logger.LogInformation("Successfully created salary fact with ID: {SalaryFactId}", resultDto.SalaryFactId);
         return CreatedAtAction(nameof(GetSalaryById), new { id = resultDto.SalaryFactId }, resultDto);
@@ -104,6 +113,7 @@ public class FactSalaryController : ControllerBase
     /// </summary>
     /// <param name="id">The ID of the salary fact to update.</param>
     /// <param name="updateDto">The DTO containing updated data.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpPut("{id:long}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -114,20 +124,27 @@ public class FactSalaryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateSalaryFact(long id, [FromBody] UpdateFactSalaryDto updateDto)
     {
+        ArgumentNullException.ThrowIfNull(updateDto);
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        if (id <= 0) 
+
+        if (id <= 0)
         {
             return BadRequest(new { Message = "Invalid SalaryFactId." });
         }
+
         _logger.LogInformation("Attempting to update salary fact with ID: {SalaryFactId} using data: {@UpdateDto}", id, updateDto);
-        
+
         await _factSalaryService.UpdateFactSalaryAsync(
-            id, updateDto.DateId, updateDto.LocationId, updateDto.EmployerId, updateDto.JobId,
-            updateDto.EmployeeId, updateDto.SalaryAmount
-        );
+            id,
+            updateDto.DateId,
+            updateDto.LocationId,
+            updateDto.EmployerId,
+            updateDto.JobId,
+            updateDto.EmployeeId,
+            updateDto.SalaryAmount).ConfigureAwait(false);
         _logger.LogInformation("Successfully updated salary fact with ID: {SalaryFactId}", id);
         return NoContent();
     }
@@ -136,6 +153,7 @@ public class FactSalaryController : ControllerBase
     /// Deletes a salary fact record by its ID.
     /// </summary>
     /// <param name="id">The ID of the salary fact to delete.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpDelete("{id:long}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -147,16 +165,16 @@ public class FactSalaryController : ControllerBase
     {
         if (id <= 0)
         {
-             return BadRequest(new { Message = "Invalid SalaryFactId." });
+            return BadRequest(new { Message = "Invalid SalaryFactId." });
         }
+
         _logger.LogInformation("Attempting to delete salary fact with ID: {SalaryFactId}", id);
-        await _factSalaryService.DeleteFactSalaryAsync(id); 
+        await _factSalaryService.DeleteFactSalaryAsync(id).ConfigureAwait(false);
         _logger.LogInformation("Successfully deleted salary fact with ID: {SalaryFactId}", id);
         return NoContent();
     }
-    
-    // Authorized analytical endpoints
 
+    // Authorized analytical endpoints
     [HttpGet("distribution")]
     [Authorize(Roles = "Admin, Analyst")]
     [ProducesResponseType(typeof(List<SalaryDistributionBucketDto>), StatusCodes.Status200OK)]
@@ -166,7 +184,7 @@ public class FactSalaryController : ControllerBase
     {
         _logger.LogInformation("User requesting salary distribution: {@Filters}", filters);
         var request = _mapper.Map<AnalysisFilterRequest>(filters);
-        var domainResult = await _factSalaryService.GetSalaryDistributionAsync(request);
+        var domainResult = await _factSalaryService.GetSalaryDistributionAsync(request).ConfigureAwait(false);
         var dtos = _mapper.Map<List<SalaryDistributionBucketDto>>(domainResult);
         return Ok(dtos);
     }
@@ -179,7 +197,7 @@ public class FactSalaryController : ControllerBase
     {
         _logger.LogInformation("User requesting salary summary: {@RequestDto}", requestDto);
         var request = _mapper.Map<SalarySummaryRequest>(requestDto);
-        var domainResult = await _factSalaryService.GetSalarySummaryAsync(request);
+        var domainResult = await _factSalaryService.GetSalarySummaryAsync(request).ConfigureAwait(false);
         var dto = _mapper.Map<SalarySummaryDto>(domainResult);
         return Ok(dto);
     }
@@ -192,13 +210,12 @@ public class FactSalaryController : ControllerBase
     {
         _logger.LogInformation("User requesting salary time series: {@RequestDto}", requestDto);
         var request = _mapper.Map<TimeSeriesRequest>(requestDto);
-        var domainResult = await _factSalaryService.GetSalaryTimeSeriesAsync(request);
+        var domainResult = await _factSalaryService.GetSalaryTimeSeriesAsync(request).ConfigureAwait(false);
         var dtos = _mapper.Map<List<SalaryTimeSeriesPointDto>>(domainResult);
         return Ok(dtos);
     }
-    
-    // Public analytical endpoints
 
+    // Public analytical endpoints
     [HttpGet("public/roles")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<PublicRoleByLocationIndustryDto>), StatusCodes.Status200OK)]
@@ -208,7 +225,7 @@ public class FactSalaryController : ControllerBase
     {
         _logger.LogInformation("Public request for roles: {@RequestDto}", requestDto);
         var request = _mapper.Map<PublicRolesRequest>(requestDto);
-        var domainResult = await _factSalaryService.GetPublicRolesAsync(request);
+        var domainResult = await _factSalaryService.GetPublicRolesAsync(request).ConfigureAwait(false);
         var dtos = _mapper.Map<IEnumerable<PublicRoleByLocationIndustryDto>>(domainResult);
         return Ok(dtos);
     }

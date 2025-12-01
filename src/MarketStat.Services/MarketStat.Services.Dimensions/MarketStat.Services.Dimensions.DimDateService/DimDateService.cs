@@ -1,4 +1,4 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimDateService.Validators;
@@ -16,20 +16,20 @@ public class DimDateService : IDimDateService
         _dimDateRepository = dimDateRepository;
         _logger = logger;
     }
-    
+
     public async Task<DimDate> CreateDateAsync(DateOnly fullDate)
     {
         DimDateValidator.ValidateForCreate(fullDate);
-        
-        var year    = fullDate.Year;
-        var month   = fullDate.Month;
-        var quarter = (month - 1) / 3 + 1;
-        
+
+        var year = fullDate.Year;
+        var month = fullDate.Month;
+        var quarter = ((month - 1) / 3) + 1;
+
         var date = new DimDate(0, fullDate, year, quarter, month);
 
         try
         {
-            await _dimDateRepository.AddDateAsync(date);
+            await _dimDateRepository.AddDateAsync(date).ConfigureAwait(false);
             _logger.LogInformation("Created date {DateId}", date.DateId);
             return date;
         }
@@ -39,12 +39,12 @@ public class DimDateService : IDimDateService
             throw;
         }
     }
-    
+
     public async Task<DimDate> GetDateByIdAsync(int dateId)
     {
         try
         {
-            return await _dimDateRepository.GetDateByIdAsync(dateId);
+            return await _dimDateRepository.GetDateByIdAsync(dateId).ConfigureAwait(false);
         }
         catch (NotFoundException ex)
         {
@@ -52,27 +52,27 @@ public class DimDateService : IDimDateService
             throw;
         }
     }
-    
+
     public async Task<IEnumerable<DimDate>> GetAllDatesAsync()
     {
-        var list = await _dimDateRepository.GetAllDatesAsync();
+        var list = await _dimDateRepository.GetAllDatesAsync().ConfigureAwait(false);
         _logger.LogInformation("Fetched {Count} date records", list.Count());
         return list;
     }
-    
+
     public async Task<DimDate> UpdateDateAsync(int dateId, DateOnly fullDate)
     {
         DimDateValidator.ValidateForUpdate(dateId, fullDate);
         try
         {
-            var existing = await _dimDateRepository.GetDateByIdAsync(dateId);
+            var existing = await _dimDateRepository.GetDateByIdAsync(dateId).ConfigureAwait(false);
 
             existing.FullDate = fullDate;
             existing.Year = fullDate.Year;
             existing.Month = fullDate.Month;
-            existing.Quarter = (fullDate.Month - 1) / 3 + 1;
+            existing.Quarter = ((fullDate.Month - 1) / 3) + 1;
 
-            await _dimDateRepository.UpdateDateAsync(existing);
+            await _dimDateRepository.UpdateDateAsync(existing).ConfigureAwait(false);
             _logger.LogInformation("Updated date {DateId}", dateId);
             return existing;
         }
@@ -87,12 +87,12 @@ public class DimDateService : IDimDateService
             throw;
         }
     }
-    
+
     public async Task DeleteDateAsync(int dateId)
     {
         try
         {
-            await _dimDateRepository.DeleteDateAsync(dateId);
+            await _dimDateRepository.DeleteDateAsync(dateId).ConfigureAwait(false);
             _logger.LogInformation("Deleted date {DateId}", dateId);
         }
         catch (NotFoundException ex)

@@ -1,7 +1,7 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using MarketStat.Tests.TestData.Builders.Dimensions;
-
 namespace MarketStat.Tests.TestData.ObjectMothers.Dimensions;
+
+using MarketStat.Common.Core.Dimensions;
+using MarketStat.Tests.TestData.Builders.Dimensions;
 
 public static class DimLocationObjectMother
 {
@@ -12,7 +12,7 @@ public static class DimLocationObjectMother
             .WithOblastName("Sverdlovsk Oblast")
             .WithDistrictName("Ural Federal District")
             .Build();
-    
+
     public static DimLocation AnExistingLocation() =>
         new DimLocationBuilder()
             .WithId(1)
@@ -20,7 +20,7 @@ public static class DimLocationObjectMother
             .WithOblastName("Moscow")
             .WithDistrictName("Central Federal District")
             .Build();
-    
+
     public static DimLocation ASecondExistingLocation() =>
         new DimLocationBuilder()
             .WithId(2)
@@ -28,13 +28,13 @@ public static class DimLocationObjectMother
             .WithOblastName("Saint Petersburg")
             .WithDistrictName("Northwestern Federal District")
             .Build();
-    
+
     public static IEnumerable<DimLocation> SomeLocations()
     {
         return new List<DimLocation>
         {
             AnExistingLocation(),
-            ASecondExistingLocation()
+            ASecondExistingLocation(),
         };
     }
 }

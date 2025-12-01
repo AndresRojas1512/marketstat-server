@@ -1,4 +1,6 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
+namespace MarketStat.Repository.Tests;
+
+using MarketStat.Common.Core.Facts;
 using MarketStat.Common.Enums;
 using MarketStat.Database.Context;
 using MarketStat.Database.Models;
@@ -6,12 +8,8 @@ using MarketStat.Database.Repositories.PostgresRepositories.Facts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace MarketStat.Repository.Tests;
-
-public class DatabaseFixture : IDisposable
+public sealed class DatabaseFixture : IDisposable
 {
-    public readonly DbContextOptions<MarketStatDbContext> Options;
-
     public DatabaseFixture()
     {
         Options = new DbContextOptionsBuilder<MarketStatDbContext>()
@@ -22,10 +20,12 @@ public class DatabaseFixture : IDisposable
         WarmupEfAndRepositories(context);
     }
 
+    public DbContextOptions<MarketStatDbContext> Options { get; }
+
     public MarketStatDbContext CreateCleanContext()
     {
         var context = new MarketStatDbContext(Options);
-        
+
         // context.DimDates.RemoveRange(context.DimDates);
         // context.DimEducations.RemoveRange(context.DimEducations);
         // context.DimEmployees.RemoveRange(context.DimEmployees);
@@ -35,10 +35,9 @@ public class DatabaseFixture : IDisposable
         // context.DimLocations.RemoveRange(context.DimLocations);
         //
         // context.FactSalaries.RemoveRange(context.FactSalaries);
-        
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
-        
+
         return context;
     }
 
@@ -47,7 +46,7 @@ public class DatabaseFixture : IDisposable
         using var context = new MarketStatDbContext(Options);
         context.Database.EnsureDeleted();
     }
-    
+
     private static void WarmupEfAndRepositories(MarketStatDbContext context)
     {
         if (!context.DimDates.Any())
@@ -58,44 +57,43 @@ public class DatabaseFixture : IDisposable
                 FullDate = new DateOnly(2024, 1, 1),
                 Year = 2024,
                 Quarter = 1,
-                Month = 1
+                Month = 1,
             });
             context.DimLocations.Add(new DimLocationDbModel
             {
                 LocationId = 1,
                 CityName = "WarmupCity",
                 OblastName = "WarmupOblast",
-                DistrictName = "WarmupDistrict"
+                DistrictName = "WarmupDistrict",
             });
             context.DimIndustryFields.Add(new DimIndustryFieldDbModel
             {
                 IndustryFieldId = 1,
                 IndustryFieldName = "Warmup",
-                IndustryFieldCode = "W.00"
+                IndustryFieldCode = "W.00",
             });
             context.DimJobs.Add(new DimJobDbModel
             {
                 JobId = 1,
                 StandardJobRoleTitle = "WarmupRole",
                 HierarchyLevelName = "Mid",
-                IndustryFieldId = 1
+                IndustryFieldId = 1,
             });
             context.DimEmployers.Add(new DimEmployerDbModel
             {
                 EmployerId = 1,
-                EmployerName = "Warmup Corp"
+                EmployerName = "Warmup Corp",
             });
             context.DimEmployees.Add(new DimEmployeeDbModel
             {
                 EmployeeId = 1,
-                EmployeeRefId = "emp-warmup"
+                EmployeeRefId = "emp-warmup",
             });
 
             context.SaveChanges();
 
             var repo = new FactSalaryRepository(
-                context
-            );
+                context);
 
             var fs = new FactSalary
             {
@@ -105,7 +103,7 @@ public class DatabaseFixture : IDisposable
                 EmployerId = 1,
                 JobId = 1,
                 EmployeeId = 1,
-                SalaryAmount = 100
+                SalaryAmount = 100,
             };
 
             repo.AddFactSalaryAsync(fs).GetAwaiter().GetResult();
@@ -115,7 +113,7 @@ public class DatabaseFixture : IDisposable
                 DateStart = new DateOnly(2024, 1, 1),
                 DateEnd = new DateOnly(2024, 12, 31),
                 JobIds = new List<int> { 1 },
-                LocationIds = new List<int> { 1 }
+                LocationIds = new List<int> { 1 },
             };
 
             repo.GetFactSalariesByFilterAsync(filter).GetAwaiter().GetResult();

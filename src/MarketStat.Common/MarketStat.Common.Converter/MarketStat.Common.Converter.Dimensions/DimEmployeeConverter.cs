@@ -1,14 +1,13 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Models;
 
-namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
+namespace MarketStat.Common.Converter.Dimensions;
 
 public static class DimEmployeeConverter
 {
     public static DimEmployeeDbModel ToDbModel(DimEmployee domainEmployee)
     {
-        if (domainEmployee == null)
-            throw new ArgumentNullException(nameof(domainEmployee));
+        ArgumentNullException.ThrowIfNull(domainEmployee);
 
         return new DimEmployeeDbModel
         {
@@ -18,14 +17,13 @@ public static class DimEmployeeConverter
             CareerStartDate = domainEmployee.CareerStartDate,
             Gender = domainEmployee.Gender,
             EducationId = domainEmployee.EducationId,
-            GraduationYear = domainEmployee.GraduationYear
+            GraduationYear = domainEmployee.GraduationYear,
         };
     }
-    
+
     public static DimEmployee ToDomain(DimEmployeeDbModel dbEmployee)
     {
-        if (dbEmployee == null)
-            throw new ArgumentNullException(nameof(dbEmployee));
+        ArgumentNullException.ThrowIfNull(dbEmployee);
 
         return new DimEmployee
         {
@@ -35,7 +33,7 @@ public static class DimEmployeeConverter
             CareerStartDate = dbEmployee.CareerStartDate,
             Gender = dbEmployee.Gender,
             EducationId = dbEmployee.EducationId,
-            GraduationYear = dbEmployee.GraduationYear
+            GraduationYear = dbEmployee.GraduationYear,
         };
     }
 }

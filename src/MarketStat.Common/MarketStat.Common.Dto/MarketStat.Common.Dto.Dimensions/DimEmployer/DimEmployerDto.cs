@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimIndustryField;
+using MarketStat.Common.Dto.Dimensions.DimIndustryField;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions;
+namespace MarketStat.Common.Dto.Dimensions;
 
 public class DimEmployerDto
 {
@@ -31,10 +31,10 @@ public class DimEmployerDto
 
     [JsonPropertyName("contactPhone")]
     public string ContactPhone { get; init; } = string.Empty;
-    
+
     [JsonPropertyName("industryFieldId")]
     public int IndustryFieldId { get; init; }
-    
+
     [JsonPropertyName("industryField")]
     public DimIndustryFieldDto? IndustryField { get; init; }
 }

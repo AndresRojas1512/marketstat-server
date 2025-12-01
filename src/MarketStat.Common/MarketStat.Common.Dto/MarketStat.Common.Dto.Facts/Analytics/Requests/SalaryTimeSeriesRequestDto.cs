@@ -1,7 +1,7 @@
+namespace MarketStat.Common.Dto.Facts.Analytics.Requests;
+
 using System.ComponentModel.DataAnnotations;
 using MarketStat.Common.Enums;
-
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
 
 public class SalaryTimeSeriesRequestDto : SalaryFilterDto
 {

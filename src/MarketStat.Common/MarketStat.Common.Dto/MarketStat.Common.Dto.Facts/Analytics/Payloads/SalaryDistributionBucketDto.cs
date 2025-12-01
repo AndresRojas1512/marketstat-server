@@ -1,6 +1,6 @@
-using System.Text.Json.Serialization;
+namespace MarketStat.Common.Dto.Facts.Analytics.Payloads;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Payloads;
+using System.Text.Json.Serialization;
 
 public class SalaryDistributionBucketDto
 {

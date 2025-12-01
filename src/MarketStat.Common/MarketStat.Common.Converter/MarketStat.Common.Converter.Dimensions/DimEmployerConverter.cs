@@ -1,14 +1,13 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Models;
 
-namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
+namespace MarketStat.Common.Converter.Dimensions;
 
 public static class DimEmployerConverter
 {
     public static DimEmployerDbModel ToDbModel(DimEmployer domainEmployer)
     {
-        if (domainEmployer == null)
-            throw new ArgumentNullException(nameof(domainEmployer));
+        ArgumentNullException.ThrowIfNull(domainEmployer);
 
         return new DimEmployerDbModel
         {
@@ -21,15 +20,14 @@ public static class DimEmployerConverter
             LegalAddress = domainEmployer.LegalAddress,
             ContactEmail = domainEmployer.ContactEmail,
             ContactPhone = domainEmployer.ContactPhone,
-            IndustryFieldId = domainEmployer.IndustryFieldId
+            IndustryFieldId = domainEmployer.IndustryFieldId,
         };
     }
 
     public static DimEmployer ToDomain(DimEmployerDbModel dbEmployer)
     {
-        if (dbEmployer == null)
-            throw new ArgumentNullException(nameof(dbEmployer));
-        
+        ArgumentNullException.ThrowIfNull(dbEmployer);
+
         return new DimEmployer
         {
             EmployerId = dbEmployer.EmployerId,
@@ -41,7 +39,7 @@ public static class DimEmployerConverter
             LegalAddress = dbEmployer.LegalAddress,
             ContactEmail = dbEmployer.ContactEmail,
             ContactPhone = dbEmployer.ContactPhone,
-            IndustryFieldId = dbEmployer.IndustryFieldId
+            IndustryFieldId = dbEmployer.IndustryFieldId,
         };
     }
 }

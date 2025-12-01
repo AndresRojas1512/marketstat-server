@@ -1,12 +1,7 @@
-namespace MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+namespace MarketStat.Common.Core.Dimensions;
 
 public class DimLocation
 {
-    public int LocationId { get; set; }
-    public string CityName { get; set; }
-    public string OblastName { get; set; }
-    public string DistrictName { get; set; }
-
     public DimLocation()
     {
         CityName = string.Empty;
@@ -21,4 +16,12 @@ public class DimLocation
         OblastName = oblastName;
         DistrictName = districtName;
     }
+
+    public int LocationId { get; set; }
+
+    public string CityName { get; set; }
+
+    public string OblastName { get; set; }
+
+    public string DistrictName { get; set; }
 }

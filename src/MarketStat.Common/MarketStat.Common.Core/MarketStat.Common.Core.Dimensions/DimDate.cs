@@ -1,13 +1,7 @@
-namespace MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+namespace MarketStat.Common.Core.Dimensions;
 
 public class DimDate
 {
-    public int DateId { get; set; }
-    public DateOnly FullDate { get; set; }
-    public int Year { get; set; }
-    public int Quarter { get; set; }
-    public int Month { get; set; }
-
     public DimDate()
     {
     }
@@ -20,4 +14,14 @@ public class DimDate
         Quarter = quarter;
         Month = month;
     }
+
+    public int DateId { get; set; }
+
+    public DateOnly FullDate { get; set; }
+
+    public int Year { get; set; }
+
+    public int Quarter { get; set; }
+
+    public int Month { get; set; }
 }

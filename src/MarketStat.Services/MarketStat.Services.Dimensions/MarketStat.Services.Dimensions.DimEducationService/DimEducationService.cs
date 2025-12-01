@@ -1,10 +1,11 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using MarketStat.Common.Exceptions;
-using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimEducationService.Validators;
-using Microsoft.Extensions.Logging;
 
 namespace MarketStat.Services.Dimensions.DimEducationService;
+
+using MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Exceptions;
+using MarketStat.Database.Core.Repositories.Dimensions;
+using Microsoft.Extensions.Logging;
 
 public class DimEducationService : IDimEducationService
 {
@@ -16,21 +17,20 @@ public class DimEducationService : IDimEducationService
         _dimEducationRepository = dimEducationRepository;
         _logger = logger;
     }
-    
+
     public async Task<DimEducation> CreateEducationAsync(string specialtyName, string specialtyCode, string educationLevelName)
     {
         DimEducationValidator.ValidateForCreate(specialtyName, specialtyCode, educationLevelName);
         var education = new DimEducation(0, specialtyName, specialtyCode, educationLevelName);
         try
         {
-            await _dimEducationRepository.AddEducationAsync(education);
+            await _dimEducationRepository.AddEducationAsync(education).ConfigureAwait(false);
             _logger.LogInformation("Created education {EducationID}", education.EducationId);
             return education;
         }
         catch (ConflictException ex)
         {
-            _logger.LogError(ex, "Conflict creating education {EducationId} with code {SpecialtyCode}",
-                education.EducationId, education.SpecialtyCode);
+            _logger.LogError(ex, "Conflict creating education {EducationId} with code {SpecialtyCode}", education.EducationId, education.SpecialtyCode);
             throw;
         }
         catch (NotFoundException ex)
@@ -39,12 +39,12 @@ public class DimEducationService : IDimEducationService
             throw;
         }
     }
-    
+
     public async Task<DimEducation> GetEducationByIdAsync(int educationId)
     {
         try
         {
-            return await _dimEducationRepository.GetEducationByIdAsync(educationId);
+            return await _dimEducationRepository.GetEducationByIdAsync(educationId).ConfigureAwait(false);
         }
         catch (NotFoundException ex)
         {
@@ -52,26 +52,26 @@ public class DimEducationService : IDimEducationService
             throw;
         }
     }
-    
+
     public async Task<IEnumerable<DimEducation>> GetAllEducationsAsync()
     {
-        var list = await _dimEducationRepository.GetAllEducationsAsync();
+        var list = await _dimEducationRepository.GetAllEducationsAsync().ConfigureAwait(false);
         _logger.LogInformation("Fetched {Count} education records", list.Count());
         return list;
     }
-    
+
     public async Task<DimEducation> UpdateEducationAsync(int educationId, string specialtyName, string specialtyCode, string educationLevelName)
     {
         DimEducationValidator.ValidateForUpdate(educationId, specialtyName, specialtyCode, educationLevelName);
         try
         {
-            var existing = await _dimEducationRepository.GetEducationByIdAsync(educationId);
+            var existing = await _dimEducationRepository.GetEducationByIdAsync(educationId).ConfigureAwait(false);
 
             existing.SpecialtyName = specialtyName;
             existing.SpecialtyCode = specialtyCode;
             existing.EducationLevelName = educationLevelName;
 
-            await _dimEducationRepository.UpdateEducationAsync(existing);
+            await _dimEducationRepository.UpdateEducationAsync(existing).ConfigureAwait(false);
             _logger.LogInformation("Updated education {Id}", educationId);
             return existing;
         }
@@ -86,12 +86,12 @@ public class DimEducationService : IDimEducationService
             throw;
         }
     }
-    
+
     public async Task DeleteEducationAsync(int educationId)
     {
         try
         {
-            await _dimEducationRepository.DeleteEducationAsync(educationId);
+            await _dimEducationRepository.DeleteEducationAsync(educationId).ConfigureAwait(false);
             _logger.LogInformation("Deleted education {Id}", educationId);
         }
         catch (NotFoundException ex)

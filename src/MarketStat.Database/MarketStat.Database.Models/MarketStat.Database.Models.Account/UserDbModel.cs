@@ -1,11 +1,18 @@
+namespace MarketStat.Database.Models.Account;
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
-namespace MarketStat.Database.Models.MarketStat.Database.Models.Account;
 
 [Table("users")]
 public class UserDbModel
 {
+    public UserDbModel()
+    {
+        IsActive = true;
+        CreatedAt = DateTimeOffset.UtcNow;
+        IsAdmin = false;
+    }
+
     [Key]
     [Column("user_id")]
     public int UserId { get; set; }
@@ -22,7 +29,7 @@ public class UserDbModel
     [Required]
     [Column("email")]
     [StringLength(255)]
-    public string Email { get; set; } = string.Empty; 
+    public string Email { get; set; } = string.Empty;
 
     [Required]
     [Column("full_name")]
@@ -37,15 +44,8 @@ public class UserDbModel
 
     [Column("last_login_at")]
     public DateTimeOffset? LastLoginAt { get; set; }
-    
+
     [Required]
     [Column("is_admin")]
     public bool IsAdmin { get; set; }
-    
-    public UserDbModel()
-    {
-        IsActive = true;
-        CreatedAt = DateTimeOffset.UtcNow;
-        IsAdmin = false;
-    }
 }

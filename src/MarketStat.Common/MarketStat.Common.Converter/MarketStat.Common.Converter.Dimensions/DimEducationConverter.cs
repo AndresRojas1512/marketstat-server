@@ -1,33 +1,31 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Models;
 
-namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
+namespace MarketStat.Common.Converter.Dimensions;
 
-public class DimEducationConverter
+public static class DimEducationConverter
 {
     public static DimEducationDbModel ToDbModel(DimEducation dimEducation)
     {
-        if (dimEducation == null)
-            throw new ArgumentNullException(nameof(dimEducation));
+        ArgumentNullException.ThrowIfNull(dimEducation);
+
         return new DimEducationDbModel
         {
             EducationId = dimEducation.EducationId,
             SpecialtyName = dimEducation.SpecialtyName,
             SpecialtyCode = dimEducation.SpecialtyCode,
-            EducationLevelName = dimEducation.EducationLevelName
+            EducationLevelName = dimEducation.EducationLevelName,
         };
     }
 
     public static DimEducation ToDomain(DimEducationDbModel dbEducation)
     {
-        if (dbEducation == null)
-            throw new ArgumentNullException(nameof(dbEducation));
-        
+        ArgumentNullException.ThrowIfNull(dbEducation);
+
         return new DimEducation(
             dbEducation.EducationId,
             dbEducation.SpecialtyName,
             dbEducation.SpecialtyCode,
-            dbEducation.EducationLevelName
-        );
+            dbEducation.EducationLevelName);
     }
 }

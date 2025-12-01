@@ -1,17 +1,22 @@
+namespace MarketStat.Services.Auth.AuthService;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
-using MarketStat.Database.Core.Repositories.Account;
-using Microsoft.Extensions.Configuration;
+using System.Threading.Tasks;
 using AutoMapper;
-using MarketStat.Common.Core.MarketStat.Common.Core.Account;
+using MarketStat.Common.Core.Account;
+using MarketStat.Common.Dto.Account.User;
 using MarketStat.Common.Exceptions;
+using MarketStat.Database.Core.Repositories.Account;
 using MarketStat.Services.Auth.AuthService.Validators;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-
-namespace MarketStat.Services.Auth.AuthService;
 
 public class AuthService : IAuthService
 {
@@ -34,18 +39,19 @@ public class AuthService : IAuthService
 
     public async Task<UserDto> RegisterAsync(RegisterUserDto registerDto)
     {
+        ArgumentNullException.ThrowIfNull(registerDto);
         UserValidator.ValidateRegistration(registerDto);
         _logger.LogInformation("Attempting to register user: {Username}", registerDto.Username);
 
-        if (await _userRepository.UserExistsAsync(registerDto.Username, registerDto.Email))
+        if (await _userRepository.UserExistsAsync(registerDto.Username, registerDto.Email).ConfigureAwait(false))
         {
             _logger.LogWarning("Registration failed for {Username}: Username or email already exists.", registerDto.Username);
             throw new ConflictException("User with the same username or email already exists.");
         }
 
         string passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
-            
-        var newUserDomain = new User() 
+
+        var newUserDomain = new User()
         {
             Username = registerDto.Username,
             PasswordHash = passwordHash,
@@ -53,110 +59,43 @@ public class AuthService : IAuthService
             FullName = registerDto.FullName,
             IsActive = true,
             CreatedAt = DateTimeOffset.UtcNow,
-            IsAdmin = registerDto.IsAdmin
+            IsAdmin = registerDto.IsAdmin,
         };
 
-        var createdUserDomain = await _userRepository.AddUserAsync(newUserDomain);
-        _logger.LogInformation("User {Username} registered successfully with ID {UserId} (IsEtlUser: {IsEtlUser})", 
-            createdUserDomain.Username, createdUserDomain.UserId, createdUserDomain.IsAdmin);
+        var createdUserDomain = await _userRepository.AddUserAsync(newUserDomain).ConfigureAwait(false);
+        _logger.LogInformation(
+            "User {Username} registered successfully with ID {UserId} (IsEtlUser: {IsEtlUser})",
+            createdUserDomain.Username,
+            createdUserDomain.UserId,
+            createdUserDomain.IsAdmin);
 
         return _mapper.Map<UserDto>(createdUserDomain);
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginDto)
     {
+        ArgumentNullException.ThrowIfNull(loginDto);
+
         UserValidator.ValidateLogin(loginDto);
         _logger.LogInformation("Attempting login for user: {Username}", loginDto.Username);
 
-        User userDomain;
-        try
-        {
-            userDomain = await _userRepository.GetUserByUsernameAsync(loginDto.Username);
-        }
-        catch (NotFoundException)
-        {
-            _logger.LogWarning("Login failed for user {Username}: User not found.", loginDto.Username);
-            throw new Common.Exceptions.AuthenticationException("Invalid username or password.");
-        }
+        var userDomain = await AuthenticateUserAsync(loginDto.Username, loginDto.Password).ConfigureAwait(false);
 
-        if (!userDomain.IsActive)
-        {
-            _logger.LogWarning("Login failed for user {Username}: Account is not active.", loginDto.Username);
-            throw new Common.Exceptions.AuthenticationException("User account is inactive.");
-        }
+        await UpdateLastLoginSafeAsync(userDomain).ConfigureAwait(false);
 
-        if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, userDomain.PasswordHash))
-        {
-            _logger.LogWarning("Login failed for user {Username}: Invalid password.", loginDto.Username);
-            throw new Common.Exceptions.AuthenticationException("Invalid username or password.");
-        }
+        // Refactoring: Moved logic to private method to fix CA1506 coupling
+        var token = GenerateJwtToken(userDomain);
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-        userDomain.LastLoginAt = DateTimeOffset.UtcNow;
-        try
-        {
-            await _userRepository.UpdateUserAsync(userDomain);
-        }
-        catch(Exception ex) 
-        {
-            _logger.LogError(ex, "Error updating LastLoginAt for user {Username}. Login will proceed.", userDomain.Username);
-        }
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var jwtKey = _configuration["JwtSettings:Key"];
-        var jwtIssuer = _configuration["JwtSettings:Issuer"];
-        var jwtAudience = _configuration["JwtSettings:Audience"];
-        var jwtExpiresMinutes = _configuration.GetValue<int>("JwtSettings:ExpiresInMinutes", 60);
-
-        if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
-        {
-            _logger.LogCritical("JWT settings (Key, Issuer, Audience) are not configured properly in appsettings.json. Cannot generate token.");
-            throw new ApplicationException("Authentication system configuration error. Please contact administrator.");
-        }
-        
-        var key = Encoding.ASCII.GetBytes(jwtKey);
-
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, userDomain.Username),
-            new Claim(ClaimTypes.NameIdentifier, userDomain.UserId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, userDomain.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-        string roleClaimValue;
-        if (userDomain.IsAdmin)
-        {
-            roleClaimValue = "Admin";
-            claims.Add(new Claim(ClaimTypes.Role, roleClaimValue));
-            _logger.LogInformation("User {Username} (ID: {UserId}) assigned 'Admin' role in JWT.", userDomain.Username, userDomain.UserId);
-        }
-        else
-        {
-            roleClaimValue = "Analyst";
-            claims.Add(new Claim(ClaimTypes.Role, roleClaimValue));
-            _logger.LogInformation("User {Username} (ID: {UserId}) assigned 'Analyst' role in JWT.", userDomain.Username, userDomain.UserId);
-        }
-
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(jwtExpiresMinutes),
-            Issuer = jwtIssuer,
-            Audience = jwtAudience,
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
-
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        var tokenString = tokenHandler.WriteToken(token);
-
-        _logger.LogInformation("User {Username} (RoleClaim: {UserRoleClaim}) logged in successfully. Token generated.", 
-            userDomain.Username, roleClaimValue);
+        _logger.LogInformation(
+            "User {Username} logged in successfully. Token generated.",
+            userDomain.Username);
 
         return new AuthResponseDto
         {
             Token = tokenString,
             Expiration = token.ValidTo,
-            User = _mapper.Map<UserDto>(userDomain)
+            User = _mapper.Map<UserDto>(userDomain),
         };
     }
 
@@ -166,12 +105,12 @@ public class AuthService : IAuthService
         UserValidator.ValidateProfileUpdate(fullName, email);
         try
         {
-            var existingUser = await _userRepository.GetUserByIdAsync(userId);
+            var existingUser = await _userRepository.GetUserByIdAsync(userId).ConfigureAwait(false);
 
             existingUser.FullName = fullName ?? existingUser.FullName;
             existingUser.Email = email ?? existingUser.Email;
 
-            await _userRepository.UpdateUserAsync(existingUser);
+            await _userRepository.UpdateUserAsync(existingUser).ConfigureAwait(false);
             _logger.LogInformation("Service: Successfully updated profile for User {UserId}", userId);
             return _mapper.Map<UserDto>(existingUser);
         }
@@ -185,5 +124,94 @@ public class AuthService : IAuthService
             _logger.LogWarning(ex, "Service: Conflict when updating profile for user {UserId}.", userId);
             throw;
         }
+    }
+
+    private async Task<User> AuthenticateUserAsync(string username, string password)
+    {
+        User userDomain;
+        try
+        {
+            userDomain = await _userRepository.GetUserByUsernameAsync(username).ConfigureAwait(false);
+        }
+        catch (NotFoundException)
+        {
+            _logger.LogWarning("Login failed for user {Username}: User not found.", username);
+            throw new AuthenticationException("Invalid username or password.");
+        }
+
+        if (!userDomain.IsActive)
+        {
+            _logger.LogWarning("Login failed for user {Username}: Account is not active.", username);
+            throw new AuthenticationException("User account is inactive.");
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(password, userDomain.PasswordHash))
+        {
+            _logger.LogWarning("Login failed for user {Username}: Invalid password.", username);
+            throw new AuthenticationException("Invalid username or password.");
+        }
+
+        return userDomain;
+    }
+
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Login should proceed even if stats update fails.")]
+    private async Task UpdateLastLoginSafeAsync(User user)
+    {
+        user.LastLoginAt = DateTimeOffset.UtcNow;
+        try
+        {
+            await _userRepository.UpdateUserAsync(user).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating LastLoginAt for user {Username}. Login will proceed.", user.Username);
+        }
+    }
+
+    private SecurityToken GenerateJwtToken(User user)
+    {
+        var jwtKey = _configuration["JwtSettings:Key"];
+        var jwtIssuer = _configuration["JwtSettings:Issuer"];
+        var jwtAudience = _configuration["JwtSettings:Audience"];
+        var jwtExpiresMinutes = _configuration.GetValue<int>("JwtSettings:ExpiresInMinutes", 60);
+
+        if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
+        {
+            _logger.LogCritical("JWT settings (Key, Issuer, Audience) are not configured properly in appsettings.json. Cannot generate token.");
+            throw new InvalidOperationException("Authentication system configuration error. Please contact administrator.");
+        }
+
+        var key = Encoding.ASCII.GetBytes(jwtKey);
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString(CultureInfo.InvariantCulture)),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        };
+
+        if (user.IsAdmin)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+            _logger.LogInformation("User {Username} (ID: {UserId}) assigned 'Admin' role in JWT.", user.Username, user.UserId);
+        }
+        else
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Analyst"));
+            _logger.LogInformation("User {Username} (ID: {UserId}) assigned 'Analyst' role in JWT.", user.Username, user.UserId);
+        }
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddMinutes(jwtExpiresMinutes),
+            Issuer = jwtIssuer,
+            Audience = jwtAudience,
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        return tokenHandler.CreateToken(tokenDescriptor);
     }
 }

@@ -1,14 +1,13 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
+using MarketStat.Common.Core.Facts;
+using MarketStat.Database.Models.Facts;
 
-namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
+namespace MarketStat.Common.Converter.Facts;
 
 public static class FactSalaryConverter
 {
     public static FactSalaryDbModel ToDbModel(FactSalary salary)
     {
-        if (salary == null)
-            throw new ArgumentNullException(nameof(salary));
+        ArgumentNullException.ThrowIfNull(salary);
 
         return new FactSalaryDbModel
         {
@@ -18,14 +17,13 @@ public static class FactSalaryConverter
             EmployerId = salary.EmployerId,
             JobId = salary.JobId,
             EmployeeId = salary.EmployeeId,
-            SalaryAmount = salary.SalaryAmount
+            SalaryAmount = salary.SalaryAmount,
         };
     }
 
     public static FactSalary ToDomain(FactSalaryDbModel dbSalary)
     {
-        if (dbSalary == null)
-            throw new ArgumentNullException(nameof(dbSalary));
+        ArgumentNullException.ThrowIfNull(dbSalary);
 
         return new FactSalary(
             salaryFactId: dbSalary.SalaryFactId,
@@ -34,22 +32,25 @@ public static class FactSalaryConverter
             employerId: dbSalary.EmployerId,
             jobId: dbSalary.JobId,
             employeeId: dbSalary.EmployeeId,
-            salaryAmount: dbSalary.SalaryAmount
-        );
+            salaryAmount: dbSalary.SalaryAmount);
     }
 
     public static IEnumerable<FactSalary> ToDomainList(IEnumerable<FactSalaryDbModel> dbSalaries)
     {
         if (dbSalaries == null)
+        {
             return Enumerable.Empty<FactSalary>();
-        
+        }
+
         return dbSalaries.Select(ToDomain);
     }
 
     public static IEnumerable<FactSalaryDbModel> ToDbModelList(IEnumerable<FactSalary> salaries)
     {
         if (salaries == null)
+        {
             return Enumerable.Empty<FactSalaryDbModel>();
+        }
 
         return salaries.Select(ToDbModel);
     }

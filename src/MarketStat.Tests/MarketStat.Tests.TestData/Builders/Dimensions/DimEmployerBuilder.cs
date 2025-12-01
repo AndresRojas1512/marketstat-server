@@ -1,10 +1,10 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-
 namespace MarketStat.Tests.TestData.Builders.Dimensions;
+
+using MarketStat.Common.Core.Dimensions;
 
 public class DimEmployerBuilder
 {
-    private int _id = 0;
+    private int _id;
     private string _name = "OOO TestDefault";
     private string _inn = "7700000000";
     private string _ogrn = "1027700000000";
@@ -44,31 +44,31 @@ public class DimEmployerBuilder
         _kpp = kpp;
         return this;
     }
-    
+
     public DimEmployerBuilder WithRegistrationDate(DateOnly registrationDate)
     {
         _registrationDate = registrationDate;
         return this;
     }
-    
+
     public DimEmployerBuilder WithLegalAddress(string legalAddress)
     {
         _legalAddress = legalAddress;
         return this;
     }
-    
+
     public DimEmployerBuilder WithContactEmail(string contactEmail)
     {
         _contactEmail = contactEmail;
         return this;
     }
-    
+
     public DimEmployerBuilder WithContactPhone(string contactPhone)
     {
         _contactPhone = contactPhone;
         return this;
     }
-    
+
     public DimEmployerBuilder WithIndustryFieldId(int id)
     {
         _industryId = id;
@@ -88,7 +88,7 @@ public class DimEmployerBuilder
             LegalAddress = _legalAddress,
             ContactEmail = _contactEmail,
             ContactPhone = _contactPhone,
-            IndustryFieldId = _industryId
+            IndustryFieldId = _industryId,
         };
     }
 }

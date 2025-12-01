@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
+namespace MarketStat.Common.Dto.Account.User;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
+using System.ComponentModel.DataAnnotations;
 
 public class LoginRequestDto
 {

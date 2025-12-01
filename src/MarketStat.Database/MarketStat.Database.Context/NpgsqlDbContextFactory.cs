@@ -1,7 +1,7 @@
+namespace MarketStat.Database.Context;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-
-namespace MarketStat.Database.Context;
 
 public class NpgsqlDbContextFactory : IDbContextFactory
 {

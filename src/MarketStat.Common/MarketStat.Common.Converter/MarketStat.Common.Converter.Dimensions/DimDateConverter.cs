@@ -1,14 +1,13 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.Dimensions;
 using MarketStat.Database.Models;
 
-namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
+namespace MarketStat.Common.Converter.Dimensions;
 
-public class DimDateConverter
+public static class DimDateConverter
 {
     public static DimDateDbModel ToDbModel(DimDate dimDate)
     {
-        if (dimDate == null)
-            throw new ArgumentNullException(nameof(dimDate));
+        ArgumentNullException.ThrowIfNull(dimDate);
 
         return new DimDateDbModel
         {
@@ -16,20 +15,19 @@ public class DimDateConverter
             FullDate = dimDate.FullDate,
             Year = dimDate.Year,
             Quarter = dimDate.Quarter,
-            Month = dimDate.Month
+            Month = dimDate.Month,
         };
     }
 
     public static DimDate ToDomain(DimDateDbModel dbDate)
     {
-        if (dbDate == null)
-            throw new ArgumentNullException(nameof(dbDate));
+        ArgumentNullException.ThrowIfNull(dbDate);
+
         return new DimDate(
             dbDate.DateId,
             dbDate.FullDate,
             dbDate.Year,
             dbDate.Quarter,
-            dbDate.Month
-        );
+            dbDate.Month);
     }
 }

@@ -14,6 +14,15 @@ services:
       interval: 3s
       timeout: 3s
       retries: 10
+  
+  wiremock:
+    image: wiremock/wiremock:latest
+    container_name: ms_demo_s3
+    ports:
+      - "8081:8080"
+    volumes:
+      - ../mock-server/mappings:/home/wiremock/mappings
+
 
   api:
     build:
@@ -23,11 +32,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      wiremock:
+        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
+
+      - Storage__ServiceUrl=http://wiremock:8080
+      - Storage__BucketName=marketstat-reports
+      - Storage__AccessKey=demo-key
+      - Storage__SecretKey=demo-secret
+      - Storage__ForcePathStyle=true
     ports:
       - "8080:8080"

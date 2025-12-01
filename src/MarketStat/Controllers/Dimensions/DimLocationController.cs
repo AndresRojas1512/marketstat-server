@@ -1,6 +1,6 @@
 using AutoMapper;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimLocation;
-using MarketStat.Services.Dimensions.DimLocationService;
+using MarketStat.Common.Dto.Dimensions.DimLocation;
+using MarketStat.Services.Dimensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,7 +25,7 @@ public class DimLocationController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DimLocationDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DimLocationDto>>> GetAll()
     {
-        var location = await _dimLocationService.GetAllLocationsAsync();
+        var location = await _dimLocationService.GetAllLocationsAsync().ConfigureAwait(false);
         var dtos = _mapper.Map<IEnumerable<DimLocationDto>>(location);
         return Ok(dtos);
     }
@@ -36,7 +36,7 @@ public class DimLocationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DimLocationDto>> GetById(int id)
     {
-        var location = await _dimLocationService.GetLocationByIdAsync(id);
+        var location = await _dimLocationService.GetLocationByIdAsync(id).ConfigureAwait(false);
         var dto = _mapper.Map<DimLocationDto>(location);
         return Ok(dto);
     }
@@ -48,13 +48,16 @@ public class DimLocationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<DimLocationDto>> CreateLocation([FromBody] CreateDimLocationDto createDimLocationDto)
     {
+        ArgumentNullException.ThrowIfNull(createDimLocationDto);
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var created = await _dimLocationService.CreateLocationAsync(createDimLocationDto.CityName,
-            createDimLocationDto.OblastName, createDimLocationDto.DistrictName);
+        var created = await _dimLocationService.CreateLocationAsync(
+            createDimLocationDto.CityName,
+            createDimLocationDto.OblastName,
+            createDimLocationDto.DistrictName).ConfigureAwait(false);
         var dto = _mapper.Map<DimLocationDto>(created);
         return CreatedAtAction(nameof(GetById), new { id = dto.LocationId }, dto);
     }
@@ -67,13 +70,17 @@ public class DimLocationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateLocation(int id, [FromBody] UpdateDimLocationDto updateDimLocationDto)
     {
+        ArgumentNullException.ThrowIfNull(updateDimLocationDto);
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        await _dimLocationService.UpdateLocationAsync(id, updateDimLocationDto.CityName,
-            updateDimLocationDto.OblastName, updateDimLocationDto.DistrictName);
+        await _dimLocationService.UpdateLocationAsync(
+            id,
+            updateDimLocationDto.CityName,
+            updateDimLocationDto.OblastName,
+            updateDimLocationDto.DistrictName).ConfigureAwait(false);
         return NoContent();
     }
 
@@ -83,7 +90,7 @@ public class DimLocationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteLocation(int id)
     {
-        await _dimLocationService.DeleteLocationAsync(id);
+        await _dimLocationService.DeleteLocationAsync(id).ConfigureAwait(false);
         return NoContent();
     }
 
@@ -92,7 +99,7 @@ public class DimLocationController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<string>>> GetDistricts()
     {
-        var districts = await _dimLocationService.GetDistinctDistrictsAsync();
+        var districts = await _dimLocationService.GetDistinctDistrictsAsync().ConfigureAwait(false);
         return Ok(districts);
     }
 
@@ -101,7 +108,7 @@ public class DimLocationController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<string>>> GetOblasts([FromQuery] string districtName)
     {
-        var oblasts = await _dimLocationService.GetDistinctOblastsAsync(districtName);
+        var oblasts = await _dimLocationService.GetDistinctOblastsAsync(districtName).ConfigureAwait(false);
         return Ok(oblasts);
     }
 
@@ -110,7 +117,7 @@ public class DimLocationController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<string>>> GetCities([FromQuery] string oblastName)
     {
-        var cities = await _dimLocationService.GetDistinctCitiesAsync(oblastName);
+        var cities = await _dimLocationService.GetDistinctCitiesAsync(oblastName).ConfigureAwait(false);
         return Ok(cities);
     }
 }

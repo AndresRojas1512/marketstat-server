@@ -1,15 +1,15 @@
-using AutoMapper;
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimEducation;
-
 namespace MarketStat.MappingProfiles.Dimensions;
+
+using AutoMapper;
+using MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Dto.Dimensions.DimEducation;
 
 public class DimEducationProfile : Profile
 {
     public DimEducationProfile()
     {
         CreateMap<DimEducation, DimEducationDto>();
-        
+
         CreateMap<CreateDimEducationDto, DimEducation>();
 
         CreateMap<UpdateDimEducationDto, DimEducation>()

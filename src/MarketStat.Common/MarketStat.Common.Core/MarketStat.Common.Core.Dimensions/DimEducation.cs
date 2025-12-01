@@ -1,12 +1,7 @@
-namespace MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+namespace MarketStat.Common.Core.Dimensions;
 
 public class DimEducation
 {
-    public int EducationId { get; set; }
-    public string SpecialtyName { get; set; }
-    public string SpecialtyCode { get; set; }
-    public string EducationLevelName { get; set; }
-
     public DimEducation()
     {
         SpecialtyName = string.Empty;
@@ -21,4 +16,12 @@ public class DimEducation
         SpecialtyCode = specialtyCode;
         EducationLevelName = educationLevelName;
     }
+
+    public int EducationId { get; set; }
+
+    public string SpecialtyName { get; set; }
+
+    public string SpecialtyCode { get; set; }
+
+    public string EducationLevelName { get; set; }
 }

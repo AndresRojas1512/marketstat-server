@@ -1,14 +1,14 @@
+namespace MarketStat.Integration.Tests.Facts;
+
 using FluentAssertions;
-using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
+using MarketStat.Common.Converter.Facts;
+using MarketStat.Common.Core.Facts;
 using MarketStat.Common.Enums;
 using MarketStat.Database.Context;
 using MarketStat.Database.Models;
 using MarketStat.Database.Repositories.PostgresRepositories.Facts;
 using MarketStat.Tests.TestData.Builders.Facts;
 using Xunit;
-
-namespace MarketStat.Integration.Tests.Facts;
 
 [Collection("Integration")]
 public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
@@ -33,15 +33,14 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
     {
         return Task.CompletedTask;
     }
-    
+
     [Fact]
     public async Task GetFactSalariesByFilterAsync_ShouldReturnFilteredData_WhenFiltersAreUsed()
     {
         _dbContext.FactSalaries.AddRange(
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithId(1).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithId(2).WithDateId(2).WithLocationId(2).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
-            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithId(3).WithDateId(3).WithLocationId(1).WithJobId(2).WithEmployerId(1).WithEmployeeId(1).Build())
-        );
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithId(3).WithDateId(3).WithLocationId(1).WithJobId(2).WithEmployerId(1).WithEmployeeId(1).Build()));
         await _dbContext.SaveChangesAsync();
 
         var filters = new ResolvedSalaryFilter
@@ -49,11 +48,11 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
             LocationIds = new List<int> { 1, 2 },
             JobIds = new List<int> { 1 },
             DateStart = new DateOnly(2024, 1, 1),
-            DateEnd = new DateOnly(2024, 6, 1)
+            DateEnd = new DateOnly(2024, 6, 1),
         };
 
         var result = (await _sut.GetFactSalariesByFilterAsync(filters)).ToList();
-        
+
         result.Should().HaveCount(2);
         result.Select(r => r.SalaryFactId).Should().Contain(new[] { 1L, 2L });
         result.Select(r => r.SalaryFactId).Should().NotContain(3L);
@@ -65,13 +64,12 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
         _dbContext.FactSalaries.AddRange(
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithDateId(2).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
-            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(600).WithDateId(3).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build())
-        );
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(600).WithDateId(3).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()));
         await _dbContext.SaveChangesAsync();
 
-        var filters = new ResolvedSalaryFilter 
-        { 
-            DateEnd = new DateOnly(2024, 6, 1) 
+        var filters = new ResolvedSalaryFilter
+        {
+            DateEnd = new DateOnly(2024, 6, 1),
         };
 
         var result = await _sut.GetSalaryTimeSeriesAsync(filters, TimeGranularity.Quarter, 2);
@@ -95,8 +93,7 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
         _dbContext.FactSalaries.AddRange(
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
-            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(300).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build())
-        );
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(300).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()));
         await _dbContext.SaveChangesAsync();
 
         var filters = new ResolvedSalaryFilter();
@@ -124,9 +121,7 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithJobId(1).WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithJobId(1).WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(300).WithJobId(1).WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
-            
-            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithJobId(2).WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1).Build())
-        );
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithJobId(2).WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1).Build()));
         await _dbContext.SaveChangesAsync();
 
         var filters = new ResolvedSalaryFilter();
@@ -137,7 +132,7 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
         // Assert
         result.Should().HaveCount(1); // Only Engineer should appear
         var engineerRole = result.First();
-        
+
         // Note: StandardJobRoleTitle for JobId 1 was seeded as "Engineer" in Fixture
         engineerRole.StandardJobRoleTitle.Should().Be("Engineer");
         engineerRole.SalaryRecordCount.Should().Be(3);

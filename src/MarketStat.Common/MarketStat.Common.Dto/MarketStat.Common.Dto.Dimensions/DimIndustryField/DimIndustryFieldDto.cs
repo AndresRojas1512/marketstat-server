@@ -1,12 +1,12 @@
-using System.Text.Json.Serialization;
+namespace MarketStat.Common.Dto.Dimensions.DimIndustryField;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimIndustryField;
+using System.Text.Json.Serialization;
 
 public record DimIndustryFieldDto
 {
     [JsonPropertyName("industryFieldId")]
     public int IndustryFieldId { get; init; }
-        
+
     [JsonPropertyName("industryFieldCode")]
     public string IndustryFieldCode { get; init; } = string.Empty;
 

@@ -1,7 +1,7 @@
-using System.Net.Mail;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
-
 namespace MarketStat.Services.Auth.AuthService.Validators;
+
+using System.Net.Mail;
+using MarketStat.Common.Dto.Account.User;
 
 public static class UserValidator
 {
@@ -14,80 +14,78 @@ public static class UserValidator
 
     public static void ValidateRegistration(RegisterUserDto dto)
     {
-        if (dto == null)
-        {
-            throw new ArgumentNullException(nameof(dto), "Registration data (DTO) cannot be null.");
-        }
+        ArgumentNullException.ThrowIfNull(dto);
 
         if (string.IsNullOrWhiteSpace(dto.Username))
         {
-            throw new ArgumentException("Username is required.", nameof(dto.Username));
+            throw new ArgumentException("Username is required.", nameof(dto));
         }
+
         if (dto.Username.Length < MinUsernameLength || dto.Username.Length > MaxUsernameLength)
         {
-            throw new ArgumentException($"Username must be between {MinUsernameLength} and {MaxUsernameLength} characters.", nameof(dto.Username));
+            throw new ArgumentException($"Username must be between {MinUsernameLength} and {MaxUsernameLength} characters.", nameof(dto));
         }
 
         if (string.IsNullOrWhiteSpace(dto.Password))
         {
-            throw new ArgumentException("Password is required.", nameof(dto.Password));
+            throw new ArgumentException("Password is required.", nameof(dto));
         }
+
         if (dto.Password.Length < MinPasswordLength || dto.Password.Length > MaxPasswordLength)
         {
-            throw new ArgumentException($"Password must be between {MinPasswordLength} and {MaxPasswordLength} characters.", nameof(dto.Password));
+            throw new ArgumentException($"Password must be between {MinPasswordLength} and {MaxPasswordLength} characters.", nameof(dto));
         }
 
         if (string.IsNullOrWhiteSpace(dto.Email))
         {
-            throw new ArgumentException("Email is required.", nameof(dto.Email));
+            throw new ArgumentException("Email is required.", nameof(dto));
         }
+
         if (dto.Email.Length > MaxEmailLength)
         {
-            throw new ArgumentException($"Email cannot exceed {MaxEmailLength} characters.", nameof(dto.Email));
+            throw new ArgumentException($"Email cannot exceed {MaxEmailLength} characters.", nameof(dto));
         }
+
         try
         {
             var mailAddress = new MailAddress(dto.Email);
-            if (mailAddress.Address != dto.Email.Trim()) 
+            if (mailAddress.Address != dto.Email.Trim())
             {
-                 throw new ArgumentException("Email format is invalid (e.g. due to leading/trailing spaces not intended).", nameof(dto.Email));
+                throw new ArgumentException("Email format is invalid (e.g. due to leading/trailing spaces not intended).", nameof(dto));
             }
         }
         catch (FormatException ex)
         {
-            throw new ArgumentException("Email format is invalid.", nameof(dto.Email), ex);
+            throw new ArgumentException("Email format is invalid.", nameof(dto), ex);
         }
         catch (ArgumentException ex)
         {
-             throw new ArgumentException("Email format is invalid.", nameof(dto.Email), ex);
+            throw new ArgumentException("Email format is invalid.", nameof(dto), ex);
         }
-
 
         if (string.IsNullOrWhiteSpace(dto.FullName))
         {
-            throw new ArgumentException("Full name is required.", nameof(dto.FullName));
+            throw new ArgumentException("Full name is required.", nameof(dto));
         }
+
         if (dto.FullName.Length > MaxFullNameLength)
         {
-            throw new ArgumentException($"Full name cannot exceed {MaxFullNameLength} characters.", nameof(dto.FullName));
+            throw new ArgumentException($"Full name cannot exceed {MaxFullNameLength} characters.", nameof(dto));
         }
     }
 
     public static void ValidateLogin(LoginRequestDto dto)
     {
-        if (dto == null)
-        {
-            throw new ArgumentNullException(nameof(dto), "Login data (DTO) cannot be null.");
-        }
+        ArgumentNullException.ThrowIfNull(dto);
 
         if (string.IsNullOrWhiteSpace(dto.Username))
         {
-            throw new ArgumentException("Username is required for login.", nameof(dto.Username));
+            throw new ArgumentException("Username is required for login.", nameof(dto));
         }
 
         if (string.IsNullOrWhiteSpace(dto.Password))
         {
-            throw new ArgumentException("Password is required for login.", nameof(dto.Password));
+            throw new ArgumentException("Password is required for login.", nameof(dto));
         }
     }
 
@@ -102,7 +100,8 @@ public static class UserValidator
 
             if (fullName.Length > MaxFullNameLength)
             {
-                throw new ArgumentException($"Full name cannot exceed {MaxFullNameLength} characters.",
+                throw new ArgumentException(
+                    $"Full name cannot exceed {MaxFullNameLength} characters.",
                     nameof(fullName));
             }
         }

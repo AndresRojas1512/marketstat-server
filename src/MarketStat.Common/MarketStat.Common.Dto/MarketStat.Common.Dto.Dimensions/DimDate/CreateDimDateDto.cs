@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
+namespace MarketStat.Common.Dto.Dimensions.DimDate;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimDate;
+using System.ComponentModel.DataAnnotations;
 
 public record CreateDimDateDto
 {

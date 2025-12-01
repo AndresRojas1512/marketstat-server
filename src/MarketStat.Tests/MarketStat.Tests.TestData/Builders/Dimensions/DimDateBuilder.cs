@@ -1,10 +1,10 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-
 namespace MarketStat.Tests.TestData.Builders.Dimensions;
+
+using MarketStat.Common.Core.Dimensions;
 
 public class DimDateBuilder
 {
-    private int _dateId = 0;
+    private int _dateId;
     private DateOnly _fullDate = new(2025, 1, 1);
 
     public DimDateBuilder WithId(int id)
@@ -28,13 +28,12 @@ public class DimDateBuilder
     public DimDate Build()
     {
         var month = _fullDate.Month;
-        var quarter = (month - 1) / 3 + 1;
+        var quarter = ((month - 1) / 3) + 1;
         return new DimDate(
             _dateId,
             _fullDate,
             _fullDate.Year,
             quarter,
-            month
-        );
+            month);
     }
 }

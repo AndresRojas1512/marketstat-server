@@ -1,14 +1,13 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Account;
-using MarketStat.Database.Models.MarketStat.Database.Models.Account;
+using MarketStat.Common.Core.Account;
+using MarketStat.Database.Models.Account;
 
-namespace MarketStat.Common.Converter.MarketStat.Common.Converter.Account;
+namespace MarketStat.Common.Converter.Account;
 
 public static class UserConverter
 {
     public static UserDbModel ToDbModel(User domainUser)
     {
-        if (domainUser == null)
-            throw new ArgumentNullException(nameof(domainUser));
+        ArgumentNullException.ThrowIfNull(domainUser);
 
         var dbModel = new UserDbModel
         {
@@ -20,15 +19,14 @@ public static class UserConverter
             IsActive = domainUser.IsActive,
             CreatedAt = domainUser.CreatedAt,
             LastLoginAt = domainUser.LastLoginAt,
-            IsAdmin = domainUser.IsAdmin
+            IsAdmin = domainUser.IsAdmin,
         };
         return dbModel;
     }
 
     public static User ToDomain(UserDbModel dbUser)
     {
-        if (dbUser == null)
-            throw new ArgumentNullException(nameof(dbUser));
+        ArgumentNullException.ThrowIfNull(dbUser);
 
         var domainUser = new User(
             userId: dbUser.UserId,
@@ -39,16 +37,18 @@ public static class UserConverter
             isActive: dbUser.IsActive,
             createdAt: dbUser.CreatedAt,
             lastLoginAt: dbUser.LastLoginAt,
-            isAdmin: dbUser.IsAdmin
-        );
+            isAdmin: dbUser.IsAdmin);
 
         return domainUser;
     }
 
-    public static List<User> ToDomainList(IEnumerable<UserDbModel> dbUsers)
+    public static IList<User> ToDomainList(IEnumerable<UserDbModel> dbUsers)
     {
         if (dbUsers == null)
+        {
             return new List<User>();
+        }
+
         return dbUsers.Select(ToDomain).ToList();
     }
 }

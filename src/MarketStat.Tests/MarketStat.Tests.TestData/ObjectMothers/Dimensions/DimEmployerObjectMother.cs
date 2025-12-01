@@ -1,7 +1,7 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using MarketStat.Tests.TestData.Builders.Dimensions;
-
 namespace MarketStat.Tests.TestData.ObjectMothers.Dimensions;
+
+using MarketStat.Common.Core.Dimensions;
+using MarketStat.Tests.TestData.Builders.Dimensions;
 
 public static class DimEmployerObjectMother
 {
@@ -11,32 +11,32 @@ public static class DimEmployerObjectMother
             .WithName("OOO New Employer")
             .WithInn("1234567890")
             .Build();
-    
+
     public static DimEmployer AnExistingEmployer() =>
         new DimEmployerBuilder()
             .WithId(1)
             .WithName("OOO Old Employer")
             .WithInn("9876543210")
             .Build();
-    
+
     public static DimEmployer ASecondExistingEmployer() =>
         new DimEmployerBuilder()
             .WithId(2)
             .WithName("OOO Random Employer")
             .WithInn("1111222233")
             .Build();
-    
+
     public static DimEmployer AnEmployerWithInvalidName() =>
         new DimEmployerBuilder()
             .WithName(null!)
             .Build();
-    
+
     public static IEnumerable<DimEmployer> SomeEmployers()
     {
         return new List<DimEmployer>
         {
             AnExistingEmployer(),
-            ASecondExistingEmployer()
+            ASecondExistingEmployer(),
         };
     }
 }

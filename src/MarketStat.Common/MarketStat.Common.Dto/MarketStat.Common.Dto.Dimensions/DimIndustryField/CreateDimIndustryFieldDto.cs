@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
+namespace MarketStat.Common.Dto.Dimensions.DimIndustryField;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimIndustryField;
+using System.ComponentModel.DataAnnotations;
 
 public class CreateDimIndustryFieldDto
 {

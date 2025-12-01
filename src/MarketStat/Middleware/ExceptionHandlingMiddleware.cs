@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+
+namespace MarketStat.Middleware;
+
 using System.Net;
 using System.Text.Json;
 using MarketStat.Common.Exceptions;
-
-namespace MarketStat.Middleware;
 
 public class ExceptionHandlingMiddleware
 {
@@ -15,15 +17,17 @@ public class ExceptionHandlingMiddleware
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Global exception handler must catch all exceptions.")]
     public async Task Invoke(HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         try
         {
-            await _next(context);
+            await _next(context).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            await HandleExceptionAsync(context, ex);
+            await HandleExceptionAsync(context, ex).ConfigureAwait(false);
         }
     }
 
@@ -60,8 +64,8 @@ public class ExceptionHandlingMiddleware
                 break;
             case UnauthorizedAccessException:
                 statusCode = HttpStatusCode.Forbidden;
-                clientMessage = string.IsNullOrEmpty(ex.Message) || ex.Message == "User ID could not be determined or is invalid from the token." 
-                                ? "You are not authorized to perform this action or your session is invalid." 
+                clientMessage = string.IsNullOrEmpty(ex.Message) || ex.Message == "User ID could not be determined or is invalid from the token."
+                                ? "You are not authorized to perform this action or your session is invalid."
                                 : ex.Message;
                 break;
             default:
@@ -70,16 +74,21 @@ public class ExceptionHandlingMiddleware
                 break;
         }
 
-        _logger.LogError(ex, "Exception Handled: {ExceptionType} - Message: {OriginalErrorMessage}. Responding with HTTP {StatusCode} and client message: {ClientMessage}", 
-                         ex.GetType().Name, ex.Message, (int)statusCode, clientMessage);
-        
-        var finalClientMessage = (statusCode == HttpStatusCode.InternalServerError && !(ex is ApplicationException)) 
-                                 ? "An unexpected internal server error has occurred." 
+        _logger.LogError(
+            ex,
+            "Exception Handled: {ExceptionType} - Message: {OriginalErrorMessage}. Responding with HTTP {StatusCode} and client message: {ClientMessage}",
+            ex.GetType().Name,
+            ex.Message,
+            (int)statusCode,
+            clientMessage);
+
+        var finalClientMessage = (statusCode == HttpStatusCode.InternalServerError && !(ex is ApplicationException))
+                                 ? "An unexpected internal server error has occurred."
                                  : clientMessage;
 
         var errorResponse = new { error = finalClientMessage };
         var result = JsonSerializer.Serialize(errorResponse);
-        
+
         ctx.Response.Clear();
         ctx.Response.ContentType = "application/json";
         ctx.Response.StatusCode = (int)statusCode;

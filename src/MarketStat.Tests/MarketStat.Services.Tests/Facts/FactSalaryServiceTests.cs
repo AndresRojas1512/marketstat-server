@@ -1,19 +1,19 @@
+namespace MarketStat.Services.Tests.Facts;
+
 using FluentAssertions;
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
+using MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.Facts;
+using MarketStat.Common.Core.Facts.Analytics.Requests;
+using MarketStat.Common.Core.Facts.Analytics.Responses;
+using MarketStat.Common.Enums;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Services.Facts.FactSalaryService;
+using MarketStat.Tests.TestData.Builders.Dimensions;
 using MarketStat.Tests.TestData.ObjectMothers.Facts;
 using Microsoft.Extensions.Logging;
-using MarketStat.Common.Enums;
-using MarketStat.Tests.TestData.Builders.Dimensions;
 using Moq;
-
-namespace MarketStat.Services.Tests.Facts;
 
 public class FactSalaryServiceTests
 {
@@ -22,9 +22,9 @@ public class FactSalaryServiceTests
     private readonly Mock<IDimLocationRepository> _mockLocationRepository;
     private readonly Mock<IDimJobRepository> _mockJobRepository;
     private readonly Mock<IDimIndustryFieldRepository> _mockIndustryFieldRepository;
-    
+
     private readonly FactSalaryService _sut;
-    
+
     public FactSalaryServiceTests()
     {
         _mockFactSalaryRepository = new Mock<IFactSalaryRepository>();
@@ -38,10 +38,9 @@ public class FactSalaryServiceTests
             _mockLogger.Object,
             _mockLocationRepository.Object,
             _mockJobRepository.Object,
-            _mockIndustryFieldRepository.Object
-        );
+            _mockIndustryFieldRepository.Object);
     }
-    
+
     [Fact]
     public async Task CreateFactSalaryAsync_ShouldCallAddFactSalaryAsync_WhenDataIsValid()
     {
@@ -50,14 +49,17 @@ public class FactSalaryServiceTests
             .Callback<FactSalary>(salary => salary.SalaryFactId = 1L)
             .Returns(Task.CompletedTask);
         var result = await _sut.CreateFactSalaryAsync(
-            newSalary.DateId, newSalary.LocationId, newSalary.EmployerId,
-            newSalary.JobId, newSalary.EmployeeId, newSalary.SalaryAmount
-        );
+            newSalary.DateId,
+            newSalary.LocationId,
+            newSalary.EmployerId,
+            newSalary.JobId,
+            newSalary.EmployeeId,
+            newSalary.SalaryAmount);
         _mockFactSalaryRepository.Verify(repo => repo.AddFactSalaryAsync(It.IsAny<FactSalary>()), Times.Once);
         result.Should().NotBeNull();
         result.SalaryFactId.Should().Be(1L);
     }
-    
+
     [Fact]
     public async Task CreateFactSalaryAsync_ShouldThrowNotFoundException_WhenRepoThrowsForeignKeyViolation()
     {
@@ -65,12 +67,15 @@ public class FactSalaryServiceTests
         _mockFactSalaryRepository.Setup(repo => repo.AddFactSalaryAsync(It.IsAny<FactSalary>()))
             .ThrowsAsync(new NotFoundException("FK violation."));
         Func<Task> act = async () => await _sut.CreateFactSalaryAsync(
-            newSalary.DateId, newSalary.LocationId, newSalary.EmployerId,
-            newSalary.JobId, newSalary.EmployeeId, newSalary.SalaryAmount
-        );
+            newSalary.DateId,
+            newSalary.LocationId,
+            newSalary.EmployerId,
+            newSalary.JobId,
+            newSalary.EmployeeId,
+            newSalary.SalaryAmount);
         await act.Should().ThrowAsync<NotFoundException>();
     }
-    
+
     [Fact]
     public async Task GetFactSalaryByIdAsync_ShouldReturnSalary_WhenSalaryExists()
     {
@@ -81,7 +86,7 @@ public class FactSalaryServiceTests
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(expectedSalary);
     }
-    
+
     [Fact]
     public async Task GetFactSalaryByIdAsync_ShouldThrowNotFoundException_WhenSalaryDoesNotExist()
     {
@@ -91,7 +96,7 @@ public class FactSalaryServiceTests
         Func<Task> act = async () => await _sut.GetFactSalaryByIdAsync(nonExistentId);
         await act.Should().ThrowAsync<NotFoundException>();
     }
-    
+
     [Fact]
     public async Task UpdateFactSalaryAsync_ShouldCallUpdateFactSalaryAsync_WhenDataIsValid()
     {
@@ -102,13 +107,17 @@ public class FactSalaryServiceTests
         _mockFactSalaryRepository.Setup(repo => repo.UpdateFactSalaryAsync(It.IsAny<FactSalary>()))
             .Returns(Task.CompletedTask);
         var result = await _sut.UpdateFactSalaryAsync(
-            existingSalary.SalaryFactId, existingSalary.DateId, existingSalary.LocationId,
-            existingSalary.EmployerId, existingSalary.JobId, existingSalary.EmployeeId,
-            updatedAmount
-        );
-        _mockFactSalaryRepository.Verify(repo => repo.UpdateFactSalaryAsync(
-            It.Is<FactSalary>(s => s.SalaryFactId == existingSalary.SalaryFactId && s.SalaryAmount == updatedAmount)
-        ), Times.Once);
+            existingSalary.SalaryFactId,
+            existingSalary.DateId,
+            existingSalary.LocationId,
+            existingSalary.EmployerId,
+            existingSalary.JobId,
+            existingSalary.EmployeeId,
+            updatedAmount);
+        _mockFactSalaryRepository.Verify(
+            repo => repo.UpdateFactSalaryAsync(
+            It.Is<FactSalary>(s => s.SalaryFactId == existingSalary.SalaryFactId && s.SalaryAmount == updatedAmount)),
+            Times.Once);
         result.SalaryAmount.Should().Be(updatedAmount);
     }
 
@@ -119,11 +128,10 @@ public class FactSalaryServiceTests
         _mockFactSalaryRepository.Setup(repo => repo.GetFactSalaryByIdAsync(nonExistentId))
             .ThrowsAsync(new NotFoundException("Not found."));
         Func<Task> act = async () => await _sut.UpdateFactSalaryAsync(
-            nonExistentId, 1, 1, 1, 1, 1, 100
-        );
+            nonExistentId, 1, 1, 1, 1, 1, 100);
         await act.Should().ThrowAsync<NotFoundException>();
     }
-    
+
     [Fact]
     public async Task DeleteFactSalaryAsync_ShouldCallDeleteFactSalaryByIdAsync_WhenSalaryExists()
     {
@@ -143,7 +151,7 @@ public class FactSalaryServiceTests
         Func<Task> act = async () => await _sut.DeleteFactSalaryAsync(nonExistentId);
         await act.Should().ThrowAsync<NotFoundException>();
     }
-    
+
     [Fact]
     public async Task GetFactSalariesByFilterAsync_ShouldResolveFiltersAndCallRepository_WhenFiltersMatch()
     {
@@ -153,14 +161,13 @@ public class FactSalaryServiceTests
         _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "Moscow"))
             .ReturnsAsync(resolvedLocationIds);
         _mockFactSalaryRepository.Setup(repo => repo.GetFactSalariesByFilterAsync(
-                It.Is<ResolvedSalaryFilter>(dto => dto.LocationIds == resolvedLocationIds)
-            ))
+                It.Is<ResolvedSalaryFilter>(dto => dto.LocationIds == resolvedLocationIds)))
             .ReturnsAsync(expectedSalaries);
         var result = await _sut.GetFactSalariesByFilterAsync(userFilter);
         result.Should().BeEquivalentTo(expectedSalaries);
         _mockFactSalaryRepository.Verify(repo => repo.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Once);
     }
-    
+
     [Fact]
     public async Task GetFactSalariesByFilterAsync_ShouldReturnEmpty_WhenFiltersDoNotResolve()
     {
@@ -172,7 +179,7 @@ public class FactSalaryServiceTests
         result.Should().BeEmpty();
         _mockFactSalaryRepository.Verify(repo => repo.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Never);
     }
-    
+
     [Fact]
     public async Task GetFactSalariesByFilterAsync_ShouldResolveIndustryName_WhenIndustryNameIsValid()
     {
@@ -204,7 +211,7 @@ public class FactSalaryServiceTests
         _mockJobRepository.Verify(r => r.GetJobIdsByFilterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>()), Times.Never);
         _mockFactSalaryRepository.Verify(r => r.GetFactSalariesByFilterAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Never);
     }
-    
+
     [Fact]
     public async Task GetSalaryDistributionAsync_ShouldReturnDistribution_WhenFiltersResolve()
     {
@@ -214,11 +221,11 @@ public class FactSalaryServiceTests
 
         _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "Moscow"))
             .ReturnsAsync(resolvedLocationIds);
-        
+
         _mockFactSalaryRepository.Setup(repo => repo.GetSalaryDistributionAsync(It.Is<ResolvedSalaryFilter>(f => f.LocationIds == resolvedLocationIds)))
             .ReturnsAsync(expectedDistribution);
         var result = await _sut.GetSalaryDistributionAsync(request);
-        result.Should().BeEquivalentTo(expectedDistribution); 
+        result.Should().BeEquivalentTo(expectedDistribution);
         _mockFactSalaryRepository.Verify(repo => repo.GetSalaryDistributionAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Once);
     }
 
@@ -232,7 +239,7 @@ public class FactSalaryServiceTests
         result.Should().BeEmpty();
         _mockFactSalaryRepository.Verify(repo => repo.GetSalaryDistributionAsync(It.IsAny<ResolvedSalaryFilter>()), Times.Never);
     }
-    
+
     [Fact]
     public async Task GetSalarySummaryAsync_ShouldReturnSummary_WhenFiltersResolve()
     {
@@ -264,9 +271,9 @@ public class FactSalaryServiceTests
     {
         var request = new SalarySummaryRequest { TargetPercentile = -10 };
         Func<Task> act = async () => await _sut.GetSalarySummaryAsync(request);
-        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("TargetPercentile");
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("request");
     }
-    
+
     [Fact]
     public async Task GetSalaryTimeSeriesAsync_ShouldReturnSeries_WhenFiltersResolve()
     {
@@ -282,26 +289,26 @@ public class FactSalaryServiceTests
         result.Should().BeEquivalentTo(expectedSeries);
         _mockFactSalaryRepository.Verify(repo => repo.GetSalaryTimeSeriesAsync(It.IsAny<ResolvedSalaryFilter>(), TimeGranularity.Month, 6), Times.Once);
     }
-    
+
     [Fact]
     public async Task GetSalaryTimeSeriesAsync_ShouldReturnEmpty_WhenFiltersDoNotResolve()
     {
-        var request = new TimeSeriesRequest { CityName = "NonExistent", Periods = 1 }; 
+        var request = new TimeSeriesRequest { CityName = "NonExistent", Periods = 1 };
         _mockLocationRepository.Setup(repo => repo.GetLocationIdsByFilterAsync(null, null, "NonExistent"))
             .ReturnsAsync(new List<int>());
         var result = await _sut.GetSalaryTimeSeriesAsync(request);
         result.Should().BeEmpty();
         _mockFactSalaryRepository.Verify(repo => repo.GetSalaryTimeSeriesAsync(It.IsAny<ResolvedSalaryFilter>(), It.IsAny<TimeGranularity>(), It.IsAny<int>()), Times.Never);
     }
-    
+
     [Fact]
     public async Task GetSalaryTimeSeriesAsync_ShouldThrowArgumentException_WhenPeriodsIsInvalid()
     {
         var request = new TimeSeriesRequest { Periods = 0 };
         Func<Task> act = async () => await _sut.GetSalaryTimeSeriesAsync(request);
-        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("Periods");
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("request");
     }
-    
+
     [Fact]
     public async Task GetPublicRolesAsync_ShouldReturnRoles_WhenFiltersResolve()
     {
@@ -317,7 +324,7 @@ public class FactSalaryServiceTests
         result.Should().BeEquivalentTo(expectedRoles);
         _mockFactSalaryRepository.Verify(repo => repo.GetPublicRolesAsync(It.IsAny<ResolvedSalaryFilter>(), 10), Times.Once);
     }
-    
+
     [Fact]
     public async Task GetPublicRolesAsync_ShouldReturnEmpty_WhenFiltersDoNotResolve()
     {
@@ -328,12 +335,12 @@ public class FactSalaryServiceTests
         result.Should().BeEmpty();
         _mockFactSalaryRepository.Verify(repo => repo.GetPublicRolesAsync(It.IsAny<ResolvedSalaryFilter>(), It.IsAny<int>()), Times.Never);
     }
-    
+
     [Fact]
     public async Task GetPublicRolesAsync_ShouldThrowArgumentException_WhenMinCountIsInvalid()
     {
         var request = new PublicRolesRequest { MinRecordCount = -1 };
         Func<Task> act = async () => await _sut.GetPublicRolesAsync(request);
-        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("MinRecordCount");
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("request");
     }
 }

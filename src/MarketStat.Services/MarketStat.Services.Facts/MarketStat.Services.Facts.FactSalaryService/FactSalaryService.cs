@@ -1,13 +1,13 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
+namespace MarketStat.Services.Facts.FactSalaryService;
+
+using MarketStat.Common.Core.Facts;
+using MarketStat.Common.Core.Facts.Analytics.Requests;
+using MarketStat.Common.Core.Facts.Analytics.Responses;
 using MarketStat.Common.Exceptions;
+using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Database.Core.Repositories.Facts;
 using MarketStat.Services.Facts.FactSalaryService.Validators;
 using Microsoft.Extensions.Logging;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
-using MarketStat.Database.Core.Repositories.Dimensions;
-
-namespace MarketStat.Services.Facts.FactSalaryService;
 
 public class FactSalaryService : IFactSalaryService
 {
@@ -16,7 +16,7 @@ public class FactSalaryService : IFactSalaryService
     private readonly IDimLocationRepository _dimLocationRepository;
     private readonly IDimJobRepository _dimJobRepository;
     private readonly IDimIndustryFieldRepository _dimIndustryFieldRepository;
-    
+
     public FactSalaryService(
         IFactSalaryRepository factSalaryRepository,
         ILogger<FactSalaryService> logger,
@@ -42,11 +42,10 @@ public class FactSalaryService : IFactSalaryService
             employerId: employerId,
             jobId: jobId,
             employeeId: employeeId,
-            salaryAmount: salaryAmount
-        );
+            salaryAmount: salaryAmount);
         try
         {
-            await _factSalaryRepository.AddFactSalaryAsync(salary);
+            await _factSalaryRepository.AddFactSalaryAsync(salary).ConfigureAwait(false);
             _logger.LogInformation("Created salary {FactId}", salary.SalaryFactId);
             return salary;
         }
@@ -66,7 +65,7 @@ public class FactSalaryService : IFactSalaryService
     {
         try
         {
-            return await _factSalaryRepository.GetFactSalaryByIdAsync(salaryFactId);
+            return await _factSalaryRepository.GetFactSalaryByIdAsync(salaryFactId).ConfigureAwait(false);
         }
         catch (NotFoundException ex)
         {
@@ -77,9 +76,10 @@ public class FactSalaryService : IFactSalaryService
 
     public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(AnalysisFilterRequest request)
     {
-        _logger.LogInformation("Service: GetFactSalariesByFilterAsync called with user filters: {@FilterDto}",
+        _logger.LogInformation(
+            "Service: GetFactSalariesByFilterAsync called with user filters: {@FilterDto}",
             request);
-        var resolvedFilters = await ResolveFilters(request);
+        var resolvedFilters = await ResolveFilters(request).ConfigureAwait(false);
         if (resolvedFilters == null)
         {
             _logger.LogInformation(
@@ -87,9 +87,10 @@ public class FactSalaryService : IFactSalaryService
             return Enumerable.Empty<FactSalary>();
         }
 
-        _logger.LogInformation("Service: Calling repository with resolved filter DTO: {@ResolvedFilters}",
+        _logger.LogInformation(
+            "Service: Calling repository with resolved filter DTO: {@ResolvedFilters}",
             resolvedFilters);
-        var list = await _factSalaryRepository.GetFactSalariesByFilterAsync(resolvedFilters);
+        var list = await _factSalaryRepository.GetFactSalariesByFilterAsync(resolvedFilters).ConfigureAwait(false);
         _logger.LogInformation("Service: Fetched {Count} facts using resolved filters.", list.Count());
         return list;
     }
@@ -101,7 +102,7 @@ public class FactSalaryService : IFactSalaryService
 
         try
         {
-            var existing = await _factSalaryRepository.GetFactSalaryByIdAsync(salaryFactId);
+            var existing = await _factSalaryRepository.GetFactSalaryByIdAsync(salaryFactId).ConfigureAwait(false);
 
             existing.DateId = dateId;
             existing.LocationId = locationId;
@@ -110,15 +111,13 @@ public class FactSalaryService : IFactSalaryService
             existing.EmployeeId = employeeId;
             existing.SalaryAmount = salaryAmount;
 
-            await _factSalaryRepository.UpdateFactSalaryAsync(existing);
+            await _factSalaryRepository.UpdateFactSalaryAsync(existing).ConfigureAwait(false);
             _logger.LogInformation("Updated salary fact {FactId}", salaryFactId);
             return existing;
-
         }
         catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Cannot update, FactSalary {FactId} not found.",
-                salaryFactId);
+            _logger.LogWarning(ex, "Cannot update, FactSalary {FactId} not found.", salaryFactId);
             throw;
         }
         catch (ConflictException ex)
@@ -132,7 +131,7 @@ public class FactSalaryService : IFactSalaryService
     {
         try
         {
-            await _factSalaryRepository.DeleteFactSalaryByIdAsync(salaryFactId);
+            await _factSalaryRepository.DeleteFactSalaryByIdAsync(salaryFactId).ConfigureAwait(false);
             _logger.LogInformation("Deleted salary fact {SalaryFactId}", salaryFactId);
         }
         catch (NotFoundException ex)
@@ -141,72 +140,90 @@ public class FactSalaryService : IFactSalaryService
             throw;
         }
     }
-    
+
     // Authorized analytical endpoints
-    
     public async Task<List<SalaryDistributionBucket>> GetSalaryDistributionAsync(AnalysisFilterRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
         _logger.LogInformation("Service: Getting salary distribution with request: {@Request}", request);
-        var resolvedFilters = await ResolveFilters(request);
+        var resolvedFilters = await ResolveFilters(request).ConfigureAwait(false);
         if (resolvedFilters == null)
         {
             _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty distribution.");
             return new List<SalaryDistributionBucket>();
         }
-        return await _factSalaryRepository.GetSalaryDistributionAsync(resolvedFilters);
+
+        return await _factSalaryRepository.GetSalaryDistributionAsync(resolvedFilters).ConfigureAwait(false);
     }
 
     public async Task<SalarySummary?> GetSalarySummaryAsync(SalarySummaryRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
         _logger.LogInformation("Service: Getting salary summary with request: {@Request}", request);
         if (request.TargetPercentile < 0 || request.TargetPercentile > 100)
-            throw new ArgumentException("Target percentile must be between 0 and 100.", 
-                nameof(request.TargetPercentile));
-        var resolvedFilters = await ResolveFilters(request);
+        {
+            throw new ArgumentException(
+                "Target percentile must be between 0 and 100.",
+                nameof(request));
+        }
+
+        var resolvedFilters = await ResolveFilters(request).ConfigureAwait(false);
         if (resolvedFilters == null)
         {
             _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning null summary");
             return null;
         }
-        return await _factSalaryRepository.GetSalarySummaryAsync(resolvedFilters, request.TargetPercentile);
+
+        return await _factSalaryRepository.GetSalarySummaryAsync(resolvedFilters, request.TargetPercentile).ConfigureAwait(false);
     }
 
     public async Task<List<SalaryTimeSeriesPoint>> GetSalaryTimeSeriesAsync(TimeSeriesRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
         _logger.LogInformation(
             "Service: Getting salary time series with request: {@Request}", request);
         if (request.Periods <= 0)
-            throw new ArgumentException("Periods must be greater than zero.", nameof(request.Periods));
-        var resolvedFilters = await ResolveFilters(request);
+        {
+            throw new ArgumentException("Periods must be greater than zero.", nameof(request));
+        }
+
+        var resolvedFilters = await ResolveFilters(request).ConfigureAwait(false);
         if (resolvedFilters == null)
         {
             _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty time series.");
             return new List<SalaryTimeSeriesPoint>();
         }
-        return await _factSalaryRepository.GetSalaryTimeSeriesAsync(resolvedFilters, request.Granularity,
-            request.Periods);
-    }
-    
-    // Public analytical methods
 
+        return await _factSalaryRepository.GetSalaryTimeSeriesAsync(
+            resolvedFilters,
+            request.Granularity,
+            request.Periods).ConfigureAwait(false);
+    }
+
+    // Public analytical methods
     public async Task<IEnumerable<PublicRoleByLocationIndustry>> GetPublicRolesAsync(PublicRolesRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
         _logger.LogInformation("Service: Getting public roles with request: {$Request}", request);
         if (request.MinRecordCount < 0)
-            throw new ArgumentException("Minimum record count cannot be negative.", nameof(request.MinRecordCount));
-        var resolvedFilters = await ResolveFilters(request);
+        {
+            throw new ArgumentException("Minimum record count cannot be negative.", nameof(request));
+        }
+
+        var resolvedFilters = await ResolveFilters(request).ConfigureAwait(false);
         if (resolvedFilters == null)
         {
             _logger.LogInformation("Filters resolved to no matching dimension IDs. Returning empty list.");
             return Enumerable.Empty<PublicRoleByLocationIndustry>();
         }
-        return await _factSalaryRepository.GetPublicRolesAsync(resolvedFilters, request.MinRecordCount);
-    }
-    
-    // Utils
 
+        return await _factSalaryRepository.GetPublicRolesAsync(resolvedFilters, request.MinRecordCount).ConfigureAwait(false);
+    }
+
+    // Utils
     private async Task<ResolvedSalaryFilter?> ResolveFilters(AnalysisFilterRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
         _logger.LogDebug("Resolving user request: {@Request}", request);
         List<int>? locationIds = null;
         bool locationFilterApplied = false;
@@ -215,16 +232,16 @@ public class FactSalaryService : IFactSalaryService
             !string.IsNullOrEmpty(request.CityName))
         {
             locationFilterApplied = true;
-            _logger.LogDebug("Resolving location IDs based on names: District={District}, Oblast={Oblast}, City={City}",
-                request.DistrictName, request.OblastName, request.CityName);
+            _logger.LogDebug(
+                "Resolving location IDs based on names: District={District}, Oblast={Oblast}, City={City}", request.DistrictName, request.OblastName, request.CityName);
             locationIds =
-                await _dimLocationRepository.GetLocationIdsByFilterAsync(request.DistrictName, request.OblastName,
-                    request.CityName);
-            if (locationIds == null || !locationIds.Any())
+                await _dimLocationRepository.GetLocationIdsByFilterAsync(request.DistrictName, request.OblastName, request.CityName).ConfigureAwait(false);
+            if (locationIds.Count == 0)
             {
                 _logger.LogInformation("No locations matched the specified name filters.");
                 return null;
             }
+
             _logger.LogDebug("Resolved {Count} Location IDs from names.", locationIds.Count);
         }
 
@@ -234,12 +251,13 @@ public class FactSalaryService : IFactSalaryService
         int? resolvedIndustryFieldId = null;
         if (!string.IsNullOrEmpty(request.IndustryFieldName))
         {
-            var industry = await _dimIndustryFieldRepository.GetIndustryFieldByNameAsync(request.IndustryFieldName);
+            var industry = await _dimIndustryFieldRepository.GetIndustryFieldByNameAsync(request.IndustryFieldName).ConfigureAwait(false);
             if (industry == null)
             {
                 _logger.LogWarning("Invalid IndustryFieldName provided: {IndustryName}", request.IndustryFieldName);
                 throw new ArgumentException($"Invalid IndustryFieldName provided: {request.IndustryFieldName}");
             }
+
             resolvedIndustryFieldId = industry.IndustryFieldId;
         }
 
@@ -249,12 +267,16 @@ public class FactSalaryService : IFactSalaryService
             jobFilterApplied = true;
             _logger.LogDebug(
                 "Resolving job IDs based on criteria: StandardJobRole={StdJob}, Hierarchy={Hierarchy}, IndustryId={IndustryId}",
-                request.StandardJobRoleTitle, request.HierarchyLevelName, resolvedIndustryFieldId);
+                request.StandardJobRoleTitle,
+                request.HierarchyLevelName,
+                resolvedIndustryFieldId);
 
-            jobIds = await _dimJobRepository.GetJobIdsByFilterAsync(request.StandardJobRoleTitle,
-                request.HierarchyLevelName, resolvedIndustryFieldId);
-            
-            if (jobIds == null || !jobIds.Any())
+            jobIds = await _dimJobRepository.GetJobIdsByFilterAsync(
+                request.StandardJobRoleTitle,
+                request.HierarchyLevelName,
+                resolvedIndustryFieldId).ConfigureAwait(false);
+
+            if (jobIds.Count == 0)
             {
                 _logger.LogInformation("No jobs matched the specified job filters.");
                 return null;
@@ -266,7 +288,7 @@ public class FactSalaryService : IFactSalaryService
             LocationIds = locationFilterApplied ? locationIds : null,
             JobIds = jobFilterApplied ? jobIds : null,
             DateStart = request.DateStart,
-            DateEnd = request.DateEnd
+            DateEnd = request.DateEnd,
         };
     }
 }

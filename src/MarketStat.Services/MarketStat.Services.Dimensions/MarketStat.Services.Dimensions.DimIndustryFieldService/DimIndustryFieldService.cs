@@ -1,4 +1,4 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using MarketStat.Services.Dimensions.DimIndustryFieldService.Validators;
@@ -11,13 +11,14 @@ public class DimIndustryFieldService : IDimIndustryFieldService
     private readonly IDimIndustryFieldRepository _dimIndustryFieldRepository;
     private readonly ILogger<DimIndustryFieldService> _logger;
 
-    public DimIndustryFieldService(IDimIndustryFieldRepository dimIndustryFieldRepository,
+    public DimIndustryFieldService(
+        IDimIndustryFieldRepository dimIndustryFieldRepository,
         ILogger<DimIndustryFieldService> logger)
     {
         _dimIndustryFieldRepository = dimIndustryFieldRepository;
         _logger = logger;
     }
-    
+
     public async Task<DimIndustryField> CreateIndustryFieldAsync(string industryFieldCode, string industryFieldName)
     {
         DimIndustryFieldValidator.ValidateForCreate(industryFieldCode, industryFieldName);
@@ -26,9 +27,9 @@ public class DimIndustryFieldService : IDimIndustryFieldService
         var industryField = new DimIndustryField(0, industryFieldCode, industryFieldName);
         try
         {
-            await _dimIndustryFieldRepository.AddIndustryFieldAsync(industryField);
-            _logger.LogInformation("Service: Created DimIndustryField {IndustryFieldId} ('{IndustryFieldName}')", 
-                industryField.IndustryFieldId, industryField.IndustryFieldName);
+            await _dimIndustryFieldRepository.AddIndustryFieldAsync(industryField).ConfigureAwait(false);
+            _logger.LogInformation(
+                "Service: Created DimIndustryField {IndustryFieldId} ('{IndustryFieldName}')", industryField.IndustryFieldId, industryField.IndustryFieldName);
             return industryField;
         }
         catch (ConflictException ex)
@@ -37,12 +38,12 @@ public class DimIndustryFieldService : IDimIndustryFieldService
             throw;
         }
     }
-    
+
     public async Task<DimIndustryField> GetIndustryFieldByIdAsync(int industryFieldId)
     {
         try
         {
-            return await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId);
+            return await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId).ConfigureAwait(false);
         }
         catch (NotFoundException ex)
         {
@@ -50,15 +51,15 @@ public class DimIndustryFieldService : IDimIndustryFieldService
             throw;
         }
     }
-    
+
     public async Task<IEnumerable<DimIndustryField>> GetAllIndustryFieldsAsync()
     {
         _logger.LogInformation("Service: Fetching all industry fields.");
-        var industryFields = await _dimIndustryFieldRepository.GetAllIndustryFieldsAsync();
+        var industryFields = await _dimIndustryFieldRepository.GetAllIndustryFieldsAsync().ConfigureAwait(false);
         _logger.LogInformation("Service: Fetched {Count} industry fields.", industryFields.Count());
         return industryFields;
     }
-    
+
     public async Task<DimIndustryField> UpdateIndustryFieldAsync(int industryFieldId, string industryFieldCode, string industryFieldName)
     {
         DimIndustryFieldValidator.ValidateForUpdate(industryFieldId, industryFieldCode, industryFieldName);
@@ -66,12 +67,12 @@ public class DimIndustryFieldService : IDimIndustryFieldService
 
         try
         {
-            var existingIndustryField = await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId);
-                
+            var existingIndustryField = await _dimIndustryFieldRepository.GetIndustryFieldByIdAsync(industryFieldId).ConfigureAwait(false);
+
             existingIndustryField.IndustryFieldName = industryFieldName;
             existingIndustryField.IndustryFieldCode = industryFieldCode;
-                
-            await _dimIndustryFieldRepository.UpdateIndustryFieldAsync(existingIndustryField);
+
+            await _dimIndustryFieldRepository.UpdateIndustryFieldAsync(existingIndustryField).ConfigureAwait(false);
             _logger.LogInformation("Service: Updated DimIndustryField {IndustryFieldId}", industryFieldId);
             return existingIndustryField;
         }
@@ -86,12 +87,12 @@ public class DimIndustryFieldService : IDimIndustryFieldService
             throw;
         }
     }
-    
+
     public async Task DeleteIndustryFieldAsync(int industryFieldId)
     {
         try
         {
-            await _dimIndustryFieldRepository.DeleteIndustryFieldAsync(industryFieldId);
+            await _dimIndustryFieldRepository.DeleteIndustryFieldAsync(industryFieldId).ConfigureAwait(false);
             _logger.LogInformation("Deleted DimIndustryField {IndustryFieldId}", industryFieldId);
         }
         catch (NotFoundException ex)
@@ -103,13 +104,15 @@ public class DimIndustryFieldService : IDimIndustryFieldService
 
     public async Task<DimIndustryField?> GetIndustryFieldByNameAsync(string industryFieldName)
     {
-        _logger.LogInformation("Service: Attempting to find industry field by name: {IndustryFieldName}",
+        _logger.LogInformation(
+            "Service: Attempting to find industry field by name: {IndustryFieldName}",
             industryFieldName);
-        var industryField = await _dimIndustryFieldRepository.GetIndustryFieldByNameAsync(industryFieldName);
+        var industryField = await _dimIndustryFieldRepository.GetIndustryFieldByNameAsync(industryFieldName).ConfigureAwait(false);
         if (industryField == null)
         {
             _logger.LogWarning("Service: No industry field found with name: {IndustryFieldName}", industryFieldName);
         }
+
         return industryField;
     }
 }

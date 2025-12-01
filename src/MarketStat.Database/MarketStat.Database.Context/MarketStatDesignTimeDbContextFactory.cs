@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
-
 namespace MarketStat.Database.Context
 {
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Design;
+    using Microsoft.Extensions.Configuration;
+
     public class MarketStatDesignTimeDbContextFactory
         : IDesignTimeDbContextFactory<MarketStatDbContext>
     {
@@ -24,7 +24,7 @@ namespace MarketStat.Database.Context
             }
 
             var optionsBuilder = new DbContextOptionsBuilder<MarketStatDbContext>();
-        
+
             optionsBuilder.UseNpgsql(connectionString, o =>
             {
                 o.MigrationsAssembly(typeof(MarketStatDbContext).Assembly.FullName);

@@ -1,11 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-
 #nullable disable
 
 namespace MarketStat.Database.Context.Migrations
 {
+    using System;
+    using Microsoft.EntityFrameworkCore.Migrations;
+    using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
     /// <inheritdoc />
     public partial class InitialCreate : Migration
     {
@@ -25,7 +25,7 @@ namespace MarketStat.Database.Context.Migrations
                     full_date = table.Column<DateOnly>(type: "date", nullable: false),
                     year = table.Column<int>(type: "integer", nullable: false),
                     quarter = table.Column<int>(type: "integer", nullable: false),
-                    month = table.Column<int>(type: "integer", nullable: false)
+                    month = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -43,7 +43,7 @@ namespace MarketStat.Database.Context.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     specialty_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     specialty_code = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    education_level_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
+                    education_level_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                 },
                 constraints: table =>
                 {
@@ -58,7 +58,7 @@ namespace MarketStat.Database.Context.Migrations
                     industry_field_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     industry_field_code = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
-                    industry_field_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
+                    industry_field_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                 },
                 constraints: table =>
                 {
@@ -74,7 +74,7 @@ namespace MarketStat.Database.Context.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     city_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     oblast_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    district_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
+                    district_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                 },
                 constraints: table =>
                 {
@@ -95,7 +95,7 @@ namespace MarketStat.Database.Context.Migrations
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     last_login_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    is_admin = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                    is_admin = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                 },
                 constraints: table =>
                 {
@@ -114,7 +114,7 @@ namespace MarketStat.Database.Context.Migrations
                     career_start_date = table.Column<DateOnly>(type: "date", nullable: false),
                     gender = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     education_id = table.Column<int>(type: "integer", nullable: true),
-                    graduation_year = table.Column<short>(type: "smallint", nullable: true)
+                    graduation_year = table.Column<short>(type: "smallint", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -147,7 +147,7 @@ namespace MarketStat.Database.Context.Migrations
                     legal_address = table.Column<string>(type: "text", nullable: false),
                     contact_email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     contact_phone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    industry_field_id = table.Column<int>(type: "integer", nullable: false)
+                    industry_field_id = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -171,7 +171,7 @@ namespace MarketStat.Database.Context.Migrations
                     job_role_title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     standard_job_role_title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     hierarchy_level_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    industry_field_id = table.Column<int>(type: "integer", nullable: false)
+                    industry_field_id = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -197,7 +197,7 @@ namespace MarketStat.Database.Context.Migrations
                     employer_id = table.Column<int>(type: "integer", nullable: false),
                     job_id = table.Column<int>(type: "integer", nullable: false),
                     employee_id = table.Column<int>(type: "integer", nullable: false),
-                    salary_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
+                    salary_amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                 },
                 constraints: table =>
                 {

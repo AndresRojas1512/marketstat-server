@@ -1,15 +1,17 @@
+using MarketStat.Common.Core.Facts;
+
+namespace MarketStat.Tests.E2E;
+
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
-using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Payloads;
+using MarketStat.Common.Converter.Dimensions;
+using MarketStat.Common.Converter.Facts;
+using MarketStat.Common.Dto.Facts.Analytics.Payloads;
 using MarketStat.Database.Context;
 using MarketStat.Tests.TestData.Builders.Dimensions;
 using MarketStat.Tests.TestData.Builders.Facts;
 using Microsoft.Extensions.DependencyInjection;
-
-namespace MarketStat.Tests.E2E;
 
 [Collection("E2E")]
 public class AnalyticsE2E : IAsyncLifetime
@@ -21,12 +23,12 @@ public class AnalyticsE2E : IAsyncLifetime
     public AnalyticsE2E(MarketStatE2ETestWebAppFactory factory)
     {
         _resetDatabase = factory.ResetDatabaseAsync;
-        
+
         if (factory.KestrelHost == null)
         {
             try
             {
-                using var _ = factory.CreateClient();
+                using var dummy = factory.CreateClient();
             }
             catch (InvalidCastException)
             {
@@ -52,13 +54,13 @@ public class AnalyticsE2E : IAsyncLifetime
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<MarketStatDbContext>();
 
-            var facts = new List<MarketStat.Common.Core.MarketStat.Common.Core.Facts.FactSalary>();
+            var facts = new List<FactSalary>();
 
             for (int i = 0; i < 15; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(1) 
-                    .WithSalaryAmount(200000) 
+                    .WithJobId(1)
+                    .WithSalaryAmount(200000)
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
             }
@@ -66,7 +68,7 @@ public class AnalyticsE2E : IAsyncLifetime
             for (int i = 0; i < 12; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(2) 
+                    .WithJobId(2)
                     .WithSalaryAmount(50000)
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
@@ -75,7 +77,7 @@ public class AnalyticsE2E : IAsyncLifetime
             for (int i = 0; i < 5; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(3) 
+                    .WithJobId(3)
                     .WithSalaryAmount(120000)
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
@@ -85,7 +87,7 @@ public class AnalyticsE2E : IAsyncLifetime
             await dbContext.SaveChangesAsync();
         }
 
-        var response = await _client.GetAsync("/api/factsalaries/public/roles?minRecordCount=10");
+        var response = await _client.GetAsync(new Uri("/api/factsalaries/public/roles?minRecordCount=10", UriKind.Relative));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -99,7 +101,7 @@ public class AnalyticsE2E : IAsyncLifetime
 
         result[1].StandardJobRoleTitle.Should().Be("Junior Support");
         result[1].AverageSalary.Should().Be(50000);
-        
+
         result.Should().NotContain(x => x.StandardJobRoleTitle == "Rare Specialist");
     }
 }

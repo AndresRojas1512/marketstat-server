@@ -1,12 +1,12 @@
-using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
+
+using MarketStat.Common.Converter.Dimensions;
+using MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Dimensions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-
-namespace MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 
 public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
 {
@@ -16,14 +16,15 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
-    
+
     public async Task AddEmployerAsync(DimEmployer employer)
     {
+        ArgumentNullException.ThrowIfNull(employer);
         var dbModel = DimEmployerConverter.ToDbModel(employer);
-        await _dbContext.DimEmployers.AddAsync(dbModel);
+        await _dbContext.DimEmployers.AddAsync(dbModel).ConfigureAwait(false);
         try
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
         catch (DbUpdateException dbEx)
             when (dbEx.InnerException is PostgresException pg
@@ -31,6 +32,7 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
         {
             throw new ConflictException($"An employer named '{employer.EmployerName}' already exists.");
         }
+
         employer.EmployerId = dbModel.EmployerId;
     }
 
@@ -38,9 +40,12 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
     {
         var dbEmployer = await _dbContext.DimEmployers
             .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.EmployerId == employerId);
+            .FirstOrDefaultAsync(e => e.EmployerId == employerId).ConfigureAwait(false);
         if (dbEmployer == null)
+        {
             throw new NotFoundException($"Employer with ID {employerId} not found.");
+        }
+
         return DimEmployerConverter.ToDomain(dbEmployer);
     }
 
@@ -49,18 +54,21 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
         var allDbEmployers = await _dbContext.DimEmployers
             .AsNoTracking()
             .OrderBy(e => e.EmployerName)
-            .ToListAsync();
+            .ToListAsync().ConfigureAwait(false);
         return allDbEmployers.Select(DimEmployerConverter.ToDomain);
     }
 
     public async Task UpdateEmployerAsync(DimEmployer employer)
     {
+        ArgumentNullException.ThrowIfNull(employer);
         var dbEmployer = await _dbContext.DimEmployers
-            .FirstOrDefaultAsync(e => e.EmployerId == employer.EmployerId);
-        
+            .FirstOrDefaultAsync(e => e.EmployerId == employer.EmployerId).ConfigureAwait(false);
+
         if (dbEmployer == null)
+        {
             throw new NotFoundException($"Employer with ID {employer.EmployerId} not found.");
-        
+        }
+
         dbEmployer.EmployerName = employer.EmployerName;
         dbEmployer.Inn = employer.Inn;
         dbEmployer.Ogrn = employer.Ogrn;
@@ -69,10 +77,10 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
         dbEmployer.LegalAddress = employer.LegalAddress;
         dbEmployer.ContactEmail = employer.ContactEmail;
         dbEmployer.ContactPhone = employer.ContactPhone;
-        
+
         try
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
         catch (DbUpdateException dbEx)
             when (dbEx.InnerException is PostgresException pgEx &&
@@ -84,10 +92,13 @@ public class DimEmployerRepository : BaseRepository, IDimEmployerRepository
 
     public async Task DeleteEmployerAsync(int employerId)
     {
-        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId);
+        var dbEmployer = await _dbContext.DimEmployers.FindAsync(employerId).ConfigureAwait(false);
         if (dbEmployer == null)
+        {
             throw new NotFoundException($"Employer with ID {employerId} not found.");
+        }
+
         _dbContext.DimEmployers.Remove(dbEmployer);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync().ConfigureAwait(false);
     }
 }

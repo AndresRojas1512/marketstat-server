@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace MarketStat.Database.Context;
+
+using Microsoft.EntityFrameworkCore;
 
 public class InMemoryDbContextFactory : IDbContextFactory
 {

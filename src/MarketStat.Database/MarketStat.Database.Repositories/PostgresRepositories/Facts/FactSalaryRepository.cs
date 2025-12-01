@@ -1,15 +1,15 @@
-using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
+namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
+
+using MarketStat.Common.Converter.Facts;
+using MarketStat.Common.Core.Facts;
+using MarketStat.Common.Core.Facts.Analytics.Responses;
 using MarketStat.Common.Enums;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Context;
 using MarketStat.Database.Core.Repositories.Facts;
-using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
+using MarketStat.Database.Models.Facts;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-
-namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 
 public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
 {
@@ -20,14 +20,14 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-
     public async Task AddFactSalaryAsync(FactSalary salary)
     {
+        ArgumentNullException.ThrowIfNull(salary);
         var dbModel = FactSalaryConverter.ToDbModel(salary);
-        await _dbContext.FactSalaries.AddAsync(dbModel);
+        await _dbContext.FactSalaries.AddAsync(dbModel).ConfigureAwait(false);
         try
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             salary.SalaryFactId = dbModel.SalaryFactId;
         }
         catch (DbUpdateException dbEx)
@@ -43,33 +43,38 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
     {
         var dbSalary = await _dbContext.FactSalaries
             .AsNoTracking()
-            .FirstOrDefaultAsync(fs => fs.SalaryFactId == salaryId);
+            .FirstOrDefaultAsync(fs => fs.SalaryFactId == salaryId).ConfigureAwait(false);
         if (dbSalary == null)
         {
             throw new NotFoundException($"Salary fact with ID {salaryId} not found.");
         }
+
         return FactSalaryConverter.ToDomain(dbSalary);
     }
 
     public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(ResolvedSalaryFilter resolvedFilters)
     {
+        ArgumentNullException.ThrowIfNull(resolvedFilters);
         try
         {
             var query = GetFilteredSalariesQuery(resolvedFilters);
-            var dbModels = await query.AsNoTracking().ToListAsync();
+            var dbModels = await query.AsNoTracking().ToListAsync().ConfigureAwait(false);
             return dbModels.Select(FactSalaryConverter.ToDomain);
         }
         catch (Exception ex)
         {
-            throw new ApplicationException("An error occurred while processing filtered salaries.", ex);
+            throw new InvalidOperationException("An error occurred while processing filtered salaries.", ex);
         }
     }
 
     public async Task UpdateFactSalaryAsync(FactSalary salaryFact)
     {
-        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFact.SalaryFactId);
+        ArgumentNullException.ThrowIfNull(salaryFact);
+        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFact.SalaryFactId).ConfigureAwait(false);
         if (dbModel == null)
+        {
             throw new NotFoundException($"Salary fact with ID {salaryFact.SalaryFactId} not found for update.");
+        }
 
         dbModel.DateId = salaryFact.DateId;
         dbModel.LocationId = salaryFact.LocationId;
@@ -79,7 +84,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         dbModel.SalaryAmount = salaryFact.SalaryAmount;
         try
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
         }
         catch (DbUpdateException dbEx)
             when (dbEx.InnerException is PostgresException pgEx &&
@@ -92,21 +97,24 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
 
     public async Task DeleteFactSalaryByIdAsync(long salaryFactId)
     {
-        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFactId);
+        var dbModel = await _dbContext.FactSalaries.FindAsync(salaryFactId).ConfigureAwait(false);
         if (dbModel == null)
+        {
             throw new NotFoundException($"Salary fact with ID {salaryFactId} not found for deletion.");
-        _dbContext.FactSalaries.Remove(dbModel);
-        await _dbContext.SaveChangesAsync();
-    }
-    
-    // Authorized analytical methods
+        }
 
+        _dbContext.FactSalaries.Remove(dbModel);
+        await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+    }
+
+    // Authorized analytical methods
     public async Task<List<SalaryDistributionBucket>> GetSalaryDistributionAsync(ResolvedSalaryFilter resolvedFilters)
     {
+        ArgumentNullException.ThrowIfNull(resolvedFilters);
         var baseQuery = GetFilteredSalariesQuery(resolvedFilters);
         var salaries = await baseQuery
             .Select(f => f.SalaryAmount)
-            .ToListAsync();
+            .ToListAsync().ConfigureAwait(false);
         if (salaries.Count == 0)
         {
             return new List<SalaryDistributionBucket>();
@@ -120,7 +128,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         {
             return new List<SalaryDistributionBucket>
             {
-                new SalaryDistributionBucket { LowerBound = minVal, UpperBound = maxVal, BucketCount = n}
+                new SalaryDistributionBucket { LowerBound = minVal, UpperBound = maxVal, BucketCount = n },
             };
         }
 
@@ -131,7 +139,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         {
             return new List<SalaryDistributionBucket>
             {
-                new SalaryDistributionBucket { LowerBound = minVal, UpperBound = maxVal, BucketCount = n }
+                new SalaryDistributionBucket { LowerBound = minVal, UpperBound = maxVal, BucketCount = n },
             };
         }
 
@@ -148,7 +156,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
                     BucketNo = bucketNo,
                     LowerBound = lowerBound,
                     UpperBound = upperBound,
-                    Count = g.Count()
+                    Count = g.Count(),
                 };
             })
             .GroupBy(b => b.BucketNo)
@@ -156,27 +164,28 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             {
                 LowerBound = finalGroup.First().LowerBound,
                 UpperBound = finalGroup.First().UpperBound,
-                BucketCount = finalGroup.Sum(item => item.Count)
+                BucketCount = finalGroup.Sum(item => item.Count),
             })
             .OrderBy(b => b.LowerBound)
             .ToList();
-        
+
         return distribution;
     }
 
     public async Task<SalarySummary?> GetSalarySummaryAsync(ResolvedSalaryFilter resolvedFilters, int targetPercentile)
     {
+        ArgumentNullException.ThrowIfNull(resolvedFilters);
         var baseQuery = GetFilteredSalariesQuery(resolvedFilters);
-        
+
         var summaryStats = await baseQuery
             .GroupBy(f => 1)
             .Select(g => new
             {
                 TotalCount = g.Count(),
-                AverageSalary = g.Average(f => f.SalaryAmount)
+                AverageSalary = g.Average(f => f.SalaryAmount),
             })
-            .FirstOrDefaultAsync();
-        
+            .FirstOrDefaultAsync().ConfigureAwait(false);
+
         if (summaryStats == null || summaryStats.TotalCount == 0)
         {
             return null;
@@ -188,7 +197,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             salariesForPercentile = await baseQuery
                 .OrderBy(f => f.SalaryAmount)
                 .Select(f => f.SalaryAmount)
-                .ToListAsync();
+                .ToListAsync().ConfigureAwait(false);
         }
 
         var result = new SalarySummary
@@ -198,36 +207,38 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             Percentile25 = CalculatePercentile(salariesForPercentile, 25),
             Percentile50 = CalculatePercentile(salariesForPercentile, 50),
             Percentile75 = CalculatePercentile(salariesForPercentile, 75),
-            PercentileTarget = CalculatePercentile(salariesForPercentile, targetPercentile)
+            PercentileTarget = CalculatePercentile(salariesForPercentile, targetPercentile),
         };
         return result;
     }
 
-    public async Task<List<SalaryTimeSeriesPoint>> GetSalaryTimeSeriesAsync(ResolvedSalaryFilter resolvedFilters,
-        TimeGranularity granularity, int periods)
+    public async Task<List<SalaryTimeSeriesPoint>> GetSalaryTimeSeriesAsync(
+        ResolvedSalaryFilter resolvedFilters,
+        TimeGranularity granularity,
+        int periods)
     {
+        ArgumentNullException.ThrowIfNull(resolvedFilters);
         var referenceDate = resolvedFilters.DateEnd ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var seriesEndDate = GetPeriodStartDate(referenceDate, granularity);
         var seriesStartDate = AddPeriods(seriesEndDate, granularity, -(periods - 1));
         var overallEndDate = AddPeriods(seriesEndDate, granularity, 1);
-        
+
         var baseQuery = GetFilteredSalariesQuery(resolvedFilters)
             .Where(f => f.DimDate!.FullDate >= seriesStartDate &&
                         f.DimDate.FullDate < overallEndDate);
 
         var dbResults = await baseQuery
-            .GroupBy(f => 
+            .GroupBy(f =>
                 granularity == TimeGranularity.Year ? new DateOnly(f.DimDate!.FullDate.Year, 1, 1) :
-                granularity == TimeGranularity.Quarter ? new DateOnly(f.DimDate!.FullDate.Year, ((f.DimDate!.FullDate.Month - 1) / 3) * 3 + 1, 1) :
-                new DateOnly(f.DimDate!.FullDate.Year, f.DimDate!.FullDate.Month, 1)
-            )
+                granularity == TimeGranularity.Quarter ? new DateOnly(f.DimDate!.FullDate.Year, (((f.DimDate!.FullDate.Month - 1) / 3) * 3) + 1, 1) :
+                new DateOnly(f.DimDate!.FullDate.Year, f.DimDate!.FullDate.Month, 1))
             .Select(g => new
             {
                 PeriodStart = g.Key,
                 AvgSalary = g.Average(f => f.SalaryAmount),
-                SalaryCountInPeriod = g.Count()
+                SalaryCountInPeriod = g.Count(),
             })
-            .ToDictionaryAsync(r => r.PeriodStart);
+            .ToDictionaryAsync(r => r.PeriodStart).ConfigureAwait(false);
 
         var allPeriods = new List<SalaryTimeSeriesPoint>();
         var currentPeriodStart = seriesStartDate;
@@ -239,7 +250,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
                 {
                     PeriodStart = currentPeriodStart,
                     AvgSalary = stats.AvgSalary,
-                    SalaryCountInPeriod = stats.SalaryCountInPeriod
+                    SalaryCountInPeriod = stats.SalaryCountInPeriod,
                 });
             }
             else
@@ -248,7 +259,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
                 {
                     PeriodStart = currentPeriodStart,
                     AvgSalary = 0,
-                    SalaryCountInPeriod = 0
+                    SalaryCountInPeriod = 0,
                 });
             }
 
@@ -259,10 +270,10 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
     }
 
     // Public analytical methods
-
     public async Task<IEnumerable<PublicRoleByLocationIndustry>> GetPublicRolesAsync(
         ResolvedSalaryFilter resolvedFilters, int minRecordCount)
     {
+        ArgumentNullException.ThrowIfNull(resolvedFilters);
         var query = GetFilteredSalariesQuery(resolvedFilters);
         var results = await query
             .Include(fs => fs.DimJob)
@@ -271,16 +282,65 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             {
                 StandardJobRoleTitle = g.Key,
                 AverageSalary = g.Average(fs => fs.SalaryAmount),
-                SalaryRecordCount = g.Count()
+                SalaryRecordCount = g.Count(),
             })
             .Where(g => g.SalaryRecordCount >= minRecordCount)
             .OrderByDescending(g => g.AverageSalary)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync().ConfigureAwait(false);
         return results;
     }
-    
-    // Utils
+
+    private static DateOnly GetPeriodStartDate(DateOnly date, TimeGranularity granularity)
+    {
+        return granularity switch
+        {
+            TimeGranularity.Year => new DateOnly(date.Year, 1, 1),
+            TimeGranularity.Quarter => new DateOnly(date.Year, (((date.Month - 1) / 3) * 3) + 1, 1),
+            _ => new DateOnly(date.Year, date.Month, 1),
+        };
+    }
+
+    private static DateOnly AddPeriods(DateOnly date, TimeGranularity granularity, int count)
+    {
+        return granularity switch
+        {
+            TimeGranularity.Year => date.AddYears(count),
+            TimeGranularity.Quarter => date.AddMonths(count * 3),
+            _ => date.AddMonths(count),
+        };
+    }
+
+    private static decimal? CalculatePercentile(List<decimal> sortedData, int percentile)
+    {
+        if (sortedData.Count == 0)
+        {
+            return null;
+        }
+
+        if (percentile <= 0)
+        {
+            return sortedData[0];
+        }
+
+        if (percentile >= 100)
+        {
+            return sortedData[sortedData.Count - 1];
+        }
+
+        double realIndex = (percentile / 100.0) * (sortedData.Count - 1);
+        int lowerIndex = (int)Math.Floor(realIndex);
+        int upperIndex = (int)Math.Ceiling(realIndex);
+
+        if (lowerIndex == upperIndex)
+        {
+            return sortedData[lowerIndex];
+        }
+
+        double weight = realIndex - lowerIndex;
+
+        return (decimal)(((1 - weight) * (double)sortedData[lowerIndex]) + (weight * (double)sortedData[upperIndex]));
+    }
 
     private IQueryable<FactSalaryDbModel> GetFilteredSalariesQuery(ResolvedSalaryFilter resolvedFilters)
     {
@@ -309,55 +369,5 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
         }
 
         return query;
-    }
-    
-    private DateOnly GetPeriodStartDate(DateOnly date, TimeGranularity granularity)
-    {
-        return granularity switch
-        {
-            TimeGranularity.Year => new DateOnly(date.Year, 1, 1),
-            TimeGranularity.Quarter => new DateOnly(date.Year, ((date.Month - 1) / 3) * 3 + 1, 1),
-            _ => new DateOnly(date.Year, date.Month, 1),
-        };
-    }
-
-    private DateOnly AddPeriods(DateOnly date, TimeGranularity granularity, int count)
-    {
-        return granularity switch
-        {
-            TimeGranularity.Year => date.AddYears(count),
-            TimeGranularity.Quarter => date.AddMonths(count * 3),
-            _ => date.AddMonths(count),
-        };
-    }
-    
-    private decimal? CalculatePercentile(List<decimal> sortedData, int percentile)
-    {
-        if (sortedData.Count == 0)
-        {
-            return null;
-        }
-
-        if (percentile <= 0)
-        {
-            return sortedData[0];
-        }
-
-        if (percentile >= 100)
-        {
-            return sortedData[sortedData.Count - 1];
-        }
-        
-        double realIndex = (percentile / 100.0) * (sortedData.Count - 1);
-        int lowerIndex = (int)Math.Floor(realIndex);
-        int upperIndex = (int)Math.Ceiling(realIndex);
-        
-        if (lowerIndex == upperIndex)
-        {
-            return sortedData[lowerIndex];
-        }
-        double weight = realIndex - lowerIndex;
-        
-        return (decimal)((1 - weight) * (double)sortedData[lowerIndex] + weight * (double)sortedData[upperIndex]);
     }
 }

@@ -1,7 +1,7 @@
+namespace MarketStat.Database.Models;
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
-namespace MarketStat.Database.Models;
 
 [Table("dim_education")]
 public class DimEducationDbModel
@@ -24,6 +24,6 @@ public class DimEducationDbModel
     [Column("education_level_name")]
     [StringLength(255)]
     public string EducationLevelName { get; set; } = string.Empty;
-    
-    public virtual ICollection<DimEmployeeDbModel> DimEmployees { get; set; } = new List<DimEmployeeDbModel>();
+
+    public virtual ICollection<DimEmployeeDbModel> DimEmployees { get; } = new List<DimEmployeeDbModel>();
 }

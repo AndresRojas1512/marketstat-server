@@ -1,6 +1,6 @@
-using System.Text.Json.Serialization;
+namespace MarketStat.Common.Dto.Dimensions.DimEmployee;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimEmployee;
+using System.Text.Json.Serialization;
 
 public record DimEmployeeDto
 {
@@ -18,10 +18,10 @@ public record DimEmployeeDto
 
     [JsonPropertyName("gender")]
     public string? Gender { get; init; }
-    
+
     [JsonPropertyName("educationId")]
     public int? EducationId { get; init; }
-    
+
     [JsonPropertyName("graduationYear")]
     public short? GraduationYear { get; init; }
 }

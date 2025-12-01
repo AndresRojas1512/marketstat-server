@@ -1,10 +1,10 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-
 namespace MarketStat.Tests.TestData.Builders.Facts;
+
+using MarketStat.Common.Core.Facts;
 
 public class FactSalaryBuilder
 {
-    private long _salaryFactId = 0L;
+    private long _salaryFactId;
     private int _dateId = 1;
     private int _locationId = 1;
     private int _employerId = 1;
@@ -17,43 +17,43 @@ public class FactSalaryBuilder
         _salaryFactId = id;
         return this;
     }
-    
+
     public FactSalaryBuilder WithDateId(int id)
     {
         _dateId = id;
         return this;
     }
-    
+
     public FactSalaryBuilder WithLocationId(int id)
     {
         _locationId = id;
         return this;
     }
-    
+
     public FactSalaryBuilder WithEmployerId(int id)
     {
         _employerId = id;
         return this;
     }
-    
+
     public FactSalaryBuilder WithJobId(int id)
     {
         _jobId = id;
         return this;
     }
-    
+
     public FactSalaryBuilder WithEmployeeId(int id)
     {
         _employeeId = id;
         return this;
     }
-    
+
     public FactSalaryBuilder WithSalaryAmount(decimal amount)
     {
         _salaryAmount = amount;
         return this;
     }
-    
+
     public FactSalary Build()
     {
         return new FactSalary(
@@ -63,7 +63,6 @@ public class FactSalaryBuilder
             _employerId,
             _jobId,
             _employeeId,
-            _salaryAmount
-        );
+            _salaryAmount);
     }
 }

@@ -1,6 +1,10 @@
+using MarketStat.Common.Core.Facts.Analytics.Requests;
+
+namespace MarketStat.Integration.Tests.Facts;
+
 using FluentAssertions;
-using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
+using MarketStat.Common.Converter.Facts;
+using MarketStat.Common.Dto.Facts.Analytics.Requests;
 using MarketStat.Common.Enums;
 using MarketStat.Database.Context;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
@@ -9,15 +13,13 @@ using MarketStat.Services.Facts.FactSalaryService;
 using MarketStat.Tests.TestData.Builders.Facts;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace MarketStat.Integration.Tests.Facts;
-
 [Collection("Integration")]
 public class FactSalaryServiceIntegrationTests : IAsyncLifetime
 {
     private readonly IntegrationTestFixture _fixture;
     private readonly MarketStatDbContext _dbContext;
     private readonly FactSalaryService _sut;
-    
+
     public FactSalaryServiceIntegrationTests(IntegrationTestFixture fixture)
     {
         _fixture = fixture;
@@ -27,16 +29,15 @@ public class FactSalaryServiceIntegrationTests : IAsyncLifetime
         var locationRepo = new DimLocationRepository(_dbContext);
         var jobRepo = new DimJobRepository(_dbContext);
         var industryRepo = new DimIndustryFieldRepository(_dbContext);
-        
+
         var logger = NullLogger<FactSalaryService>.Instance;
 
         _sut = new FactSalaryService(
-            factRepo, 
+            factRepo,
             logger,
-            locationRepo, 
-            jobRepo, 
-            industryRepo
-        );
+            locationRepo,
+            jobRepo,
+            industryRepo);
     }
 
     public Task InitializeAsync()
@@ -48,27 +49,26 @@ public class FactSalaryServiceIntegrationTests : IAsyncLifetime
     {
         return Task.CompletedTask;
     }
-    
+
     [Fact]
     public async Task GetSalarySummaryAsync_ShouldResolveCityNameAndCalculateSummary()
     {
         _dbContext.FactSalaries.AddRange(
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithLocationId(1).WithDateId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithLocationId(1).WithDateId(1).Build()),
-            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithLocationId(2).WithDateId(1).Build())
-        );
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithLocationId(2).WithDateId(1).Build()));
         await _dbContext.SaveChangesAsync();
 
         var request = new SalarySummaryRequestDto
         {
-            CityName = "Moscow", 
-            TargetPercentile = 50
+            CityName = "Moscow",
+            TargetPercentile = 50,
         };
-        
-        var domainRequest = new Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests.SalarySummaryRequest
+
+        var domainRequest = new SalarySummaryRequest
         {
             CityName = "Moscow",
-            TargetPercentile = 50
+            TargetPercentile = 50,
         };
 
         var result = await _sut.GetSalarySummaryAsync(domainRequest);
@@ -84,14 +84,13 @@ public class FactSalaryServiceIntegrationTests : IAsyncLifetime
         _dbContext.FactSalaries.AddRange(
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithJobId(1).WithDateId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithJobId(1).WithDateId(1).Build()),
-            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithJobId(2).WithDateId(1).Build())
-        );
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithJobId(2).WithDateId(1).Build()));
         await _dbContext.SaveChangesAsync();
 
-        var request = new Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests.PublicRolesRequest
+        var request = new PublicRolesRequest
         {
             IndustryFieldName = "IT",
-            MinRecordCount = 1
+            MinRecordCount = 1,
         };
         var result = (await _sut.GetPublicRolesAsync(request)).ToList();
         result.Should().HaveCount(1);
@@ -105,14 +104,13 @@ public class FactSalaryServiceIntegrationTests : IAsyncLifetime
         _dbContext.FactSalaries.Add(FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithLocationId(1).Build()));
         await _dbContext.SaveChangesAsync();
 
-        var request = new Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests.TimeSeriesRequest
+        var request = new TimeSeriesRequest
         {
             CityName = "NonExistentCity",
             Granularity = TimeGranularity.Month,
-            Periods = 1
+            Periods = 1,
         };
         var result = await _sut.GetSalaryTimeSeriesAsync(request);
         result.Should().BeEmpty();
     }
-
 }

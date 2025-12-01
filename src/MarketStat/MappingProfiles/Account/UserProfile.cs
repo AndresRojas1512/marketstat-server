@@ -1,8 +1,8 @@
-using AutoMapper;
-using MarketStat.Common.Core.MarketStat.Common.Core.Account;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Account.User;
-
 namespace MarketStat.MappingProfiles.Account;
+
+using AutoMapper;
+using MarketStat.Common.Core.Account;
+using MarketStat.Common.Dto.Account.User;
 
 public class UserProfile : Profile
 {

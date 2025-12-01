@@ -1,10 +1,10 @@
-using MarketStat.Common.Core.MarketStat.Common.Core.Dimensions;
+using MarketStat.Common.Core.Dimensions;
 using MarketStat.Common.Exceptions;
 using MarketStat.Database.Core.Repositories.Dimensions;
-using MarketStat.Services.Dimencions.DimLocationService.Validators;
+using MarketStat.Services.Dimensions.Validators;
 using Microsoft.Extensions.Logging;
 
-namespace MarketStat.Services.Dimensions.DimLocationService;
+namespace MarketStat.Services.Dimensions;
 
 public class DimLocationService : IDimLocationService
 {
@@ -16,14 +16,14 @@ public class DimLocationService : IDimLocationService
         _dimLocationRepository = dimLocationRepository;
         _logger = logger;
     }
-    
+
     public async Task<DimLocation> CreateLocationAsync(string cityName, string oblastName, string distrctName)
     {
         DimLocationValidator.ValidateForCreate(cityName, oblastName, distrctName);
         var location = new DimLocation(0, cityName, oblastName, distrctName);
         try
         {
-            await _dimLocationRepository.AddLocationAsync(location);
+            await _dimLocationRepository.AddLocationAsync(location).ConfigureAwait(false);
             _logger.LogInformation("Created location {LocationId}", location.LocationId);
             return location;
         }
@@ -38,7 +38,7 @@ public class DimLocationService : IDimLocationService
     {
         try
         {
-            return await _dimLocationRepository.GetLocationByIdAsync(locationId);
+            return await _dimLocationRepository.GetLocationByIdAsync(locationId).ConfigureAwait(false);
         }
         catch (NotFoundException ex)
         {
@@ -49,24 +49,27 @@ public class DimLocationService : IDimLocationService
 
     public async Task<IEnumerable<DimLocation>> GetAllLocationsAsync()
     {
-        var list = await _dimLocationRepository.GetAllLocationsAsync();
+        var list = await _dimLocationRepository.GetAllLocationsAsync().ConfigureAwait(false);
         _logger.LogInformation("Fetched {Count} location records", list.Count());
         return list;
     }
 
-    public async Task<DimLocation> UpdateLocationAsync(int locationId, string cityName, string oblastName,
+    public async Task<DimLocation> UpdateLocationAsync(
+        int locationId,
+        string cityName,
+        string oblastName,
         string districtName)
     {
         DimLocationValidator.ValidateForUpdate(locationId, cityName, oblastName, districtName);
         try
         {
-            var existing = await _dimLocationRepository.GetLocationByIdAsync(locationId);
+            var existing = await _dimLocationRepository.GetLocationByIdAsync(locationId).ConfigureAwait(false);
 
             existing.CityName = cityName;
             existing.OblastName = oblastName;
             existing.DistrictName = districtName;
 
-            await _dimLocationRepository.UpdateLocationAsync(existing);
+            await _dimLocationRepository.UpdateLocationAsync(existing).ConfigureAwait(false);
             _logger.LogInformation("Updated location {Id}", locationId);
             return existing;
         }
@@ -86,7 +89,7 @@ public class DimLocationService : IDimLocationService
     {
         try
         {
-            await _dimLocationRepository.DeleteLocationAsync(locationId);
+            await _dimLocationRepository.DeleteLocationAsync(locationId).ConfigureAwait(false);
             _logger.LogInformation("Deleted location {LocationId}", locationId);
         }
         catch (NotFoundException ex)
@@ -99,18 +102,18 @@ public class DimLocationService : IDimLocationService
     public async Task<IEnumerable<string>> GetDistinctDistrictsAsync()
     {
         _logger.LogInformation("Fetching distinct districts.");
-        return await _dimLocationRepository.GetDistinctDistrictsAsync();
+        return await _dimLocationRepository.GetDistinctDistrictsAsync().ConfigureAwait(false);
     }
 
     public async Task<IEnumerable<string>> GetDistinctOblastsAsync(string districtName)
     {
         _logger.LogInformation("Fetching distinct oblasts for district: {DistrictName}", districtName);
-        return await _dimLocationRepository.GetDistinctOblastsAsync(districtName);
+        return await _dimLocationRepository.GetDistinctOblastsAsync(districtName).ConfigureAwait(false);
     }
 
     public async Task<IEnumerable<string>> GetDistinctCitiesAsync(string oblastName)
     {
         _logger.LogInformation("Fetching distinct cities for oblast: {OblastName}", oblastName);
-        return await _dimLocationRepository.GetDistinctCitiesAsync(oblastName);
+        return await _dimLocationRepository.GetDistinctCitiesAsync(oblastName).ConfigureAwait(false);
     }
 }

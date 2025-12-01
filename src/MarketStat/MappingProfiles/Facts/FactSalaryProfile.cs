@@ -1,12 +1,12 @@
-using AutoMapper;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests;
-using MarketStat.Common.Core.MarketStat.Common.Core.Facts.Analytics.Responses;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Payloads;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
-
 namespace MarketStat.MappingProfiles.Facts;
+
+using AutoMapper;
+using MarketStat.Common.Core.Facts;
+using MarketStat.Common.Core.Facts.Analytics.Requests;
+using MarketStat.Common.Core.Facts.Analytics.Responses;
+using MarketStat.Common.Dto.Facts;
+using MarketStat.Common.Dto.Facts.Analytics.Payloads;
+using MarketStat.Common.Dto.Facts.Analytics.Requests;
 
 public class FactSalaryProfile : Profile
 {
@@ -16,7 +16,7 @@ public class FactSalaryProfile : Profile
 
         CreateMap<CreateFactSalaryDto, FactSalary>()
             .ForMember(dest => dest.SalaryFactId, opt => opt.Ignore());
-        
+
         CreateMap<UpdateFactSalaryDto, FactSalary>()
             .ForMember(dest => dest.SalaryFactId, opt => opt.Ignore());
 

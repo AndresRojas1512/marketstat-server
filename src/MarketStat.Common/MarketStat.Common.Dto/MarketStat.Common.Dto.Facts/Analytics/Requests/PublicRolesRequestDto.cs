@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
+namespace MarketStat.Common.Dto.Facts.Analytics.Requests;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Requests;
+using System.ComponentModel.DataAnnotations;
 
 public class PublicRolesRequestDto : SalaryFilterDto
 {

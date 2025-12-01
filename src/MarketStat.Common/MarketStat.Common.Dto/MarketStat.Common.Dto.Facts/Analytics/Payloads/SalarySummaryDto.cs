@@ -1,9 +1,14 @@
-using System.Text.Json.Serialization;
+namespace MarketStat.Common.Dto.Facts.Analytics.Payloads;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Payloads;
+using System.Text.Json.Serialization;
 
 public class SalarySummaryDto
 {
+    public SalarySummaryDto()
+    {
+        TotalCount = 0;
+    }
+
     [JsonPropertyName("percentile25")]
     public decimal? Percentile25 { get; set; }
 
@@ -21,9 +26,4 @@ public class SalarySummaryDto
 
     [JsonPropertyName("total_count")]
     public long TotalCount { get; set; }
-
-    public SalarySummaryDto()
-    {
-        TotalCount = 0;
-    }
 }

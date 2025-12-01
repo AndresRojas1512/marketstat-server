@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
+using MarketStat.Database.Models.Facts;
 
 namespace MarketStat.Database.Models;
 
@@ -19,7 +19,7 @@ public class DimEmployeeDbModel
     [Required]
     [Column("birth_date", TypeName = "date")]
     public DateOnly BirthDate { get; set; }
-        
+
     [Required]
     [Column("career_start_date", TypeName = "date")]
     public DateOnly CareerStartDate { get; set; }
@@ -27,13 +27,14 @@ public class DimEmployeeDbModel
     [Column("gender")]
     [StringLength(50)]
     public string? Gender { get; set; }
-    
+
     [Column("education_id")]
     public int? EducationId { get; set; }
-    
+
     [Column("graduation_year")]
     public short? GraduationYear { get; set; }
-    
+
     public virtual DimEducationDbModel? Education { get; set; }
-    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; } = new List<FactSalaryDbModel>();
+
+    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; } = new List<FactSalaryDbModel>();
 }

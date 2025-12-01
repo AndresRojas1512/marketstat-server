@@ -1,10 +1,10 @@
+namespace MarketStat.Controllers.Dimensions;
+
 using AutoMapper;
-using MarketStat.Common.Dto.MarketStat.Common.Dto.Dimensions.DimDate;
+using MarketStat.Common.Dto.Dimensions.DimDate;
 using MarketStat.Services.Dimensions.DimDateService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-namespace MarketStat.Controllers.Dimensions;
 
 [ApiController]
 [Route("api/dimdates")]
@@ -19,25 +19,27 @@ public class DimDateController : ControllerBase
         _dimDateService = dimDateService;
         _mapper = mapper;
     }
-    
+
     /// <summary>
-    /// Returns all dates
+    /// Returns all dates.
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpGet]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(IEnumerable<DimDateDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<DimDateDto>>> GetAll()
     {
-        var dates = await _dimDateService.GetAllDatesAsync();
+        var dates = await _dimDateService.GetAllDatesAsync().ConfigureAwait(false);
         var dtos = _mapper.Map<IEnumerable<DimDateDto>>(dates);
         return Ok(dtos);
     }
-    
+
     /// <summary>
     /// Returns a single date by ID.
     /// </summary>
     /// <param name="id"></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(DimDateDto), StatusCodes.Status200OK)]
@@ -50,15 +52,17 @@ public class DimDateController : ControllerBase
         {
             return BadRequest(new { Message = "Invalid DateId." });
         }
-        var date = await _dimDateService.GetDateByIdAsync(id);
+
+        var date = await _dimDateService.GetDateByIdAsync(id).ConfigureAwait(false);
         var dto = _mapper.Map<DimDateDto>(date);
         return Ok(dto);
     }
-    
+
     /// <summary>
-    /// Creates a new date
+    /// Creates a new date.
     /// </summary>
     /// <param name="createDto"></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(DimDateDto), StatusCodes.Status201Created)]
@@ -69,20 +73,23 @@ public class DimDateController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<DimDateDto>> CreateDate([FromBody] CreateDimDateDto createDto)
     {
+        ArgumentNullException.ThrowIfNull(createDto);
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        var created = await _dimDateService.CreateDateAsync(createDto.FullDate);
+
+        var created = await _dimDateService.CreateDateAsync(createDto.FullDate).ConfigureAwait(false);
         var dto = _mapper.Map<DimDateDto>(created);
         return CreatedAtAction(nameof(GetById), new { id = dto.DateId }, dto);
     }
-    
+
     /// <summary>
     /// Updates an existing date.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="updateDto"></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -93,6 +100,7 @@ public class DimDateController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateDate(int id, [FromBody] UpdateDimDateDto updateDto)
     {
+        ArgumentNullException.ThrowIfNull(updateDto);
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
@@ -102,14 +110,16 @@ public class DimDateController : ControllerBase
         {
             return BadRequest(new { Message = "Invalid DateId." });
         }
-        await _dimDateService.UpdateDateAsync(id, updateDto.FullDate);
+
+        await _dimDateService.UpdateDateAsync(id, updateDto.FullDate).ConfigureAwait(false);
         return NoContent();
     }
-    
+
     /// <summary>
     /// Deletes a date.
     /// </summary>
     /// <param name="id"></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -124,7 +134,8 @@ public class DimDateController : ControllerBase
         {
             return BadRequest(new { Message = "Invalid DateId." });
         }
-        await _dimDateService.DeleteDateAsync(id);
+
+        await _dimDateService.DeleteDateAsync(id).ConfigureAwait(false);
         return NoContent();
     }
 }

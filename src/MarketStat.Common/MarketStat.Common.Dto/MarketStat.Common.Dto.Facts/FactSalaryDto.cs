@@ -1,6 +1,6 @@
-using System.Text.Json.Serialization;
+namespace MarketStat.Common.Dto.Facts;
 
-namespace MarketStat.Common.Dto.MarketStat.Common.Dto.Facts;
+using System.Text.Json.Serialization;
 
 public record FactSalaryDto
 {

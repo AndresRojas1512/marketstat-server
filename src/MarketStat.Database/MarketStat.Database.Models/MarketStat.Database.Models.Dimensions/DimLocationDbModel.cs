@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using MarketStat.Database.Models.MarketStat.Database.Models.Facts;
+using MarketStat.Database.Models.Facts;
 
 namespace MarketStat.Database.Models;
 
@@ -10,21 +10,21 @@ public class DimLocationDbModel
     [Key]
     [Column("location_id")]
     public int LocationId { get; set; }
-    
+
     [Required]
     [Column("city_name")]
     [StringLength(255)]
     public string CityName { get; set; } = string.Empty;
-    
+
     [Required]
     [Column("oblast_name")]
     [StringLength(255)]
     public string OblastName { get; set; } = string.Empty;
-    
+
     [Required]
     [Column("district_name")]
     [StringLength(255)]
     public string DistrictName { get; set; } = string.Empty;
-    
-    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; set; } = new List<FactSalaryDbModel>();
+
+    public virtual ICollection<FactSalaryDbModel> FactSalaries { get; } = new List<FactSalaryDbModel>();
 }
