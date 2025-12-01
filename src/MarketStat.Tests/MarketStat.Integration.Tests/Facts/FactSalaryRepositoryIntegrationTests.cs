@@ -82,16 +82,14 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
         q1.AvgSalary.Should().Be(150);
         q1.SalaryCountInPeriod.Should().Be(2);
 
-        var q2 = result.First(p => p.PeriodStart == new DateOnly(2024, 4, 1)); // Q2 starts April 1st
+        var q2 = result.First(p => p.PeriodStart == new DateOnly(2024, 4, 1));
         q2.AvgSalary.Should().Be(600);
         q2.SalaryCountInPeriod.Should().Be(1);
     }
 
-    // 3. Authorized Method: Summary (Percentiles)
     [Fact]
     public async Task GetSalarySummaryAsync_ShouldCalculatePercentiles_Correctly()
     {
-        // Arrange
         _dbContext.FactSalaries.AddRange(
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithDateId(1).WithLocationId(1).WithJobId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
@@ -101,19 +99,15 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
 
         var filters = new ResolvedSalaryFilter();
 
-        // Act
-        // Target 50th percentile (Median)
         var result = await _sut.GetSalarySummaryAsync(filters, 50);
 
-        // Assert
         result.Should().NotBeNull();
         result!.TotalCount.Should().Be(3);
         result.AverageSalary.Should().Be(200);
-        result.Percentile50.Should().Be(200); // Median of 100, 200, 300 is 200
+        result.Percentile50.Should().Be(200);
         result.PercentileTarget.Should().Be(200);
     }
 
-    // 4. Public Method: Public Roles (Grouping by Job)
     [Fact]
     public async Task GetPublicRolesAsync_ShouldAggregateAndFilterByMinCount()
     {
@@ -124,7 +118,6 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithJobId(1).WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithJobId(1).WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(300).WithJobId(1).WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1).Build()),
-            
             FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithJobId(2).WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1).Build())
         );
         await _dbContext.SaveChangesAsync();
