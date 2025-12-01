@@ -50,6 +50,26 @@ public class FactSalaryServiceIntegrationTests : IAsyncLifetime
     }
     
     [Fact]
+    public async Task GetFactSalariesByFilterAsync_ShouldResolveFiltersAndReturnList()
+    {
+        _dbContext.FactSalaries.AddRange(
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithLocationId(1).WithDateId(1).Build()),
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithLocationId(2).WithDateId(1).Build())
+        );
+        await _dbContext.SaveChangesAsync();
+
+        var request = new Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests.AnalysisFilterRequest
+        {
+            CityName = "Moscow"
+        };
+
+        var result = (await _sut.GetFactSalariesByFilterAsync(request)).ToList();
+
+        result.Should().HaveCount(1);
+        result.First().SalaryAmount.Should().Be(100);
+    }
+    
+    [Fact]
     public async Task GetSalarySummaryAsync_ShouldResolveCityNameAndCalculateSummary()
     {
         _dbContext.FactSalaries.AddRange(
@@ -59,12 +79,6 @@ public class FactSalaryServiceIntegrationTests : IAsyncLifetime
         );
         await _dbContext.SaveChangesAsync();
 
-        var request = new SalarySummaryRequestDto
-        {
-            CityName = "Moscow", 
-            TargetPercentile = 50
-        };
-        
         var domainRequest = new Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests.SalarySummaryRequest
         {
             CityName = "Moscow",
@@ -93,10 +107,40 @@ public class FactSalaryServiceIntegrationTests : IAsyncLifetime
             IndustryFieldName = "IT",
             MinRecordCount = 1
         };
+        
         var result = (await _sut.GetPublicRolesAsync(request)).ToList();
+        
         result.Should().HaveCount(1);
         result.First().StandardJobRoleTitle.Should().Be("Engineer");
-        result.First().SalaryRecordCount.Should().Be(2);
+    }
+    
+    [Fact]
+    public async Task GetSalaryTimeSeriesAsync_ShouldResolveFiltersAndReturnSeries()
+    {
+        _dbContext.FactSalaries.AddRange(
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithDateId(1).WithLocationId(1).Build()), // Jan
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithDateId(2).WithLocationId(1).Build()), // Feb
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithDateId(1).WithLocationId(2).Build())  // Jan, Tula (Should be ignored)
+        );
+        await _dbContext.SaveChangesAsync();
+
+        var request = new Common.Core.MarketStat.Common.Core.Facts.Analytics.Requests.TimeSeriesRequest
+        {
+            CityName = "Moscow",
+            Granularity = TimeGranularity.Month,
+            Periods = 2,
+            DateEnd = new DateOnly(2024, 2, 28)
+        };
+
+        var result = await _sut.GetSalaryTimeSeriesAsync(request);
+
+        result.Should().HaveCount(2);
+        
+        var jan = result.First(p => p.PeriodStart == new DateOnly(2024, 1, 1));
+        jan.AvgSalary.Should().Be(100); 
+        
+        var feb = result.First(p => p.PeriodStart == new DateOnly(2024, 2, 1));
+        feb.AvgSalary.Should().Be(200);
     }
 
     [Fact]

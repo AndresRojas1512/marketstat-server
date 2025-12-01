@@ -17,9 +17,7 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     private readonly PostgreSqlContainer _dbContainer;
     private Respawner _respawner = default!;
     private NpgsqlConnection _connection = default!;
-    
     public IHost? KestrelHost { get; private set; }
-
     private const string BaseUrl = "http://127.0.0.1:5050";
 
     public MarketStatE2ETestWebAppFactory()
@@ -112,7 +110,8 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     
     private async Task SeedStaticDimensionsAsync(MarketStatDbContext context)
     {
-        if (await context.DimDates.AnyAsync()) return;
+        if (await context.DimDates.AnyAsync()) 
+            return;
         await using var transaction = await context.Database.BeginTransactionAsync();
         context.DimDates.AddRange(
             new DimDateDbModel { DateId = 1, FullDate = new DateOnly(2024, 1, 1), Year = 2024, Quarter = 1, Month = 1 },
@@ -128,7 +127,6 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
         context.DimEducations.Add(new DimEducationDbModel { EducationId = 1, SpecialtyName="CS", SpecialtyCode="01", EducationLevelName="Bach" });
         await context.SaveChangesAsync();
-
         context.DimJobs.AddRange(
             new DimJobDbModel { JobId = 1, StandardJobRoleTitle = "Senior Architect", HierarchyLevelName = "Senior", IndustryFieldId = 1 },
             new DimJobDbModel { JobId = 2, StandardJobRoleTitle = "Junior Support", HierarchyLevelName = "Junior", IndustryFieldId = 1 },
@@ -138,7 +136,6 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
         context.DimEmployers.Add(new DimEmployerDbModel { EmployerId = 1, EmployerName = "Tech Corp", Inn = "1234567890", Ogrn = "1234567890123", Kpp = "123456789", RegistrationDate = new DateOnly(2000,1,1), LegalAddress = "Addr", ContactEmail = "e@mail.com", ContactPhone = "123", IndustryFieldId = 1 });
         await context.SaveChangesAsync();
-        
         context.DimEmployees.Add(new DimEmployeeDbModel { EmployeeId = 1, EmployeeRefId = "emp-1", BirthDate = new DateOnly(1990, 1, 1), CareerStartDate = new DateOnly(2015, 1, 1), EducationId = 1 });
         await context.SaveChangesAsync();
 

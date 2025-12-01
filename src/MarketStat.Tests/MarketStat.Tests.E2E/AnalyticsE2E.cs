@@ -1,11 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using MarketStat.Common.Converter.MarketStat.Common.Converter.Dimensions;
 using MarketStat.Common.Converter.MarketStat.Common.Converter.Facts;
 using MarketStat.Common.Dto.MarketStat.Common.Dto.Facts.Analytics.Payloads;
 using MarketStat.Database.Context;
-using MarketStat.Tests.TestData.Builders.Dimensions;
 using MarketStat.Tests.TestData.Builders.Facts;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,7 +19,6 @@ public class AnalyticsE2E : IAsyncLifetime
     public AnalyticsE2E(MarketStatE2ETestWebAppFactory factory)
     {
         _resetDatabase = factory.ResetDatabaseAsync;
-        
         if (factory.KestrelHost == null)
         {
             try
@@ -32,7 +29,6 @@ public class AnalyticsE2E : IAsyncLifetime
             {
             }
         }
-
         _scopeFactory = factory.KestrelHost!.Services.GetRequiredService<IServiceScopeFactory>();
         _client = factory.CreateRealHttpClient();
     }
@@ -57,8 +53,8 @@ public class AnalyticsE2E : IAsyncLifetime
             for (int i = 0; i < 15; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(1) 
-                    .WithSalaryAmount(200000) 
+                    .WithJobId(1)
+                    .WithSalaryAmount(200000)
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
             }
@@ -75,7 +71,7 @@ public class AnalyticsE2E : IAsyncLifetime
             for (int i = 0; i < 5; i++)
             {
                 facts.Add(new FactSalaryBuilder()
-                    .WithJobId(3) 
+                    .WithJobId(3)
                     .WithSalaryAmount(120000)
                     .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithEmployeeId(1)
                     .Build());
@@ -99,7 +95,6 @@ public class AnalyticsE2E : IAsyncLifetime
 
         result[1].StandardJobRoleTitle.Should().Be("Junior Support");
         result[1].AverageSalary.Should().Be(50000);
-        
         result.Should().NotContain(x => x.StandardJobRoleTitle == "Rare Specialist");
     }
 }
