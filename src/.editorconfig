@@ -12,6 +12,7 @@ insert_final_newline = true
 [*.cs]
 
 dotnet_diagnostic.CA1502.severity = error
+dotnet_code_quality.CA1502.code_complexity_threshold = 10
 dotnet_diagnostic.CA1505.severity = error
 dotnet_diagnostic.CA1506.severity = error
 
@@ -56,19 +57,15 @@ dotnet_diagnostic.SA1402.severity = none
 dotnet_diagnostic.CA1001.severity = none
 dotnet_diagnostic.CA1711.severity = none
 
-# --- Standard C# Formatting Rules ---
 
-# New lines and braces
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
 csharp_new_line_before_finally = true
 
-# Indentation
 csharp_indent_case_contents = true
 csharp_indent_switch_labels = true
 
-# Spacing
 csharp_space_after_cast = false
 csharp_space_after_keywords_in_control_flow_statements = true
 csharp_space_between_method_call_name_and_opening_parenthesis = false
