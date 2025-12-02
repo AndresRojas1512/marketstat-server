@@ -118,9 +118,9 @@ public class FactSalaryServiceIntegrationTests : IAsyncLifetime
     public async Task GetSalaryTimeSeriesAsync_ShouldResolveFiltersAndReturnSeries()
     {
         _dbContext.FactSalaries.AddRange(
-            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithDateId(1).WithLocationId(1).Build()), // Jan
-            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithDateId(2).WithLocationId(1).Build()), // Feb
-            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithDateId(1).WithLocationId(2).Build())  // Jan, Tula (Should be ignored)
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(100).WithDateId(1).WithLocationId(1).Build()),
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(200).WithDateId(2).WithLocationId(1).Build()),
+            FactSalaryConverter.ToDbModel(new FactSalaryBuilder().WithSalaryAmount(500).WithDateId(1).WithLocationId(2).Build())
         );
         await _dbContext.SaveChangesAsync();
 

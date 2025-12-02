@@ -42,7 +42,7 @@ public class FactSalaryRepositoryIntegrationTests : IAsyncLifetime
         var newSalary = new FactSalaryBuilder()
             .WithId(0)
             .WithSalaryAmount(120000)
-            .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithJobId(1).WithEmployeeId(1) // Valid FKs
+            .WithDateId(1).WithLocationId(1).WithEmployerId(1).WithJobId(1).WithEmployeeId(1)
             .Build();
 
         await _sut.AddFactSalaryAsync(newSalary);
