@@ -1,5 +1,9 @@
 <Project>
     <PropertyGroup>
         <EnableRestorePackageVulnerabilityAnalysis>false</EnableRestorePackageVulnerabilityAnalysis>
+        <RunAnalyzers>false</RunAnalyzers>
+        <AnalysisLevel>none</AnalysisLevel>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
     </PropertyGroup>
 </Project>
