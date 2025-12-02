@@ -18,7 +18,9 @@ services:
   api:
     build:
       context: ../../
-      dockerfile: src/MarketStat/Dockerfile
+      dockerfile: src/MarketStat/Dockerfile.local
+    volumes:
+      - ./publish:/app
     container_name: ms_demo_api
     depends_on:
       db:

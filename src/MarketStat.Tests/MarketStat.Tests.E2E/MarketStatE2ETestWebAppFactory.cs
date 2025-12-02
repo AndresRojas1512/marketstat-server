@@ -1,10 +1,10 @@
+using DotNet.Testcontainers.Configurations;
 using MarketStat.Database.Context;
 using MarketStat.Database.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Respawn;
@@ -22,6 +22,7 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     public MarketStatE2ETestWebAppFactory()
     {
+        TestcontainersSettings.ResourceReaperEnabled = false;
         _dbContainer = new PostgreSqlBuilder()
             .WithImage("postgres:16-alpine")
             .WithDatabase("marketstat_e2e_tests")
@@ -87,6 +88,8 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     public async Task ResetDatabaseAsync()
     {
+        if (_connection == null || _connection.State != System.Data.ConnectionState.Open)
+            return;
         await _respawner.ResetAsync(_connection);
         var options = new DbContextOptionsBuilder<MarketStatDbContext>()
             .UseNpgsql(_dbContainer.GetConnectionString())
@@ -104,8 +107,16 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
             await KestrelHost.StopAsync();
             KestrelHost.Dispose();
         }
-        await _connection.DisposeAsync();
-        await _dbContainer.DisposeAsync();
+    
+        if (_connection != null)
+        {
+            await _connection.DisposeAsync();
+        }
+    
+        if (_dbContainer != null)
+        {
+            await _dbContainer.DisposeAsync();
+        }
     }
     
     private async Task SeedStaticDimensionsAsync(MarketStatDbContext context)
