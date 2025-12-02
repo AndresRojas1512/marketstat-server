@@ -1,3 +1,4 @@
+using DotNet.Testcontainers.Configurations;
 using MarketStat.Database.Context;
 using MarketStat.Database.Models;
 using Microsoft.AspNetCore.Hosting;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Respawn;
 using Testcontainers.PostgreSql;
+using WireMock.Server;
 
 namespace MarketStat.Tests.E2E;
 
@@ -18,12 +20,29 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
     private Respawner _respawner = default!;
     private NpgsqlConnection _connection = default!;
     
+    public WireMockServer WireMockServer { get; private set; }
     public IHost? KestrelHost { get; private set; }
 
-    private const string BaseUrl = "http://127.0.0.1:5050";
+    protected virtual string BaseUrl => "http://127.0.0.1:5050";
+    
+    protected virtual Dictionary<string, string?> GetStorageConfiguration()
+    {
+        return new Dictionary<string, string?>
+        {
+            { "Storage:ServiceUrl", WireMockServer.Urls[0] },
+            { "Storage:BucketName", "marketstat-reports" },
+            { "Storage:AccessKey", "mock-key" },
+            { "Storage:SecretKey", "mock-secret" },
+            { "Storage:ForcePathStyle", "true" }
+        };
+    }
 
     public MarketStatE2ETestWebAppFactory()
     {
+        WireMockServer = WireMockServer.Start();
+        
+        TestcontainersSettings.ResourceReaperEnabled = false;
+        
         _dbContainer = new PostgreSqlBuilder()
             .WithImage("postgres:16-alpine")
             .WithDatabase("marketstat_e2e_tests")
@@ -68,19 +87,23 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
             webBuilder.UseKestrel();
             webBuilder.UseUrls(BaseUrl);
         });
+        
         builder.ConfigureAppConfiguration((context, config) =>
         {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
+            var appSettings = new Dictionary<string, string?>
             {
                 { "ConnectionStrings:MarketStat", _dbContainer.GetConnectionString() },
-                { "ASPNETCORE_ENVIRONMENT", "E2ETesting" },
-                { "Storage:ServiceUrl", "http://wiremock:8080" },
-                { "Storage:BucketName", "marketstat-reports" },
-                { "Storage:AccessKey", "mock-key" },
-                { "Storage:SecretKey", "mock-secret" },
-                { "Storage:ForcePathStyle", "true" }
-            });
+                { "ASPNETCORE_ENVIRONMENT", "E2ETesting" }
+            };
+
+            foreach (var kvp in GetStorageConfiguration())
+            {
+                appSettings[kvp.Key] = kvp.Value;
+            }
+
+            config.AddInMemoryCollection(appSettings);
         });
+        
         var host = base.CreateHost(builder);
         KestrelHost = host;
         host.Start();
@@ -94,6 +117,9 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     public async Task ResetDatabaseAsync()
     {
+        WireMockServer.Reset();
+        if (_connection == null || _connection.State != System.Data.ConnectionState.Open) 
+            return;
         await _respawner.ResetAsync(_connection);
         var options = new DbContextOptionsBuilder<MarketStatDbContext>()
             .UseNpgsql(_dbContainer.GetConnectionString())
@@ -106,13 +132,23 @@ public class MarketStatE2ETestWebAppFactory : WebApplicationFactory<Program>, IA
 
     public new async Task DisposeAsync()
     {
+        WireMockServer.Stop();
+        WireMockServer.Dispose();
+
         if (KestrelHost != null)
         {
             await KestrelHost.StopAsync();
             KestrelHost.Dispose();
         }
-        await _connection.DisposeAsync();
-        await _dbContainer.DisposeAsync();
+        
+        if (_connection != null)
+        {
+            await _connection.DisposeAsync();
+        }
+        if (_dbContainer != null)
+        {
+            await _dbContainer.DisposeAsync();
+        }
     }
     
     private async Task SeedStaticDimensionsAsync(MarketStatDbContext context)

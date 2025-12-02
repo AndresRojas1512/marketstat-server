@@ -10,6 +10,8 @@ using MarketStat.Database.Context;
 using MarketStat.Services.Auth.AuthService;
 using MarketStat.Tests.TestData.Builders.Facts;
 using Microsoft.Extensions.DependencyInjection;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
 
 namespace MarketStat.Tests.E2E;
 
@@ -19,10 +21,14 @@ public class ReportExportE2E : IAsyncLifetime
     private readonly HttpClient _client;
     private readonly Func<Task> _resetDatabase;
     private readonly IServiceScopeFactory _scopeFactory;
+    
+    private readonly MarketStatE2ETestWebAppFactory _factory;
 
     public ReportExportE2E(MarketStatE2ETestWebAppFactory factory)
     {
+        _factory = factory;
         _resetDatabase = factory.ResetDatabaseAsync;
+        
         if (factory.KestrelHost == null)
         {
             try
@@ -74,6 +80,14 @@ public class ReportExportE2E : IAsyncLifetime
     {
         await AuthenticateAsync();
         
+        _factory.WireMockServer
+            .Given(
+                Request.Create().UsingPut() 
+            )
+            .RespondWith(
+                Response.Create().WithStatusCode(200)
+            );
+
         await using (var scope = _scopeFactory.CreateAsyncScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<MarketStatDbContext>();
@@ -90,14 +104,19 @@ public class ReportExportE2E : IAsyncLifetime
             CityName = "Moscow",
             TargetPercentile = 50
         };
+        
         var response = await _client.PostAsJsonAsync("/api/reports/salary-summary/export", requestDto);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+        
         var content = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(content);
         var url = doc.RootElement.GetProperty("url").GetString();
+        
         url.Should().NotBeNullOrEmpty();
         url.Should().Contain("marketstat-reports");
         url.Should().Contain(".json");
-        url.Should().StartWith("http://wiremock:8080");
+        
+        var wireMockUrl = _factory.WireMockServer.Urls[0]; 
+        url.Should().StartWith(wireMockUrl);
     }
 }
