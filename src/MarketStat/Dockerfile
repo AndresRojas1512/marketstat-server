@@ -1,10 +1,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# 1. Copy the .sln file (src/MarketStat.sln -> /src/MarketStat.sln)
 COPY src/MarketStat.sln .
 
-# 2. Copy all .csproj files to their correct relative paths
 COPY src/MarketStat/MarketStat.csproj MarketStat/
 COPY src/MarketStat.Common/MarketStat.Common.Converter/MarketStat.Common.Converter.csproj MarketStat.Common/MarketStat.Common.Converter/
 COPY src/MarketStat.Common/MarketStat.Common.Core/MarketStat.Common.Core.csproj MarketStat.Common/MarketStat.Common.Core/
@@ -24,6 +22,7 @@ COPY src/MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.
 COPY src/MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.Dimensions.DimJobService/MarketStat.Services.Dimensions.DimJobService.csproj MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.Dimensions.DimJobService/
 COPY src/MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.Dimensions.DimLocationService/MarketStat.Services.Dimensions.DimLocationService.csproj MarketStat.Services/MarketStat.Services.Dimensions/MarketStat.Services.Dimensions.DimLocationService/
 COPY src/MarketStat.Services/MarketStat.Services.Facts/MarketStat.Services.Facts.FactSalaryService/MarketStat.Services.Facts.FactSalaryService.csproj MarketStat.Services/MarketStat.Services.Facts/MarketStat.Services.Facts.FactSalaryService/
+COPY src/MarketStat.Services/MarketStat.Services.Storage/MarketStat.Services.Storage.csproj MarketStat.Services/MarketStat.Services.Storage/
 
 COPY src/MarketStat.Tests/MarketStat.Services.Tests/MarketStat.Services.Tests.csproj MarketStat.Tests/MarketStat.Services.Tests/
 COPY src/MarketStat.Tests/MarketStat.Repository.Tests/MarketStat.Repository.Tests.csproj MarketStat.Tests/MarketStat.Repository.Tests/
