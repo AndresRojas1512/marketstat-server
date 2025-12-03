@@ -10,15 +10,21 @@ services:
       - "5434:5432"
     environment:
       - POSTGRES_PASSWORD=postgres
-    command: |
-      postgres
-      -c wal_level=replica
-      -c hot_standby=on
-      -c max_wal_senders=10
-      -c max_replication_slots=10
-      -c hot_standby_feedback=on
-      -c synchronous_commit=on
-      -c synchronous_standby_names='*'
+      - POSTGRES_DB=marketstat
+    volumes:
+      - ../docker/postgres/01-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    command: 
+      - "postgres"
+      - "-c"
+      - "wal_level=replica"
+      - "-c"
+      - "hot_standby=on"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+      - "-c"
+      - "hot_standby_feedback=on"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d marketstat"]
       interval: 3s
@@ -72,9 +78,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db_replica:
+        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
+      - ConnectionStrings__MarketStat=Host=db_replica;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
@@ -92,9 +100,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db_replica:
+        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
+      - ConnectionStrings__MarketStat=Host=db_replica;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo

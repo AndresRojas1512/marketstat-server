@@ -1,5 +1,11 @@
 \set ON_ERROR_STOP on
 
+SELECT 'CREATE DATABASE marketstat'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'marketstat')\gexec
+
+\echo 'Connecting to marketstat database...'
+\c marketstat
+
 \echo 'Creating schema "marketstat"'
 CREATE SCHEMA IF NOT EXISTS marketstat;
 
