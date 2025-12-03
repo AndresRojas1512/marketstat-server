@@ -2,10 +2,8 @@
 
 set -e
 
-# 1. Prepare the shared volume
 mkdir -p /allure-results
 echo "Cleaning old test results in container..."
-# Clean the mounted volume to ensure we don't upload old data
 rm -rf /allure-results/*
 
 echo "=================================================="
@@ -28,16 +26,11 @@ echo "=================================================="
 echo "TESTS FINISHED. COLLECTING RESULTS..."
 echo "=================================================="
 
-# 2. COLLECTION STEP (CRITICAL FIX)
-# Find all JSON results hidden in the build folders and copy them to the mounted volume.
-# This mimics your working local script.
 find . -type f -path "*/allure-results/*.json" -exec cp {} /allure-results/ \;
 
-# Verify we found files
 file_count=$(ls /allure-results | wc -l)
 echo "Collected $file_count result files."
 
-# 3. Fix permissions so GitHub Actions can upload the files
 chmod -R 777 /allure-results
 
 echo "SUCCESS: ALL STAGES PASSED & RESULTS COLLECTED"
