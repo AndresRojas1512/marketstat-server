@@ -13,10 +13,17 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
 {
     private readonly string _connectionString;
 
+    static FactSalaryRepositoryDapper()
+    {
+        SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
+    }
+
     public FactSalaryRepositoryDapper(string connectionString)
     {
         _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
     }
+    
+    private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
     
     public async Task<List<SalaryDistributionBucket>> GetSalaryDistributionAsync(ResolvedSalaryFilter filter)
     {
@@ -31,41 +38,28 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
                 WHERE {whereSql}
             ),
             Stats AS (
-                SELECT 
-                    MIN(salary_amount) as min_val, 
-                    MAX(salary_amount) as max_val, 
-                    COUNT(*) as total_count
+                SELECT MIN(salary_amount) as min_val, MAX(salary_amount) as max_val, COUNT(*) as total_count
                 FROM RawData
             ),
             Config AS (
                 SELECT 
-                    min_val,
-                    max_val,
-                    -- C# Logic: Math.Max(2, Math.Floor(Math.Log(n, 2)) + 2)
+                    min_val, max_val, total_count,
                     GREATEST(2, FLOOR(LOG(2.0, GREATEST(total_count, 1))) + 2) as bucket_count
                 FROM Stats
             ),
             BucketParams AS (
                 SELECT 
-                    min_val, max_val, bucket_count,
-                    CASE 
-                        WHEN bucket_count > 0 THEN (max_val - min_val) / bucket_count 
-                        ELSE 0 
-                    END as width
+                    min_val, max_val, bucket_count, total_count,
+                    CASE WHEN bucket_count > 0 THEN (max_val - min_val) / bucket_count ELSE 0 END as width
                 FROM Config
             )
             SELECT 
-                -- LowerBound = min + (bucket_index - 1) * width
-                -- Postgres width_bucket returns index 1..N+1. We clamp it to mimic C# logic.
                 CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val, CAST(bucket_count AS INT)), CAST(bucket_count AS INT)) - 1) * width AS numeric) as LowerBound,
-                
-                -- UpperBound
                 CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val, CAST(bucket_count AS INT)), CAST(bucket_count AS INT))) * width AS numeric) as UpperBound,
-                
                 COUNT(*) as BucketCount
             FROM RawData
             CROSS JOIN BucketParams
-            WHERE total_count > 0 AND width > 0 -- Avoid division by zero for empty sets
+            WHERE total_count > 0 AND width > 0
             GROUP BY 1, 2
             ORDER BY 1";
 
@@ -73,8 +67,6 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
         var result = await db.QueryAsync<SalaryDistributionBucket>(sql, parameters);
         return result.ToList();
     }
-
-    private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 
     public async Task<SalarySummary?> GetSalarySummaryAsync(ResolvedSalaryFilter filter, int targetPercentile)
     {
@@ -109,10 +101,11 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
             TimeGranularity.Quarter => "quarter",
             _ => "month"
         };
+
         var sql = $@"
             SELECT 
                 CAST(date_trunc('{truncPart}', d.full_date) AS DATE) as PeriodStart,
-                AVG(salary_amount) as AvgSalary,
+                CAST(AVG(salary_amount) AS numeric) as AvgSalary,
                 COUNT(*) as SalaryCountInPeriod
             FROM marketstat.fact_salaries fs
             JOIN marketstat.dim_date d ON fs.date_id = d.date_id
@@ -120,6 +113,7 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
             GROUP BY 1
             ORDER BY 1 DESC
             LIMIT @Periods";
+        
         parameters.Add("Periods", periods);
         using var db = CreateConnection();
         var result = await db.QueryAsync<SalaryTimeSeriesPoint>(sql, parameters);
@@ -154,13 +148,13 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
         var whereSql = BuildWhereClause(filter, parameters);
         var sql = $@"
             SELECT 
-                salary_fact_id as SalaryFactId,
-                date_id as DateId,
-                location_id as LocationId,
-                employer_id as EmployerId,
-                job_id as JobId,
-                employee_id as EmployeeId,
-                salary_amount as SalaryAmount
+                fs.salary_fact_id as SalaryFactId,
+                fs.date_id as DateId,
+                fs.location_id as LocationId,
+                fs.employer_id as EmployerId,
+                fs.job_id as JobId,
+                fs.employee_id as EmployeeId,
+                fs.salary_amount as SalaryAmount
             FROM marketstat.fact_salaries fs
             LEFT JOIN marketstat.dim_date d ON fs.date_id = d.date_id
             WHERE {whereSql}
@@ -198,5 +192,24 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
             parameters.Add("JobIds", filter.JobIds.ToArray());
         }
         return sb.ToString();
+    }
+}
+
+public class DateOnlyTypeHandler : SqlMapper.TypeHandler<DateOnly>
+{
+    public override void SetValue(IDbDataParameter parameter, DateOnly value)
+    {
+        parameter.Value = value;
+        parameter.DbType = DbType.Date;
+    }
+
+    public override DateOnly Parse(object value)
+    {
+        return value switch
+        {
+            DateTime dt => DateOnly.FromDateTime(dt),
+            string s => DateOnly.Parse(s),
+            _ => (DateOnly)value
+        };
     }
 }
