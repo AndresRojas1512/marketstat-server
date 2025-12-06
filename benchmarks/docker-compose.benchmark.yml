@@ -1,0 +1,78 @@
+version: "3.9"
+
+services:
+  api:
+    image: marketstat-api:benchmark
+    build:
+      context: ../
+      dockerfile: src/MarketStat/Dockerfile
+    container_name: ms_benchmark_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_administrator;Password=andresrmlnx15
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+      - Serilog__WriteTo__1__Args__path=/dev/null
+      - REPO_IMPLEMENTATION=${REPO_IMPLEMENTATION:-BASELINE}
+    ports:
+      - "5055:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 300M
+    networks:
+      - benchmark-net
+  
+  db:
+    image: postgres:16-alpine
+    container_name: ms_benchmark_db
+    environment:
+      - POSTGRES_DB=marketstat
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ../test-infra/docker/postgres/01-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d marketstat"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    networks:
+      - benchmark-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ms_benchmark_prom
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9095:9090"
+    networks:
+      - benchmark-net
+
+  k6:
+    image: grafana/k6:latest
+    container_name: ms_benchmark_k6
+    user: "root"
+    volumes:
+      - ./k6-scripts:/scripts
+      - ./results:/results
+    environment:
+      - K6_OUT=json=/results/stats.json
+    depends_on:
+      - api
+    networks:
+      - benchmark-net
+
+networks:
+  benchmark-net:

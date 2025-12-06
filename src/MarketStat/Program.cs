@@ -24,6 +24,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using MarketStat.DbSeeder;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -46,6 +49,14 @@ try
         .Enrich.WithMachineName()
         .Enrich.WithThreadId()
     );
+
+    builder.Services.AddOpenTelemetry()
+        .WithMetrics(metrics => metrics
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MarketStat.API"))
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddPrometheusExporter());
 
     builder.Services.AddCors(options =>
     {
@@ -93,8 +104,30 @@ try
     builder.Services.AddScoped<IDimEmployerRepository, DimEmployerRepository>();
     builder.Services.AddScoped<IDimIndustryFieldRepository, DimIndustryFieldRepository>();
     builder.Services.AddScoped<IDimJobRepository, DimJobRepository>();
-    builder.Services.AddScoped<IFactSalaryRepository, FactSalaryRepository>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+    var repoImplementation = builder.Configuration.GetValue<string>("REPO_IMPLEMENTATION") ?? "BASELINE";
+    Log.Information($"--- BENCHMARK CONFIGURATION: Using {repoImplementation} Implementation ---");
+    switch (repoImplementation.ToUpper())
+    {
+        case "DAPPER":
+            builder.Services.AddScoped<IFactSalaryRepository>(provider =>
+            {
+                var config = provider.GetRequiredService<IConfiguration>();
+                return new FactSalaryRepositoryDapper(config.GetConnectionString("MarketStat")!);
+            });
+            break;
+        
+        case "EF_SQL":
+            builder.Services.AddScoped<IFactSalaryRepository, FactSalaryRepositoryEfSql>();
+            break;
+        
+        case "BASELINE":
+        default:
+            builder.Services.AddScoped<IFactSalaryRepository, FactSalaryRepository>();
+            break;
+    }
+    
     
     builder.Services.AddScoped<IDimDateService, DimDateService>();
     builder.Services.AddScoped<IDimLocationService, DimLocationService>();
@@ -183,6 +216,7 @@ try
 
     var app = builder.Build();
 
+    app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
     app.UseSerilogRequestLogging(options =>
     {
@@ -191,7 +225,6 @@ try
         {
             diagnosticContext.Set("ClientIP", httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
             diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
-            // Get User.Identity.Name which should be populated based on NameClaimType in JWT options
             diagnosticContext.Set("User", httpContext.User.Identity?.Name ?? "(anonymous)"); 
         };
     });
@@ -217,26 +250,37 @@ try
 
     app.MapControllers();
 
-    // if (!app.Environment.IsProduction() && !app.Environment.IsEnvironment("E2ETesting"))
-    // {
-    //     using (var scope = app.Services.CreateScope())
-    //     {
-    //         var services = scope.ServiceProvider;
-    //         try
-    //         {
-    //             var context = services.GetRequiredService<MarketStatDbContext>();
-    //             var logger = services.GetRequiredService<ILogger<Program>>();
-    //
-    //             logger.LogInformation("Applying database migrations for non-production environment...");
-    //             await context.Database.MigrateAsync();
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             Log.Error(ex, "An error occurred during DB migration");
-    //             throw;
-    //         }
-    //     }
-    // }
+    var isBenchmarkRun = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("REPO_IMPLEMENTATION"));
+    if (app.Environment.IsDevelopment() || isBenchmarkRun)
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<MarketStatDbContext>();
+                Log.Information("Checking database state...");
+                try
+                {
+                    await context.Database.MigrateAsync();
+                    Log.Information("Database migrations applied successfully.");
+                }
+                catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07")
+                {
+                    Log.Warning("Migration skipped: Tables already exist in the database.");
+                }
+                // Log.Information("Seeding Benchmark Data...");
+                // await DbSeeder.SeedAsync(context);
+                // Log.Information("Seeding Complete.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred during DB migration");
+                if (isBenchmarkRun)
+                    throw;
+            }
+        }
+    }
 
     Log.Information("--- MarketStat API: Host built, starting application ---");
     app.Run();
