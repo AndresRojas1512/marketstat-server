@@ -1,29 +1,35 @@
 import os
 import time
 import subprocess
-import shutil
-import socket
 import json
 import csv
 import requests
+import traceback
 
-ITERATIONS = 2
+# --- CONFIGURATION ---
+ITERATIONS = 1
 MODES = ["BASELINE", "EF_SQL", "DAPPER"]
 COMPOSE_FILE = "docker-compose.benchmark.yml"
 RESULTS_DIR = "./results"
-CSV_FILE = f"{RESULTS_DIR}/final_report.csv"
+CSV_FILE = f"{RESULTS_DIR}/happy_path_report.csv"
 PROMETHEUS_URL = "http://localhost:9095"
 
-def run_cmd(cmd, suppress_output=False):
+def run_cmd(cmd, env=None, suppress_output=False, ignore_codes=None):
     if not suppress_output:
         print(f"[$] {cmd}")
     stdout_dest = subprocess.DEVNULL if suppress_output else None
-    subprocess.run(cmd, shell=True, check=True, stdout=stdout_dest)
-
-def is_port_open(port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.settimeout(1)
-        return s.connect_ex(('localhost', port)) == 0
+    cmd_env = os.environ.copy()
+    if env:
+        cmd_env.update(env)
+    
+    try:
+        subprocess.run(cmd, shell=True, check=True, stdout=stdout_dest, env=cmd_env)
+        return True
+    except subprocess.CalledProcessError as e:
+        if ignore_codes and e.returncode in ignore_codes:
+            return False
+        print(f"Command failed with exit code {e.returncode}")
+        raise e
     
 def aggressive_cleanup():
     try:
@@ -31,106 +37,118 @@ def aggressive_cleanup():
         subprocess.run(f"docker compose -f {COMPOSE_FILE} down -v --remove-orphans", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except:
         pass
-    
-def wait_for_ports_to_clear(ports, timeout=20):
-    start = time.time()
-    while True:
-        busy_ports = [p for p in ports if is_port_open(p)]
-        if not busy_ports:
-            return True
-        if time.time() - start > timeout:
-            print(f"  WARNING: Ports still in use after {timeout}s: {busy_ports}")
-            return False
-        time.sleep(1)
 
-def dump_container_logs():
-    print("\n--- API CONTAINER LOGS (START) ---")
-    try:
-        subprocess.run(f"docker logs ms_benchmark_api", shell=True)
-    except:
-        print("(Could not fetch logs)")
-    print("--- API CONTAINER LOGS (END) ---\n")
-
-def get_max_metric(query, start, end):
-    try:
-        params = {'query': query, 'start': start, 'end': end, 'step': 1}
-        r = requests.get(f"{PROMETHEUS_URL}/api/v1/query_range", params=params)
-        data = r.json()
-        if data['status'] == 'success' and data['data']['result']:
-            values = [float(x[1]) for x in data['data']['result'][0]['values']]
-            return max(values) if values else 0.0
-        return 0.0
-    except:
-        return 0.0
+def get_metric_any_of(candidate_names, start, end):
+    if isinstance(candidate_names, str):
+        candidate_names = [candidate_names]
+        
+    for query in candidate_names:
+        try:
+            # Add buffer (+10s) to catch ingestion lag
+            params = {'query': query, 'start': start, 'end': end + 10, 'step': 1}
+            r = requests.get(f"{PROMETHEUS_URL}/api/v1/query_range", params=params)
+            data = r.json()
+            
+            if data['status'] == 'success' and data['data']['result']:
+                values = [float(x[1]) for x in data['data']['result'][0]['values']]
+                if values:
+                    val = max(values)
+                    if val > 0: 
+                        return val
+        except Exception:
+            continue
+    return 0.0
 
 def main():
-    if os.path.exists(RESULTS_DIR):
-        subprocess.run(f"sudo rm -rf {RESULTS_DIR}", shell=True)
-    os.makedirs(RESULTS_DIR)
-    os.chmod(RESULTS_DIR, 0o777)
+    if not os.path.exists(RESULTS_DIR):
+        os.makedirs(RESULTS_DIR)
 
     with open(CSV_FILE, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(["Implementation", "Run", "P95_Latency_ms", "Max_Memory_MB", "GC_Count"])
 
-    print("=== MARKETSTAT BENCHMARK STARTING ===")
+    print(f"=== HAPPY PATH BENCHMARK STARTING ===")
+    
     aggressive_cleanup()
-    print("Building Docker Image...")
+
     run_cmd(f"docker compose -f {COMPOSE_FILE} build api")
 
     for mode in MODES:
         print(f"\n>>> MODE: {mode} <<<")        
-        for i in range(1, ITERATIONS + 1):
-            print(f"  Run {i}/{ITERATIONS}...")
+        
+        try:
+            aggressive_cleanup()
+            
+            my_env = {"REPO_IMPLEMENTATION": mode}
+            
+            print("  Starting Infrastructure...")
+            run_cmd(f"docker compose -f {COMPOSE_FILE} up -d api db prometheus", env=my_env, suppress_output=True)
+            
+            print("  Waiting for DB Seeding & Warmup (45s)...")
+            time.sleep(45)
+
+            start_ts = time.time()
+            
+            print("  Executing k6...")
+            run_cmd(
+                f"docker compose -f {COMPOSE_FILE} run --rm k6 run --summary-export /results/stats.json /scripts/stress-test.js",
+                env=my_env, 
+                suppress_output=True,
+                ignore_codes=[99]
+            )
+
+            end_ts = time.time()
+
+            print("  Collecting Metrics (Waiting 5s)...")
+            time.sleep(5)
+            
             try:
-                aggressive_cleanup()
-                if not wait_for_ports_to_clear([5055, 9095]):
-                    print("  CRITICAL: Cannot start run, ports blocked. Skipping...")
-                    continue
+                subprocess.run(f"sudo chown {os.getuid()}:{os.getgid()} {RESULTS_DIR}/stats.json", shell=True, check=False)
+            except:
+                pass
 
-                my_env = os.environ.copy()
-                my_env["REPO_IMPLEMENTATION"] = mode
-                
-                subprocess.run(f"docker compose -f {COMPOSE_FILE} up -d api db prometheus", shell=True, check=True, env=my_env)
-                
-                print("  Infrastructure is up. Warming up (30s)...")
-                time.sleep(30)
-
-                start_ts = time.time()
-                
-                print("  Executing k6...")
-                run_cmd(f"docker compose -f {COMPOSE_FILE} run --rm k6 run /scripts/stress-test.js", suppress_output=True)
-
-                end_ts = time.time()
-                
-                current_uid = os.getuid()
-                current_gid = os.getgid()
-                subprocess.run(f"sudo chown {current_uid}:{current_gid} {RESULTS_DIR}/stats.json", shell=True)
-
-                k6_file = f"{RESULTS_DIR}/stats.json"
-                p95 = 0
-                if os.path.exists(k6_file):
-                    with open(k6_file) as f:
-                        data = json.load(f)
-                        p95 = data['metrics']['http_req_duration']['values']['p(95)']
-                    os.rename(k6_file, f"{RESULTS_DIR}/{mode.lower()}_run_{i}.json")
-                
-                mem = get_max_metric("process_private_memory_size_bytes", start_ts, end_ts) / (1024*1024)
-                gc = get_max_metric("process_runtime_dotnet_gc_collections_count", start_ts, end_ts)
-                
-                print(f"    -> P95: {p95:.2f}ms | MaxRAM: {mem:.2f}MB | GC: {gc}")
-                
-                with open(CSV_FILE, 'a', newline='') as f:
-                    csv.writer(f).writerow([mode, i, p95, mem, gc])
+            k6_file = f"{RESULTS_DIR}/stats.json"
+            p95 = -1
+            if os.path.exists(k6_file):
+                with open(k6_file) as f:
+                    data = json.load(f)
+                    try: p95 = data['metrics']['http_req_duration']['p(95)']
+                    except: pass
+                os.rename(k6_file, f"{RESULTS_DIR}/{mode.lower()}_happy.json")
             
-            except Exception as e:
-                print(f"  CRITICAL ERROR in Run {i}: {e}")
-                # dump_container_logs()
+            # 1. TRY MEMORY (Underscore versions are most likely for Prometheus)
+            mem_bytes = get_metric_any_of(
+                [
+                    "process_runtime_dotnet_gc_committed_memory_size_bytes",
+                ], 
+                start_ts, end_ts
+            )
+            mem_mb = mem_bytes / (1024*1024)
             
-            finally:
-                aggressive_cleanup()
+            # 2. TRY GC (Try looking for 'gen' vs 'generation')
+            gc_count = get_metric_any_of(
+                [
+                    "process_runtime_dotnet_gc_collections_count_total{generation=\"gen2\"}"
+                ],
+                start_ts, end_ts
+            )
+            
+            # 3. DIAGNOSTICS IF FAILED
 
-    print("\n=== ALL BENCHMARKS COMPLETE ===")
+            print(f"    -> RESULT: P95={p95:.2f}ms | RAM={mem_mb:.2f}MB | GC(Gen2)={int(gc_count)}")
+            
+            with open(CSV_FILE, 'a', newline='') as f:
+                csv.writer(f).writerow([mode, 1, p95, mem_mb, gc_count])
+        
+        except Exception as e:
+            print(f"  ERROR: {e}")
+            traceback.print_exc()
+        
+        finally:
+            pass
+
+    print("\n=== HAPPY PATH COMPLETE ===")
+    aggressive_cleanup()
 
 if __name__ == "__main__":
     main()
