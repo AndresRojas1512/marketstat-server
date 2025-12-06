@@ -269,9 +269,9 @@ try
                 {
                     Log.Warning("Migration skipped: Tables already exist in the database.");
                 }
-                // Log.Information("Seeding Benchmark Data...");
-                // await DbSeeder.SeedAsync(context);
-                // Log.Information("Seeding Complete.");
+                Log.Information("Seeding Benchmark Data...");
+                await DbSeeder.SeedAsync(context);
+                Log.Information("Seeding Complete.");
             }
             catch (Exception ex)
             {

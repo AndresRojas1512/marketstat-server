@@ -20,11 +20,11 @@ services:
       - REPO_IMPLEMENTATION=${REPO_IMPLEMENTATION:-BASELINE}
     ports:
       - "5055:8080"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 300M
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.50'
+    #       memory: 300M
     networks:
       - benchmark-net
   
@@ -42,11 +42,6 @@ services:
       interval: 3s
       timeout: 3s
       retries: 10
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
     networks:
       - benchmark-net
 
@@ -67,8 +62,6 @@ services:
     volumes:
       - ./k6-scripts:/scripts
       - ./results:/results
-    environment:
-      - K6_OUT=json=/results/stats.json
     depends_on:
       - api
     networks:

@@ -3,6 +3,7 @@ using MarketStat.Database.Context;
 using MarketStat.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Serilog;
 
 namespace MarketStat.DbSeeder;
 
@@ -11,7 +12,11 @@ public static class DbSeeder
     public static async Task SeedAsync(MarketStatDbContext context)
     {
         if (await context.FactSalaries.AnyAsync())
+        {
+            Log.Information("Database already contains data. Skipping seed.");
             return;
+        }
+        Log.Information("Starting Dimension Seeding...");
         
         var industries = new List<DimIndustryFieldDbModel>
         {
