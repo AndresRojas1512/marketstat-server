@@ -107,7 +107,7 @@
       "type": "row"
     },
     {
-      "title": "Resource Cost Comparison (Max Memory)",
+      "title": "Resource Cost Comparison (Peak Memory)",
       "type": "barchart",
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 18 },
       "targets": [
@@ -125,17 +125,17 @@
       }
     },
     {
-      "title": "Efficiency Comparison (Total CPU Time)",
+      "title": "Efficiency Comparison (Total GC Time Wasted)",
       "type": "barchart",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 18 },
       "targets": [
         {
-          "expr": "max by (service_name) (increase(process_cpu_seconds_total[24h]))",
+          "expr": "sum by (service_name) (increase(process_runtime_dotnet_gc_duration_nanoseconds_total[24h]))",
           "legendFormat": "{{service_name}}",
           "refId": "A"
         }
       ],
-      "unit": "s",
+      "unit": "ns",
       "options": {
         "orientation": "vertical",
         "showValue": "auto"
@@ -168,5 +168,5 @@
   "timezone": "",
   "title": "MarketStat Benchmark: Full Analysis",
   "uid": "marketstat-bench-full",
-  "version": 2
+  "version": 3
 }
