@@ -129,7 +129,7 @@ public static class DbSeeder
         int empId = employee.EmployeeId;
         int emplId = employer.EmployerId;
 
-        for (int i = 0; i < 10000; i++)
+        for (int i = 0; i < 100000; i++)
         {
             await writer.StartRowAsync();
             await writer.WriteAsync(dates[rand.Next(dateCount)].DateId);

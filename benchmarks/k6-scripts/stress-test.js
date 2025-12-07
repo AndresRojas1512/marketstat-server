@@ -6,15 +6,19 @@ const errorRate = new Rate('error_rate');
 
 export const options = {
   scenarios: {
-    happy_path: {
-      executor: 'constant-vus',
-      vus: 10,
-      duration: '30s',
+    benchmark_flow: {
+      executor: 'ramping-vus',
+      startVUs: 0,
+      stages: [
+        { duration: '10s', target: 20 },
+        { duration: '30s', target: 50 },
+        { duration: '10s', target: 0 },
+      ],
     },
   },
   thresholds: {
-    http_req_duration: ['p(95)<10000'], 
-    error_rate: ['rate<0.05'], 
+    http_req_duration: ['p(95)<15000'], 
+    error_rate: ['rate<0.10'], 
   },
 };
 
@@ -47,14 +51,16 @@ export function setup() {
     sleep(1);
   }
   
-  if (!token) throw new Error("Setup failed");
+  if (!token) {
+    throw new Error("Setup failed");
+  }
   return { token };
 }
 
 export default function (data) {
   const params = { headers: { 'Authorization': `Bearer ${data.token}` } };
 
-  group('Happy Path Check', () => {
+  group('Analytics', () => {
     const summary = http.get(`${BASE_URL}/factsalaries/summary?targetPercentile=90`, params);
     check(summary, { 'Summary 200': (r) => r.status === 200 }) || errorRate.add(1);
 

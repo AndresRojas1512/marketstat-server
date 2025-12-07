@@ -49,10 +49,13 @@ try
         .Enrich.WithMachineName()
         .Enrich.WithThreadId()
     );
+    
+    var repoImplementation = builder.Configuration.GetValue<string>("REPO_IMPLEMENTATION") ?? "BASELINE";
+    var serviceName = $"MarketStat.API.{repoImplementation}";
 
     builder.Services.AddOpenTelemetry()
         .WithMetrics(metrics => metrics
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MarketStat.API"))
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
@@ -105,8 +108,7 @@ try
     builder.Services.AddScoped<IDimIndustryFieldRepository, DimIndustryFieldRepository>();
     builder.Services.AddScoped<IDimJobRepository, DimJobRepository>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-    var repoImplementation = builder.Configuration.GetValue<string>("REPO_IMPLEMENTATION") ?? "BASELINE";
+    
     Log.Information($"--- BENCHMARK CONFIGURATION: Using {repoImplementation} Implementation ---");
     switch (repoImplementation.ToUpper())
     {
@@ -127,7 +129,6 @@ try
             builder.Services.AddScoped<IFactSalaryRepository, FactSalaryRepository>();
             break;
     }
-    
     
     builder.Services.AddScoped<IDimDateService, DimDateService>();
     builder.Services.AddScoped<IDimLocationService, DimLocationService>();

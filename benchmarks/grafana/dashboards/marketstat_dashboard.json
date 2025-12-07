@@ -1,0 +1,172 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 99,
+      "panels": [],
+      "title": "Live Telemetry (Tier 1: Behavior)",
+      "type": "row"
+    },
+    {
+      "title": "Success vs Failure Rate (Reliability)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_request_duration_seconds_count{http_response_status_code=~\"2..\"}[1m]))",
+          "legendFormat": "Success (2xx)",
+          "refId": "A",
+          "color": "green"
+        },
+        {
+          "expr": "sum(rate(http_server_request_duration_seconds_count{http_response_status_code=~\"5..|4..\"}[1m]))",
+          "legendFormat": "Errors (4xx/5xx)",
+          "refId": "B",
+          "color": "red"
+        }
+      ],
+      "unit": "reqps"
+    },
+    {
+      "title": "CPU Overhead (Time Spent in GC)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+      "targets": [
+        {
+          "expr": "rate(process_runtime_dotnet_gc_duration_nanoseconds_total[1m])",
+          "legendFormat": "GC Duration / Sec",
+          "refId": "A"
+        }
+      ],
+      "unit": "ns"
+    },
+    {
+      "title": "Memory Usage (Managed Heap)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 9 },
+      "targets": [
+        {
+          "expr": "process_runtime_dotnet_gc_committed_memory_size_bytes",
+          "legendFormat": "Committed RAM",
+          "refId": "A"
+        }
+      ],
+      "unit": "bytes"
+    },
+    {
+      "title": "Allocation Rate (Trash Generation)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 9 },
+      "targets": [
+        {
+          "expr": "rate(process_runtime_dotnet_gc_allocations_size_bytes_total[1m])",
+          "legendFormat": "Bytes Allocated / Sec",
+          "refId": "A"
+        }
+      ],
+      "unit": "binBps"
+    },
+    {
+      "title": "Gen 2 Garbage Collections (Stop-the-World)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 9 },
+      "targets": [
+        {
+          "expr": "increase(process_runtime_dotnet_gc_collections_count_total{generation=\"gen2\"}[1m])",
+          "legendFormat": "Gen 2 GCs",
+          "refId": "A"
+        }
+      ],
+      "unit": "short"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
+      "id": 100,
+      "panels": [],
+      "title": "Statistical Summary (Tier 2: Defense Proof)",
+      "type": "row"
+    },
+    {
+      "title": "Resource Cost Comparison (Max Memory)",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 18 },
+      "targets": [
+        {
+          "expr": "max by (service_name) (max_over_time(process_runtime_dotnet_gc_committed_memory_size_bytes[24h]))",
+          "legendFormat": "{{service_name}}",
+          "refId": "A"
+        }
+      ],
+      "unit": "bytes",
+      "options": {
+        "orientation": "vertical",
+        "showValue": "auto",
+        "groupWidth": 0.8
+      }
+    },
+    {
+      "title": "Efficiency Comparison (Total CPU Time)",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 18 },
+      "targets": [
+        {
+          "expr": "max by (service_name) (increase(process_cpu_seconds_total[24h]))",
+          "legendFormat": "{{service_name}}",
+          "refId": "A"
+        }
+      ],
+      "unit": "s",
+      "options": {
+        "orientation": "vertical",
+        "showValue": "auto"
+      }
+    },
+    {
+      "title": "Latency Distribution Heatmap",
+      "type": "heatmap",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 18 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_request_duration_seconds_bucket[5m])) by (le)",
+          "format": "heatmap",
+          "refId": "A"
+        }
+      ],
+      "heatmap": {
+        "mode": "opacity",
+        "colorMode": "spectrum"
+      }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["benchmark"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "MarketStat Benchmark: Full Analysis",
+  "uid": "marketstat-bench-full",
+  "version": 2
+}

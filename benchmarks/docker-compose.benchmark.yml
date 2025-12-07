@@ -3,6 +3,7 @@ version: "3.9"
 services:
   api:
     image: marketstat-api:benchmark
+    profiles: ["test"]
     build:
       context: ../
       dockerfile: src/MarketStat/Dockerfile
@@ -18,18 +19,20 @@ services:
       - JwtSettings__Audience=marketstat-demo
       - Serilog__WriteTo__1__Args__path=/dev/null
       - REPO_IMPLEMENTATION=${REPO_IMPLEMENTATION:-BASELINE}
+      - OTEL_EXPORTER_PROMETHEUS_ENDPOINT=http://0.0.0.0:8080/metrics
     ports:
       - "5055:8080"
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '0.50'
-    #       memory: 300M
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 300M
     networks:
       - benchmark-net
   
   db:
     image: postgres:16-alpine
+    profiles: ["test"]
     container_name: ms_benchmark_db
     environment:
       - POSTGRES_DB=marketstat
@@ -44,19 +47,10 @@ services:
       retries: 10
     networks:
       - benchmark-net
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: ms_benchmark_prom
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9095:9090"
-    networks:
-      - benchmark-net
-
+  
   k6:
     image: grafana/k6:latest
+    profiles: ["test"]
     container_name: ms_benchmark_k6
     user: "root"
     volumes:
@@ -66,6 +60,37 @@ services:
       - api
     networks:
       - benchmark-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: ["monitor"]
+    container_name: ms_benchmark_prom
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prom_data:/prometheus
+    ports:
+      - "9095:9090"
+    networks:
+      - benchmark-net
+  
+  grafana:
+    image: grafana/grafana:latest
+    profiles: ["monitor"]
+    container_name: ms_benchmark_grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards_json
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - benchmark-net
+
+volumes:
+  prom_data:
 
 networks:
   benchmark-net:
