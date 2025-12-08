@@ -3,11 +3,9 @@ version: "3.9"
 services:
   api:
     image: marketstat-api:benchmark
-    profiles: ["test"]
     build:
       context: ../
       dockerfile: src/MarketStat/Dockerfile
-    container_name: ms_benchmark_api
     depends_on:
       db:
         condition: service_healthy
@@ -18,22 +16,20 @@ services:
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
       - Serilog__WriteTo__1__Args__path=/dev/null
-      - REPO_IMPLEMENTATION=${REPO_IMPLEMENTATION:-BASELINE}
-      - OTEL_EXPORTER_PROMETHEUS_ENDPOINT=http://0.0.0.0:8080/metrics
+      - REPO_IMPLEMENTATION=${REPO_IMPLEMENTATION}
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=MarketStat.API.${REPO_IMPLEMENTATION}
     ports:
-      - "5055:8080"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 300M
+      - "${API_PORT}:8080"
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.5'
+    #       memory: 1G
     networks:
       - benchmark-net
-  
+
   db:
     image: postgres:16-alpine
-    profiles: ["test"]
-    container_name: ms_benchmark_db
     environment:
       - POSTGRES_DB=marketstat
       - POSTGRES_USER=postgres
@@ -47,50 +43,19 @@ services:
       retries: 10
     networks:
       - benchmark-net
-  
+
   k6:
     image: grafana/k6:latest
-    profiles: ["test"]
-    container_name: ms_benchmark_k6
     user: "root"
     volumes:
       - ./k6-scripts:/scripts
       - ./results:/results
     depends_on:
       - api
-    networks:
-      - benchmark-net
-
-  prometheus:
-    image: prom/prometheus:latest
-    profiles: ["monitor"]
-    container_name: ms_benchmark_prom
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prom_data:/prometheus
-    ports:
-      - "9095:9090"
-    networks:
-      - benchmark-net
-  
-  grafana:
-    image: grafana/grafana:latest
-    profiles: ["monitor"]
-    container_name: ms_benchmark_grafana
-    ports:
-      - "3001:3000"
-    volumes:
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards_json
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
+      - API_URL=http://api:8080/api
     networks:
       - benchmark-net
-
-volumes:
-  prom_data:
 
 networks:
   benchmark-net:

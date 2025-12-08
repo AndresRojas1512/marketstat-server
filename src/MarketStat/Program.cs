@@ -232,7 +232,9 @@ try
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-    if (app.Environment.IsDevelopment())
+    var runBenchmarkSwagger = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("REPO_IMPLEMENTATION"));
+
+    if (app.Environment.IsDevelopment() || runBenchmarkSwagger)
     {
         app.UseSwagger();
         app.UseSwaggerUI(c => {

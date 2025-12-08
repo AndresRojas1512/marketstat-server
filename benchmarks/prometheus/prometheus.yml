@@ -1,7 +1,21 @@
 global:
-  scrape_interval: 1s
+  scrape_interval: 2s 
 
 scrape_configs:
-  - job_name: 'marketstat-api'
+  - job_name: 'marketstat-apis'
+    metrics_path: /metrics
     static_configs:
-      - targets: ['api:8080']
+      # Port 5055 is ALWAYS Baseline
+      - targets: ['localhost:5055']
+        labels:
+          service_name: 'MarketStat.API.BASELINE'
+
+      # Port 5056 is ALWAYS EF Core
+      - targets: ['localhost:5056']
+        labels:
+          service_name: 'MarketStat.API.EF_SQL'
+
+      # Port 5057 is ALWAYS Dapper
+      - targets: ['localhost:5057']
+        labels:
+          service_name: 'MarketStat.API.DAPPER'

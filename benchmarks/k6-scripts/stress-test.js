@@ -24,24 +24,28 @@ export const options = {
   },
 };
 
-const BASE_URL = 'http://api:8080/api';
+// IMPROVEMENT: Use the environment variable passed from Python runner
+// Fallback to localhost if not provided (useful for local debugging)
+const BASE_URL = __ENV.API_URL || 'http://api:8080/api';
 
 export function setup() {
   let token = null;
   // Retry loop to handle API cold starts
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 30; i++) {
     try {
         const user = `bench_${Math.random().toString(36).substring(7)}`;
         const headers = { 'Content-Type': 'application/json' };
 
+        // Register
         http.post(`${BASE_URL}/auth/register`, JSON.stringify({
             username: user,
             password: 'Password123!',
             email: `${user}@test.com`,
-            fullName: 'Bench Bot', // Fixed typo here
+            fullName: 'Bench Bot', 
             isAdmin: true
         }), { headers });
 
+        // Login
         const res = http.post(`${BASE_URL}/auth/login`, JSON.stringify({
             username: user, password: 'Password123!'
         }), { headers });
@@ -50,12 +54,14 @@ export function setup() {
             token = res.json('token');
             break;
         }
-    } catch (e) {}
+    } catch (e) {
+      console.log(`Setup retry ${i+1}...`);
+    }
     sleep(1);
   }
   
   if (!token) {
-    throw new Error("Setup failed: Could not obtain auth token");
+    throw new Error(`Setup failed: Could not obtain auth token from ${BASE_URL}`);
   }
   return { token };
 }
@@ -64,11 +70,9 @@ export default function (data) {
   const params = { headers: { 'Authorization': `Bearer ${data.token}` } };
 
   group('Analytics', () => {
-    // Test 1: Percentile Calculation (Heavy Calculation)
     const summary = http.get(`${BASE_URL}/factsalaries/summary?targetPercentile=90`, params);
     check(summary, { 'Summary 200': (r) => r.status === 200 }) || errorRate.add(1);
 
-    // Test 2: Histogram Generation (Heavy Aggregation)
     const dist = http.get(`${BASE_URL}/factsalaries/distribution`, params);
     check(dist, { 'Distribution 200': (r) => r.status === 200 }) || errorRate.add(1);
   })
