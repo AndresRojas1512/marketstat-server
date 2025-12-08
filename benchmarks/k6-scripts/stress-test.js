@@ -10,33 +10,28 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '10s', target: 20 },  // Warmup
-        { duration: '30s', target: 50 },  // Stress Peak
-        { duration: '10s', target: 0 },   // Recovery
+        { duration: '5s', target: 20 },  // Warmup
+        { duration: '15s', target: 50 },  // Stress Peak
+        { duration: '5s', target: 0 },   // Recovery
       ],
     },
   },
+  summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(75)', 'p(90)', 'p(95)', 'p(99)'],
   thresholds: {
-    // Relaxed to 15s to prevent early exit during Baseline crashes
     http_req_duration: ['p(95)<15000'], 
-    // Allow up to 10% errors (timeouts) before failing the test
     error_rate: ['rate<0.10'], 
   },
 };
 
-// IMPROVEMENT: Use the environment variable passed from Python runner
-// Fallback to localhost if not provided (useful for local debugging)
 const BASE_URL = __ENV.API_URL || 'http://api:8080/api';
 
 export function setup() {
   let token = null;
-  // Retry loop to handle API cold starts
   for (let i = 0; i < 30; i++) {
     try {
         const user = `bench_${Math.random().toString(36).substring(7)}`;
         const headers = { 'Content-Type': 'application/json' };
 
-        // Register
         http.post(`${BASE_URL}/auth/register`, JSON.stringify({
             username: user,
             password: 'Password123!',
@@ -45,7 +40,6 @@ export function setup() {
             isAdmin: true
         }), { headers });
 
-        // Login
         const res = http.post(`${BASE_URL}/auth/login`, JSON.stringify({
             username: user, password: 'Password123!'
         }), { headers });

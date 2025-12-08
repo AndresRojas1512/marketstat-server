@@ -5,9 +5,11 @@ import sys
 import traceback
 import urllib.request
 import urllib.error
+import json
+import csv
 
-# --- CONFIGURATION ---
 ITERATIONS = 1
+RESULTS_FILE = "benchmark_final_report.csv"
 COMPOSE_FILE = "docker-compose.benchmark.yml"
 MONITOR_FILE = "docker-compose.monitoring.yml"
 
@@ -21,16 +23,20 @@ def run_cmd(cmd, env=None, bg=False, suppress_output=False):
     if not suppress_output:
         print(f"[$] {cmd}")
     cmd_env = os.environ.copy()
-    if env: cmd_env.update(env)
-    if bg: return subprocess.Popen(cmd, shell=True, env=cmd_env)
-    subprocess.run(cmd, shell=True, check=True, env=cmd_env)
+    if env:
+        cmd_env.update(env)
+    if bg:
+        return subprocess.Popen(cmd, shell=True, env=cmd_env)
+    subprocess.run(cmd, shell=True, check=True, env=cmd_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def free_port(port):
     try:
-        pid = subprocess.check_output(f"lsof -t -i:{port}", shell=True, stderr=subprocess.DEVNULL).decode().strip()
+        cmd = f"lsof -t -i:{port}"
+        pid = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL).decode().strip()
         if pid:
-            subprocess.run(f"kill -9 {pid}", shell=True, stderr=subprocess.DEVNULL)
-    except: pass 
+            subprocess.run(f"kill -9 {pid}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except:
+        pass
 
 def wait_for_health(port, mode, timeout=120):
     print(f"  [...] Waiting for {mode} (Port {port}) to be healthy...")
@@ -40,11 +46,12 @@ def wait_for_health(port, mode, timeout=120):
         try:
             with urllib.request.urlopen(url) as response:
                 if response.status == 200:
-                    print(f"  [✓] {mode} is UP!")
+                    print(f"  [+] API {mode} is UP!")
                     return True
-        except: pass
-        time.sleep(2)
-    print(f"  [X] {mode} failed to start.")
+        except:
+            pass
+        time.sleep(1)
+    print(f"  [X] {mode} failed to start within {timeout}s.")
     return False
 
 def stop_stack(project_name):
@@ -54,70 +61,119 @@ def stop_stack(project_name):
         shell=True, stderr=subprocess.DEVNULL
     )
 
+def init_csv():
+    """Creates the CSV file with headers if it doesn't exist."""
+    with open(RESULTS_FILE, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([
+            "Iteration", "Implementation", "Status", "Req/s", 
+            "Avg_Latency", "P50", "P75", "P90", "P95", "P99", "Error_Rate"
+        ])
+
+def save_result(iteration, mode, status, metrics=None):
+    with open(RESULTS_FILE, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        
+        if status == "CRASHED" or not metrics:
+            writer.writerow([iteration, mode, "CRASHED", 0, 0, 0, 0, 0, 0, 0, 100])
+        else:
+            http_duration = metrics.get('http_req_duration', {})
+            http_reqs = metrics.get('http_reqs', {})
+            error_rate = metrics.get('error_rate', {})
+
+            raw_error = error_rate.get('rate')
+            if raw_error is None:
+                raw_error = error_rate.get('value', 0)
+
+            writer.writerow([
+                iteration, 
+                mode, 
+                status,
+                round(http_reqs.get('rate', 0), 2),
+                round(http_duration.get('avg', 0), 2),
+                round(http_duration.get('med', 0), 2),
+                round(http_duration.get('p(75)', 0), 2),
+                round(http_duration.get('p(90)', 0), 2),
+                round(http_duration.get('p(95)', 0), 2),
+                round(http_duration.get('p(99)', 0), 2),
+                round(raw_error * 100, 2)
+            ])
+
 def main():
     try:
-        print(f"=== MARKETSTAT SEQUENTIAL BENCHMARK ===")
+        init_csv()
+        print(f"=== MARKETSTAT SEQUENTIAL BENCHMARK ({ITERATIONS} RUNS) ===")
         
-        # 1. Start Monitoring Stack (Persistent across all runs)
         print("\n>>> Starting Shared Monitoring Stack...")
-        run_cmd(f"docker compose -f {MONITOR_FILE} up -d")
+        run_cmd(f"docker compose -f {MONITOR_FILE} up -d", suppress_output=False)
         time.sleep(5)
 
-        # 2. Run Configs Sequentially
-        for cfg in CONFIGS:
-            mode = cfg['mode']
-            port = cfg['port']
-            project_name = f"ms_{mode.lower()}"
+        for i in range(1, ITERATIONS + 1):
+            print(f"\n[Run {i}/{ITERATIONS}] ----------------------------------------")
             
-            print(f"\n===========================================")
-            print(f">>> TESTING IMPLEMENTATION: {mode}")
-            print(f"===========================================")
-            
-            # A. Clean Start
-            free_port(port)
-            env = os.environ.copy()
-            env["REPO_IMPLEMENTATION"] = mode
-            env["API_PORT"] = str(port)
-            env["API_URL"] = f"http://localhost:{port}/api" # For K6
+            for cfg in CONFIGS:
+                mode = cfg['mode']
+                port = cfg['port']
+                project_name = f"ms_{mode.lower()}"
+                
+                print(f"  >>> Testing: {mode}")
+                
+                free_port(port)
+                env = os.environ.copy()
+                env["REPO_IMPLEMENTATION"] = mode
+                env["API_PORT"] = str(port)
+                
+                stop_stack(project_name) 
+                
+                run_cmd(f"docker compose -f {COMPOSE_FILE} -p {project_name} up -d api db", env=env, suppress_output=True)
 
-            print(f"  -> Starting API Stack...")
-            run_cmd(f"docker compose -f {COMPOSE_FILE} -p {project_name} up -d api db", env=env)
+                if not wait_for_health(port, mode):
+                    print(f"    [!] Skipping {mode} due to startup failure.")
+                    save_result(i, mode, "CRASHED")
+                    stop_stack(project_name)
+                    continue
 
-            # B. Health Check
-            if not wait_for_health(port, mode):
-                print(f"  [!] Skipping {mode} due to startup failure.")
+                time.sleep(5)
+
+                json_report = f"results/report_{mode}_{i}.json"
+                
+                try:
+                    run_cmd(
+                        f"docker compose -f {COMPOSE_FILE} -p {project_name} run --rm "
+                        f"-e API_URL=http://api:8080/api "
+                        f"k6 run --summary-export=/{json_report} /scripts/stress-test.js",
+                        env=env,
+                        suppress_output=True
+                    )
+                    
+                    with open(f"results/report_{mode}_{i}.json") as f:
+                        data = json.load(f)
+                        save_result(i, mode, "SUCCESS", data['metrics'])
+                    print(f"    [+] {mode}: Completed successfully.")
+
+                except subprocess.CalledProcessError:
+                    print(f"    [!] {mode}: Failed Thresholds (Performance too low).")
+                    try:
+                        with open(f"results/report_{mode}_{i}.json") as f:
+                            data = json.load(f)
+                            save_result(i, mode, "FAILED_THRESHOLDS", data['metrics'])
+                    except:
+                        save_result(i, mode, "CRASHED")
+                except Exception as ex:
+                    print(f"    [!] Unexpected error: {ex}")
+                    save_result(i, mode, "CRASHED")
+
                 stop_stack(project_name)
-                continue
-
-            print("  -> Stabilizing (5s)...")
-            time.sleep(5)
-
-            # C. Run Load Test
-            print(f"  -> Launching K6 for {mode}...")
-            try:
-                # We use check=True to raise an error if K6 fails thresholds
-                run_cmd(
-                    f"docker compose -f {COMPOSE_FILE} -p {project_name} run --rm "
-                    f"-e API_URL=http://api:8080/api k6 run /scripts/stress-test.js",
-                    env=env
-                )
-            except subprocess.CalledProcessError:
-                print(f"  [!] {mode} FAILED the benchmark thresholds (Performance too low).")
-                print(f"  [!] Moving to next implementation...")
-
-            # D. Stop this stack to free resources for the next one
-            stop_stack(project_name)
-            print(f"  -> Cooldown (5s)...")
-            time.sleep(5)
+                time.sleep(2)
 
     except KeyboardInterrupt:
-        print("\n>>> Interrupted.")
+        print("\n>>> Interrupted by user.")
     except Exception as e:
         traceback.print_exc()
     finally:
         print("\n=== BENCHMARK COMPLETE ===")
-        print("Don't forget to stop the monitoring stack when done analyzing:")
-        print(f"docker compose -f {MONITOR_FILE} down -v")
+        print(f"Results saved to: {RESULTS_FILE}")
+        print("To stop monitoring: docker compose -f docker-compose.monitoring.yml down -v")
 
 if __name__ == "__main__":
     main()
