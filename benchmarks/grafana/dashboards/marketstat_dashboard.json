@@ -75,8 +75,35 @@
       "unit": "reqps"
     },
     {
+      "title": "Baseline: Allocation Rate (Memory Churn)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
+      "targets": [
+        {
+          "expr": "rate(process_runtime_dotnet_gc_allocations_size_bytes_total{service_name=\"MarketStat.API.BASELINE\"}[10s])",
+          "legendFormat": "Allocated Bytes/sec",
+          "refId": "A",
+          "color": "orange"
+        }
+      ],
+      "unit": "binBps"
+    },
+    {
+      "title": "Baseline: GC Collections (Gen0/1/2)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
+      "targets": [
+        {
+          "expr": "rate(process_runtime_dotnet_gc_collections_count_total{service_name=\"MarketStat.API.BASELINE\"}[10s])",
+          "legendFormat": "{{generation}}",
+          "refId": "A"
+        }
+      ],
+      "unit": "cps"
+    },
+    {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
       "id": 101,
       "panels": [],
       "title": "IMPLEMENTATION 2: EF CORE (Standard ORM)",
@@ -85,7 +112,7 @@
     {
       "title": "EF Core: CPU Overhead (GC Time)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 18 },
       "targets": [
         {
           "expr": "rate(process_runtime_dotnet_gc_duration_nanoseconds_total{service_name=\"MarketStat.API.EF_SQL\"}[10s])",
@@ -99,7 +126,7 @@
     {
       "title": "EF Core: Memory Usage (Heap)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 10 },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 18 },
       "targets": [
         {
           "expr": "process_runtime_dotnet_gc_committed_memory_size_bytes{service_name=\"MarketStat.API.EF_SQL\"}",
@@ -113,7 +140,7 @@
     {
       "title": "EF Core: Reliability (Success vs Fail)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 10 },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 18 },
       "targets": [
         {
           "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=\"MarketStat.API.EF_SQL\", http_response_status_code=~\"2..\"}[10s]))",
@@ -131,8 +158,35 @@
       "unit": "reqps"
     },
     {
+      "title": "EF Core: Allocation Rate (Memory Churn)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
+      "targets": [
+        {
+          "expr": "rate(process_runtime_dotnet_gc_allocations_size_bytes_total{service_name=\"MarketStat.API.EF_SQL\"}[10s])",
+          "legendFormat": "Allocated Bytes/sec",
+          "refId": "A",
+          "color": "orange"
+        }
+      ],
+      "unit": "binBps"
+    },
+    {
+      "title": "EF Core: GC Collections (Gen0/1/2)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
+      "targets": [
+        {
+          "expr": "rate(process_runtime_dotnet_gc_collections_count_total{service_name=\"MarketStat.API.EF_SQL\"}[10s])",
+          "legendFormat": "{{generation}}",
+          "refId": "A"
+        }
+      ],
+      "unit": "cps"
+    },
+    {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 34 },
       "id": 102,
       "panels": [],
       "title": "IMPLEMENTATION 3: DAPPER (Micro-ORM)",
@@ -141,7 +195,7 @@
     {
       "title": "Dapper: CPU Overhead (GC Time)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 19 },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 35 },
       "targets": [
         {
           "expr": "rate(process_runtime_dotnet_gc_duration_nanoseconds_total{service_name=\"MarketStat.API.DAPPER\"}[10s])",
@@ -155,7 +209,7 @@
     {
       "title": "Dapper: Memory Usage (Heap)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 19 },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 35 },
       "targets": [
         {
           "expr": "process_runtime_dotnet_gc_committed_memory_size_bytes{service_name=\"MarketStat.API.DAPPER\"}",
@@ -169,7 +223,7 @@
     {
       "title": "Dapper: Reliability (Success vs Fail)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 19 },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 35 },
       "targets": [
         {
           "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=\"MarketStat.API.DAPPER\", http_response_status_code=~\"2..\"}[10s]))",
@@ -185,6 +239,33 @@
         }
       ],
       "unit": "reqps"
+    },
+    {
+      "title": "Dapper: Allocation Rate (Memory Churn)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 43 },
+      "targets": [
+        {
+          "expr": "rate(process_runtime_dotnet_gc_allocations_size_bytes_total{service_name=\"MarketStat.API.DAPPER\"}[10s])",
+          "legendFormat": "Allocated Bytes/sec",
+          "refId": "A",
+          "color": "orange"
+        }
+      ],
+      "unit": "binBps"
+    },
+    {
+      "title": "Dapper: GC Collections (Gen0/1/2)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 43 },
+      "targets": [
+        {
+          "expr": "rate(process_runtime_dotnet_gc_collections_count_total{service_name=\"MarketStat.API.DAPPER\"}[10s])",
+          "legendFormat": "{{generation}}",
+          "refId": "A"
+        }
+      ],
+      "unit": "cps"
     }
   ],
   "refresh": "2s",
@@ -197,5 +278,5 @@
   "timezone": "",
   "title": "MarketStat Parallel Benchmark",
   "uid": "marketstat-bench-parallel",
-  "version": 12
+  "version": 13
 }

@@ -12,6 +12,7 @@ namespace MarketStat.Database.Repositories.PostgresRepositories.Facts;
 public class FactSalaryRepositoryDapper : IFactSalaryRepository
 {
     private readonly string _connectionString;
+    private const int AnalyticalTimeoutSeconds = 300;
 
     static FactSalaryRepositoryDapper()
     {
@@ -54,17 +55,23 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
                 FROM Config
             )
             SELECT 
-                CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val, CAST(bucket_count AS INT)), CAST(bucket_count AS INT)) - 1) * width AS numeric) as LowerBound,
-                CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val, CAST(bucket_count AS INT)), CAST(bucket_count AS INT))) * width AS numeric) as UpperBound,
+                CASE 
+                    WHEN width = 0 THEN CAST(min_val AS numeric)
+                    ELSE CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val + 0.001, CAST(bucket_count AS INT)), CAST(bucket_count AS INT)) - 1) * width AS numeric) 
+                END as LowerBound,
+                CASE 
+                    WHEN width = 0 THEN CAST(max_val AS numeric)
+                    ELSE CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val + 0.001, CAST(bucket_count AS INT)), CAST(bucket_count AS INT))) * width AS numeric) 
+                END as UpperBound,
                 COUNT(*) as BucketCount
             FROM RawData
             CROSS JOIN BucketParams
-            WHERE total_count > 0 AND width > 0
+            WHERE total_count > 0
             GROUP BY 1, 2
             ORDER BY 1";
 
         using var db = CreateConnection();
-        var result = await db.QueryAsync<SalaryDistributionBucket>(sql, parameters);
+        var result = await db.QueryAsync<SalaryDistributionBucket>(sql, parameters, commandTimeout: AnalyticalTimeoutSeconds);
         return result.ToList();
     }
 
@@ -87,7 +94,7 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
             WHERE {whereSql}";
         parameters.Add("TargetP", percentileVal);
         using var db = CreateConnection();
-        return await db.QueryFirstOrDefaultAsync<SalarySummary>(sql, parameters);
+        return await db.QueryFirstOrDefaultAsync<SalarySummary>(sql, parameters, commandTimeout: AnalyticalTimeoutSeconds);
     }
 
     public async Task<List<SalaryTimeSeriesPoint>> GetSalaryTimeSeriesAsync(ResolvedSalaryFilter filter,
@@ -116,7 +123,7 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
         
         parameters.Add("Periods", periods);
         using var db = CreateConnection();
-        var result = await db.QueryAsync<SalaryTimeSeriesPoint>(sql, parameters);
+        var result = await db.QueryAsync<SalaryTimeSeriesPoint>(sql, parameters, commandTimeout: AnalyticalTimeoutSeconds);
         return result.OrderBy(x => x.PeriodStart).ToList();
     }
 
@@ -139,7 +146,7 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
             ORDER BY AverageSalary DESC";
         parameters.Add("MinCount", minRecordCount);
         using var db = CreateConnection();
-        return await db.QueryAsync<PublicRoleByLocationIndustry>(sql, parameters);
+        return await db.QueryAsync<PublicRoleByLocationIndustry>(sql, parameters, commandTimeout: AnalyticalTimeoutSeconds);
     }
 
     public async Task<IEnumerable<FactSalary>> GetFactSalariesByFilterAsync(ResolvedSalaryFilter filter)
@@ -160,7 +167,7 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
             WHERE {whereSql}
             LIMIT 1000";
         using var db = CreateConnection();
-        return await db.QueryAsync<FactSalary>(sql, parameters);
+        return await db.QueryAsync<FactSalary>(sql, parameters, commandTimeout: AnalyticalTimeoutSeconds);
     }
     
     public Task AddFactSalaryAsync(FactSalary salary) => throw new NotImplementedException();
