@@ -16,12 +16,16 @@ export const options = {
       ],
     },
   },
-  // FIX: Increased timeout to 60s to allow heavy DB queries to finish
   timeout: '60s',
   
-  summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(75)', 'p(90)', 'p(95)', 'p(99)'],
+  // CAPTURE ALL METRICS FOR THE "PASSPORT"
+  summaryTrendStats: [
+      'min', 'avg', 'med', 'max', 
+      'p(10)', 'p(25)', 'p(50)', 'p(75)', 'p(80)', 'p(85)', 'p(90)', 'p(95)', 'p(99)', 'p(99.9)'
+  ],
+  
   thresholds: {
-    http_req_duration: ['p(95)<60000'], // Relaxed threshold for heavy analytics
+    http_req_duration: ['p(95)<60000'], 
     error_rate: ['rate<0.10'], 
   },
 };
@@ -66,11 +70,21 @@ export default function (data) {
   const params = { headers: { 'Authorization': `Bearer ${data.token}` } };
 
   group('Analytics', () => {
+    // 1. Summary Statistics (Percentiles)
     const summary = http.get(`${BASE_URL}/factsalaries/summary?targetPercentile=90`, params);
     check(summary, { 'Summary 200': (r) => r.status === 200 }) || errorRate.add(1);
 
+    // 2. Distribution (Histogram)
     const dist = http.get(`${BASE_URL}/factsalaries/distribution`, params);
     check(dist, { 'Distribution 200': (r) => r.status === 200 }) || errorRate.add(1);
+
+    // 3. Time Series (Trending)
+    const timeSeries = http.get(`${BASE_URL}/factsalaries/timeseries?granularity=Month&periods=12`, params);
+    check(timeSeries, { 'TimeSeries 200': (r) => r.status === 200 }) || errorRate.add(1);
+
+    // 4. Public Roles (Aggregation)
+    const publicRoles = http.get(`${BASE_URL}/factsalaries/public/roles?minRecordCount=10`, params);
+    check(publicRoles, { 'PublicRoles 200': (r) => r.status === 200 }) || errorRate.add(1);
   })
   
   sleep(1);
