@@ -1,4 +1,4 @@
-name: MarketStat CI/CD Pipeline
+name: MarketStat Microservices CI/CD
 
 on:
   push:
@@ -12,18 +12,18 @@ permissions:
   id-token: write
 
 jobs:
-  build_and_test:
-    name: Build & Run All Tests
+  run_tests:
+    name: Run Test Suite
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build and run the full test stack
+      - name: Build and run tests
         run: docker compose -f test-infra/compose/docker-compose.ci.yml up --build --abort-on-container-exit
 
-      - name: Upload test results (even if tests failed)
+      - name: Upload test results (Artifacts)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -31,10 +31,36 @@ jobs:
           path: src/allure-results/
           retention-days: 1 
 
+  build_microservices:
+    name: Build Service Images
+    needs: run_tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [MarketStat.Gateway, MarketStat.Domain, MarketStat.Data] 
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.service }} Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src
+          file: ./src/Dockerfile.microservice
+          push: false 
+          tags: marketstat/${{ matrix.service }}:latest
+          build-args: |
+            # CHANGE 2: Remove the "MarketStat." prefix here because it's now in the matrix
+            PROJECT_NAME=${{ matrix.service }}
+
   publish_report:
     name: Publish Test Report
     if: always() 
-    needs: build_and_test 
+    needs: run_tests 
     runs-on: ubuntu-latest
 
     steps:

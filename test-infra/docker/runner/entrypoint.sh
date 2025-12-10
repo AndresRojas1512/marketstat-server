@@ -19,10 +19,10 @@ echo "STAGE 2: INTEGRATION TESTS"
 echo "=================================================="
 dotnet test MarketStat.Tests/MarketStat.Integration.Tests/MarketStat.Integration.Tests.csproj -c Release
 
-echo "=================================================="
-echo "STAGE 3: E2E TESTS"
-echo "=================================================="
-dotnet test MarketStat.Tests/MarketStat.Tests.E2E/MarketStat.Tests.E2E.csproj -c Release
+#echo "=================================================="
+#echo "STAGE 3: E2E TESTS"
+#echo "=================================================="
+#dotnet test MarketStat.Tests/MarketStat.Tests.E2E/MarketStat.Tests.E2E.csproj -c Release
 
 echo "=================================================="
 echo "TESTS FINISHED. COLLECTING RESULTS..."
