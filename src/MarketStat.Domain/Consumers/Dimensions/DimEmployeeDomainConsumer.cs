@@ -1,4 +1,5 @@
 using MarketStat.Common.Validators.Dimensions;
+using MarketStat.Contracts.Dimensions.DimEducation;
 using MarketStat.Contracts.Dimensions.DimEmployee;
 using MassTransit;
 
@@ -11,10 +12,12 @@ public class DimEmployeeDomainConsumer :
     IConsumer<ISubmitDimEmployeePartialUpdateCommand>
 {
     private readonly ILogger<DimEmployeeDomainConsumer> _logger;
+    private readonly IRequestClient<IGetDimEducationRequest> _educationClient;
 
-    public DimEmployeeDomainConsumer(ILogger<DimEmployeeDomainConsumer> logger)
+    public DimEmployeeDomainConsumer(ILogger<DimEmployeeDomainConsumer> logger, IRequestClient<IGetDimEducationRequest> educationClient)
     {
         _logger = logger;
+        _educationClient = educationClient;
     }
     
     public async Task Consume(ConsumeContext<ISubmitDimEmployeeCommand> context)
@@ -25,6 +28,19 @@ public class DimEmployeeDomainConsumer :
         {
             DimEmployeeValidator.ValidateForCreate(msg.EmployeeRefId, msg.BirthDate, msg.CareerStartDate, msg.Gender,
                 msg.EducationId, msg.GraduationYear);
+            if (msg.EducationId.HasValue)
+            {
+                var response =
+                    await _educationClient.GetResponse<IGetDimEducationResponse, IDimEducationNotFoundResponse>(new
+                    {
+                        EducationId = msg.EducationId.Value
+                    });
+                if (response.Is(out Response<IDimEducationNotFoundResponse>? _))
+                {
+                    _logger.LogWarning("Domain: Validation Failed. Education ID {Id} does not exist.", msg.EducationId);
+                    return;
+                }
+            }
             await context.Publish<IPersistDimEmployeeCommand>(new
             {
                 msg.EmployeeRefId, msg.BirthDate, msg.CareerStartDate, msg.Gender, msg.EducationId, msg.GraduationYear
@@ -43,6 +59,19 @@ public class DimEmployeeDomainConsumer :
         {
             DimEmployeeValidator.ValidateForUpdate(msg.EmployeeId, msg.EmployeeRefId, msg.BirthDate,
                 msg.CareerStartDate, msg.Gender, msg.EducationId, msg.GraduationYear);
+            if (msg.EducationId.HasValue)
+            {
+                var response =
+                    await _educationClient.GetResponse<IGetDimEducationResponse, IDimEducationNotFoundResponse>(new
+                    {
+                        EducationId = msg.EducationId.Value
+                    });
+                if (response.Is(out Response<IDimEducationNotFoundResponse>? _))
+                {
+                    _logger.LogWarning("Domain: Validation Failed. Education ID {Id} does not exist.", msg.EducationId);
+                    return;
+                }
+            }
             await context.Publish<IPersistDimEmployeeUpdateCommand>(new
             {
                 msg.EmployeeId, msg.EmployeeRefId, msg.BirthDate, msg.CareerStartDate, msg.Gender, msg.EducationId, msg.GraduationYear
@@ -59,6 +88,20 @@ public class DimEmployeeDomainConsumer :
         if (context.Message.EmployeeId <= 0)
         {
             return;
+        }
+        var msg = context.Message;
+        if (msg.EducationId.HasValue)
+        {
+            var response =
+                await _educationClient.GetResponse<IGetDimEducationResponse, IDimEducationNotFoundResponse>(new
+                {
+                    EducationId = msg.EducationId.Value
+                });
+            if (response.Is(out Response<IDimEducationNotFoundResponse>? _))
+            {
+                _logger.LogWarning("Domain: Validation Failed. Education ID {Id} does not exist.", msg.EducationId);
+                return;
+            }
         }
         await context.Publish<IPersistDimEmployeePartialUpdateCommand>(new 
         { 
