@@ -4,6 +4,7 @@ using MarketStat.Data.Consumers.Dimensions.DimDate;
 using MarketStat.Data.Consumers.Dimensions.DimEducation;
 using MarketStat.Data.Consumers.Dimensions.DimEmployee;
 using MarketStat.Data.Consumers.Dimensions.DimEmployer;
+using MarketStat.Data.Consumers.Dimensions.DimIndustryField;
 using MarketStat.Data.Consumers.Facts;
 using MarketStat.Data.Consumers.Facts.Analytics;
 using MarketStat.Data.Services;
@@ -59,6 +60,9 @@ IHost host = Host.CreateDefaultBuilder(args)
             
             x.AddConsumer<DimEmployerDataConsumer>();
             x.AddConsumer<DimEmployerReadConsumer>();
+
+            x.AddConsumer<DimIndustryFieldDataConsumer>();
+            x.AddConsumer<DimIndustryFieldReadConsumer>();
             
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -75,6 +79,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                     e.ConfigureConsumer<DimEducationDataConsumer>(context);
                     e.ConfigureConsumer<DimEmployeeDataConsumer>(context);
                     e.ConfigureConsumer<DimEmployerDataConsumer>(context);
+                    e.ConfigureConsumer<DimIndustryFieldDataConsumer>(context);
                 });
 
                 cfg.ReceiveEndpoint("market-stat-data-reads", e =>
@@ -85,6 +90,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                     e.ConfigureConsumer<DimEducationReadConsumer>(context);
                     e.ConfigureConsumer<DimEmployeeReadConsumer>(context);
                     e.ConfigureConsumer<DimEmployerReadConsumer>(context);
+                    e.ConfigureConsumer<DimIndustryFieldReadConsumer>(context);
                 });
                 
                 cfg.ReceiveEndpoint("market-stat-data-auth", e => {

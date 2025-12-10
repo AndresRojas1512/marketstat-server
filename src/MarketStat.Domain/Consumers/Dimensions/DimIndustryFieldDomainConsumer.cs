@@ -19,13 +19,14 @@ public class DimIndustryFieldDomainConsumer :
     public async Task Consume(ConsumeContext<ISubmitDimIndustryFieldCommand> context)
     {
         var msg = context.Message;
-        _logger.LogInformation("Domain: Validating Industry {Name}", msg.IndustryFieldName);
+        _logger.LogInformation("Domain: Validating Industry Field {Code}", msg.IndustryFieldCode);
         try
         {
             DimIndustryFieldValidator.ValidateForCreate(msg.IndustryFieldCode, msg.IndustryFieldName);
             await context.Publish<IPersistDimIndustryFieldCommand>(new
             {
-                msg.IndustryFieldCode, msg.IndustryFieldName
+                msg.IndustryFieldCode,
+                msg.IndustryFieldName
             });
         }
         catch (ArgumentException ex)
@@ -43,7 +44,9 @@ public class DimIndustryFieldDomainConsumer :
                 msg.IndustryFieldName);
             await context.Publish<IPersistDimIndustryFieldUpdateCommand>(new
             {
-                msg.IndustryFieldId, msg.IndustryFieldCode, msg.IndustryFieldName
+                msg.IndustryFieldId,
+                msg.IndustryFieldCode,
+                msg.IndustryFieldName
             });
         }
         catch (ArgumentException ex)
