@@ -2,9 +2,9 @@ name: MarketStat CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "feature/microservice" ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "feature/microservice" ]
 
 permissions:
   contents: read
