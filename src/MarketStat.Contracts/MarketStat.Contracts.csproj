@@ -14,8 +14,4 @@
     <ProjectReference Include="..\MarketStat.Common\MarketStat.Common.Dto\MarketStat.Common.Dto.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Dimensions\DimLocation\" />
-  </ItemGroup>
-
 </Project>

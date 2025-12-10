@@ -6,6 +6,7 @@ using MarketStat.Data.Consumers.Dimensions.DimEmployee;
 using MarketStat.Data.Consumers.Dimensions.DimEmployer;
 using MarketStat.Data.Consumers.Dimensions.DimIndustryField;
 using MarketStat.Data.Consumers.Dimensions.DimJob;
+using MarketStat.Data.Consumers.Dimensions.DimLocation;
 using MarketStat.Data.Consumers.Facts;
 using MarketStat.Data.Consumers.Facts.Analytics;
 using MarketStat.Data.Services;
@@ -39,6 +40,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddScoped<IDimEducationRepository, DimEducationRepository>();
         services.AddScoped<IDimEmployeeRepository, DimEmployeeRepository>();
         services.AddScoped<IDimEmployerRepository, DimEmployerRepository>();
+        services.AddScoped<IDimLocationRepository, DimLocationRepository>();
 
         services.AddScoped<FilterResolver>();
         services.AddAutoMapper(typeof(Program));
@@ -68,6 +70,9 @@ IHost host = Host.CreateDefaultBuilder(args)
 
             x.AddConsumer<DimJobDataConsumer>();
             x.AddConsumer<DimJobReadConsumer>();
+
+            x.AddConsumer<DimLocationDataConsumer>();
+            x.AddConsumer<DimLocationReadConsumer>();
             
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -86,6 +91,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                     e.ConfigureConsumer<DimEmployerDataConsumer>(context);
                     e.ConfigureConsumer<DimIndustryFieldDataConsumer>(context);
                     e.ConfigureConsumer<DimJobDataConsumer>(context);
+                    e.ConfigureConsumer<DimLocationDataConsumer>(context);
                 });
 
                 cfg.ReceiveEndpoint("market-stat-data-reads", e =>
@@ -98,6 +104,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                     e.ConfigureConsumer<DimEmployerReadConsumer>(context);
                     e.ConfigureConsumer<DimIndustryFieldReadConsumer>(context);
                     e.ConfigureConsumer<DimJobReadConsumer>(context);
+                    e.ConfigureConsumer<DimLocationReadConsumer>(context);
                 });
                 
                 cfg.ReceiveEndpoint("market-stat-data-auth", e => {

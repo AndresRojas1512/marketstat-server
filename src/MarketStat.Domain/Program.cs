@@ -1,3 +1,5 @@
+using MarketStat.Contracts.Auth;
+using MarketStat.Contracts.Dimensions.DimEducation;
 using MarketStat.Contracts.Dimensions.DimIndustryField;
 using MarketStat.Domain.Consumers.Auth;
 using MarketStat.Domain.Consumers.Dimensions;
@@ -17,7 +19,13 @@ IHost host = Host.CreateDefaultBuilder(args)
             x.AddConsumer<DimEmployerDomainConsumer>();
             x.AddConsumer<DimIndustryFieldDomainConsumer>();
             x.AddConsumer<DimJobDomainConsumer>();
+            x.AddConsumer<DimLocationDomainConsumer>();
+            
             x.AddRequestClient<IGetDimIndustryFieldRequest>();
+            x.AddRequestClient<IGetDimEducationRequest>();
+            
+            x.AddRequestClient<IGetUserAuthDetailsRequest>();
+            x.AddRequestClient<IPersistUserCommand>();
             
             x.UsingRabbitMq((context, cfg) =>
             {
