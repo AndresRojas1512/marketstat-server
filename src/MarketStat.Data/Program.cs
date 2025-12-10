@@ -18,146 +18,183 @@ using MarketStat.Database.Repositories.PostgresRepositories.Account;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Database.Repositories.PostgresRepositories.Facts;
 using MassTransit;
-using MassTransit.Logging;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Sinks.Grafana.Loki;
 
-IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices((hostContext, services) =>
-    {
-        services.AddSingleton<IConfiguration>(hostContext.Configuration);
-        var connString = hostContext.Configuration.GetConnectionString("MarketStat");
-        services.AddDbContext<MarketStatDbContext>(opts =>
-            opts.UseNpgsql(connString, o => o.EnableRetryOnFailure())
-                .UseSnakeCaseNamingConvention());
-        
-        services.AddScoped<IFactSalaryRepository, FactSalaryRepository>();
-        services.AddScoped<IDimLocationRepository, DimLocationRepository>();
-        services.AddScoped<IDimJobRepository, DimJobRepository>();
-        services.AddScoped<IDimIndustryFieldRepository, DimIndustryFieldRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IDimDateRepository, DimDateRepository>();
-        services.AddScoped<IDimEducationRepository, DimEducationRepository>();
-        services.AddScoped<IDimEmployeeRepository, DimEmployeeRepository>();
-        services.AddScoped<IDimEmployerRepository, DimEmployerRepository>();
-        services.AddScoped<IDimLocationRepository, DimLocationRepository>();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Service", "MarketStat.Data")
+    .WriteTo.Console()
+    .WriteTo.GrafanaLoki(
+        uri: "http://loki:3100", 
+        labels: new[] { new LokiLabel { Key = "service", Value = "data" } }
+    )
+    .CreateBootstrapLogger();
 
-        services.AddScoped<FilterResolver>();
-        services.AddAutoMapper(typeof(Program));
-        
-        services.AddMassTransit(x =>
+try
+{
+    Log.Information("Starting MarketStat Data Service ...");
+    IHost host = Host.CreateDefaultBuilder(args)
+        .UseSerilog()
+        .ConfigureServices((hostContext, services) =>
         {
-            x.AddConsumer<FactSalaryDataConsumer>();
-            x.AddConsumer<GetFactSalaryConsumer>();
-            x.AddConsumer<FactSalaryAnalyticsConsumer>();
+            services.AddOpenTelemetry()
+                .ConfigureResource(resource => resource
+                    .AddService("MarketStat.Data"))
+                .WithTracing(tracing =>
+                {
+                    tracing
+                        .AddMassTransitInstrumentation()
+                        .AddSource("MarketStat.Data")
+                        .AddOtlpExporter();
+                });
             
-            x.AddConsumer<AuthDataConsumer>();
+            services.AddSingleton<IConfiguration>(hostContext.Configuration);
+            var connString = hostContext.Configuration.GetConnectionString("MarketStat");
+            services.AddDbContext<MarketStatDbContext>(opts =>
+                opts.UseNpgsql(connString, o => o.EnableRetryOnFailure())
+                    .UseSnakeCaseNamingConvention());
             
-            x.AddConsumer<DimDateDataConsumer>();
-            x.AddConsumer<DimDateReadConsumer>();
+            services.AddScoped<IFactSalaryRepository, FactSalaryRepository>();
+            services.AddScoped<IDimLocationRepository, DimLocationRepository>();
+            services.AddScoped<IDimJobRepository, DimJobRepository>();
+            services.AddScoped<IDimIndustryFieldRepository, DimIndustryFieldRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IDimDateRepository, DimDateRepository>();
+            services.AddScoped<IDimEducationRepository, DimEducationRepository>();
+            services.AddScoped<IDimEmployeeRepository, DimEmployeeRepository>();
+            services.AddScoped<IDimEmployerRepository, DimEmployerRepository>();
 
-            x.AddConsumer<DimEducationDataConsumer>();
-            x.AddConsumer<DimEducationReadConsumer>();
-
-            x.AddConsumer<DimEmployeeDataConsumer>();
-            x.AddConsumer<DimEmployeeReadConsumer>();
+            services.AddScoped<FilterResolver>();
+            services.AddAutoMapper(typeof(Program));
             
-            x.AddConsumer<DimEmployerDataConsumer>();
-            x.AddConsumer<DimEmployerReadConsumer>();
-
-            x.AddConsumer<DimIndustryFieldDataConsumer>();
-            x.AddConsumer<DimIndustryFieldReadConsumer>();
-
-            x.AddConsumer<DimJobDataConsumer>();
-            x.AddConsumer<DimJobReadConsumer>();
-
-            x.AddConsumer<DimLocationDataConsumer>();
-            x.AddConsumer<DimLocationReadConsumer>();
-            
-            x.UsingRabbitMq((context, cfg) =>
+            services.AddMassTransit(x =>
             {
-                cfg.Host("rabbitmq", "/", h =>
-                {
-                    h.Username("guest");
-                    h.Password("guest");
-                });
+                x.AddConsumer<FactSalaryDataConsumer>();
+                x.AddConsumer<GetFactSalaryConsumer>();
+                x.AddConsumer<FactSalaryAnalyticsConsumer>();
                 
-                cfg.ReceiveEndpoint("market-stat-data-writes", e =>
-                {
-                    e.ConfigureConsumer<FactSalaryDataConsumer>(context);
-                    e.ConfigureConsumer<DimDateDataConsumer>(context);
-                    e.ConfigureConsumer<DimEducationDataConsumer>(context);
-                    e.ConfigureConsumer<DimEmployeeDataConsumer>(context);
-                    e.ConfigureConsumer<DimEmployerDataConsumer>(context);
-                    e.ConfigureConsumer<DimIndustryFieldDataConsumer>(context);
-                    e.ConfigureConsumer<DimJobDataConsumer>(context);
-                    e.ConfigureConsumer<DimLocationDataConsumer>(context);
-                });
+                x.AddConsumer<AuthDataConsumer>();
+                
+                x.AddConsumer<DimDateDataConsumer>();
+                x.AddConsumer<DimDateReadConsumer>();
 
-                cfg.ReceiveEndpoint("market-stat-data-reads", e =>
-                {
-                    e.ConfigureConsumer<GetFactSalaryConsumer>(context);
-                    e.ConfigureConsumer<FactSalaryAnalyticsConsumer>(context);
-                    e.ConfigureConsumer<DimDateReadConsumer>(context);
-                    e.ConfigureConsumer<DimEducationReadConsumer>(context);
-                    e.ConfigureConsumer<DimEmployeeReadConsumer>(context);
-                    e.ConfigureConsumer<DimEmployerReadConsumer>(context);
-                    e.ConfigureConsumer<DimIndustryFieldReadConsumer>(context);
-                    e.ConfigureConsumer<DimJobReadConsumer>(context);
-                    e.ConfigureConsumer<DimLocationReadConsumer>(context);
-                });
+                x.AddConsumer<DimEducationDataConsumer>();
+                x.AddConsumer<DimEducationReadConsumer>();
+
+                x.AddConsumer<DimEmployeeDataConsumer>();
+                x.AddConsumer<DimEmployeeReadConsumer>();
                 
-                cfg.ReceiveEndpoint("market-stat-data-auth", e => {
-                    e.ConfigureConsumer<AuthDataConsumer>(context);
+                x.AddConsumer<DimEmployerDataConsumer>();
+                x.AddConsumer<DimEmployerReadConsumer>();
+
+                x.AddConsumer<DimIndustryFieldDataConsumer>();
+                x.AddConsumer<DimIndustryFieldReadConsumer>();
+
+                x.AddConsumer<DimJobDataConsumer>();
+                x.AddConsumer<DimJobReadConsumer>();
+
+                x.AddConsumer<DimLocationDataConsumer>();
+                x.AddConsumer<DimLocationReadConsumer>();
+                
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host("rabbitmq", "/", h =>
+                    {
+                        h.Username("guest");
+                        h.Password("guest");
+                    });
+                    
+                    cfg.ReceiveEndpoint("market-stat-data-writes", e =>
+                    {
+                        e.ConfigureConsumer<FactSalaryDataConsumer>(context);
+                        e.ConfigureConsumer<DimDateDataConsumer>(context);
+                        e.ConfigureConsumer<DimEducationDataConsumer>(context);
+                        e.ConfigureConsumer<DimEmployeeDataConsumer>(context);
+                        e.ConfigureConsumer<DimEmployerDataConsumer>(context);
+                        e.ConfigureConsumer<DimIndustryFieldDataConsumer>(context);
+                        e.ConfigureConsumer<DimJobDataConsumer>(context);
+                        e.ConfigureConsumer<DimLocationDataConsumer>(context);
+                    });
+
+                    cfg.ReceiveEndpoint("market-stat-data-reads", e =>
+                    {
+                        e.ConfigureConsumer<GetFactSalaryConsumer>(context);
+                        e.ConfigureConsumer<FactSalaryAnalyticsConsumer>(context);
+                        e.ConfigureConsumer<DimDateReadConsumer>(context);
+                        e.ConfigureConsumer<DimEducationReadConsumer>(context);
+                        e.ConfigureConsumer<DimEmployeeReadConsumer>(context);
+                        e.ConfigureConsumer<DimEmployerReadConsumer>(context);
+                        e.ConfigureConsumer<DimIndustryFieldReadConsumer>(context);
+                        e.ConfigureConsumer<DimJobReadConsumer>(context);
+                        e.ConfigureConsumer<DimLocationReadConsumer>(context);
+                    });
+                    
+                    cfg.ReceiveEndpoint("market-stat-data-auth", e => {
+                        e.ConfigureConsumer<AuthDataConsumer>(context);
+                    });
                 });
             });
-        });
-    })
-    .Build();
+        })
+        .Build();
 
-var configuration = host.Services.GetRequiredService<IConfiguration>();
-var logger = host.Services.GetRequiredService<ILogger<Program>>();
-var runMigrations = Convert.ToBoolean(configuration["RunMigrations"] ?? "false");
-if (runMigrations)
-{
-    using (var scope = host.Services.CreateScope())
+    var configuration = host.Services.GetRequiredService<IConfiguration>();
+    var logger = host.Services.GetRequiredService<ILogger<Program>>();
+    var runMigrations = Convert.ToBoolean(configuration["RunMigrations"] ?? "false");
+    if (runMigrations)
     {
-        try
+        using (var scope = host.Services.CreateScope())
         {
-            logger.LogInformation("[Migration] Starting database migration checks...");
-            var defaultConnectionString = configuration.GetConnectionString("MarketStat");
-            var adminCb = new NpgsqlConnectionStringBuilder(defaultConnectionString)
+            try
             {
-                Username = "marketstat_administrator",
-                Password = "andresrmlnx15",
-                IncludeErrorDetail = true
-            };
-            var adminOptions = new DbContextOptionsBuilder<MarketStatDbContext>()
-                .UseNpgsql(adminCb.ConnectionString, sqlOpts =>
+                logger.LogInformation("[Migration] Starting database migration checks...");
+                var defaultConnectionString = configuration.GetConnectionString("MarketStat");
+                var adminCb = new NpgsqlConnectionStringBuilder(defaultConnectionString)
                 {
-                    sqlOpts.MigrationsHistoryTable("__EFMigrationsHistory", "marketstat");
-                    sqlOpts.CommandTimeout(60);
-                })
-                .UseSnakeCaseNamingConvention()
-                .Options;
+                    Username = "marketstat_administrator",
+                    Password = "andresrmlnx15",
+                    IncludeErrorDetail = true
+                };
+                var adminOptions = new DbContextOptionsBuilder<MarketStatDbContext>()
+                    .UseNpgsql(adminCb.ConnectionString, sqlOpts =>
+                    {
+                        sqlOpts.MigrationsHistoryTable("__EFMigrationsHistory", "marketstat");
+                        sqlOpts.CommandTimeout(60);
+                    })
+                    .UseSnakeCaseNamingConvention()
+                    .Options;
 
-            using var adminContext = new MarketStatDbContext(adminOptions);
-            if ((await adminContext.Database.GetPendingMigrationsAsync()).Any())
-            {
-                logger.LogInformation("[Migration] Pending migrations found. Applying...");
-                await adminContext.Database.MigrateAsync();
-                logger.LogInformation("[Migration] Database schema successfully applied.");
+                using var adminContext = new MarketStatDbContext(adminOptions);
+                if ((await adminContext.Database.GetPendingMigrationsAsync()).Any())
+                {
+                    logger.LogInformation("[Migration] Pending migrations found. Applying...");
+                    await adminContext.Database.MigrateAsync();
+                    logger.LogInformation("[Migration] Database schema successfully applied.");
+                }
+                else
+                {
+                    logger.LogInformation("[Migration] Database schema is already up to date.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                logger.LogInformation("[Migration] Database schema is already up to date.");
+                logger.LogCritical(ex, "[Migration] FATAL: Database migration failed.");
             }
-        }
-        catch (Exception ex)
-        {
-            logger.LogCritical(ex, "[Migration] FATAL: Database migration failed.");
         }
     }
-}
 
-await host.RunAsync();
+    await host.RunAsync();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Data Service terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
