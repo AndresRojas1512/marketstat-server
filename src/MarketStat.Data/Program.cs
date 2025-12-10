@@ -5,6 +5,7 @@ using MarketStat.Data.Consumers.Dimensions.DimEducation;
 using MarketStat.Data.Consumers.Dimensions.DimEmployee;
 using MarketStat.Data.Consumers.Dimensions.DimEmployer;
 using MarketStat.Data.Consumers.Dimensions.DimIndustryField;
+using MarketStat.Data.Consumers.Dimensions.DimJob;
 using MarketStat.Data.Consumers.Facts;
 using MarketStat.Data.Consumers.Facts.Analytics;
 using MarketStat.Data.Services;
@@ -16,6 +17,7 @@ using MarketStat.Database.Repositories.PostgresRepositories.Account;
 using MarketStat.Database.Repositories.PostgresRepositories.Dimensions;
 using MarketStat.Database.Repositories.PostgresRepositories.Facts;
 using MassTransit;
+using MassTransit.Logging;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -63,6 +65,9 @@ IHost host = Host.CreateDefaultBuilder(args)
 
             x.AddConsumer<DimIndustryFieldDataConsumer>();
             x.AddConsumer<DimIndustryFieldReadConsumer>();
+
+            x.AddConsumer<DimJobDataConsumer>();
+            x.AddConsumer<DimJobReadConsumer>();
             
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -80,6 +85,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                     e.ConfigureConsumer<DimEmployeeDataConsumer>(context);
                     e.ConfigureConsumer<DimEmployerDataConsumer>(context);
                     e.ConfigureConsumer<DimIndustryFieldDataConsumer>(context);
+                    e.ConfigureConsumer<DimJobDataConsumer>(context);
                 });
 
                 cfg.ReceiveEndpoint("market-stat-data-reads", e =>
@@ -91,6 +97,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                     e.ConfigureConsumer<DimEmployeeReadConsumer>(context);
                     e.ConfigureConsumer<DimEmployerReadConsumer>(context);
                     e.ConfigureConsumer<DimIndustryFieldReadConsumer>(context);
+                    e.ConfigureConsumer<DimJobReadConsumer>(context);
                 });
                 
                 cfg.ReceiveEndpoint("market-stat-data-auth", e => {

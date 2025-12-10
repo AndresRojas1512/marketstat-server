@@ -5,6 +5,7 @@ using MarketStat.Contracts.Dimensions.DimEducation;
 using MarketStat.Contracts.Dimensions.DimEmployee;
 using MarketStat.Contracts.Dimensions.DimEmployer;
 using MarketStat.Contracts.Dimensions.DimIndustryField;
+using MarketStat.Contracts.Dimensions.DimJob;
 using MarketStat.Contracts.Facts;
 using MarketStat.Contracts.Facts.Analytics;
 using MassTransit;
@@ -52,6 +53,9 @@ builder.Services.AddMassTransit(x =>
     
     x.AddRequestClient<IGetDimIndustryFieldRequest>();
     x.AddRequestClient<IGetAllDimIndustryFieldsRequest>();
+    
+    x.AddRequestClient<IGetDimJobRequest>();
+    x.AddRequestClient<IGetAllDimJobsRequest>();
 });
 
 var jwtKey = builder.Configuration["JwtSettings:Key"];
