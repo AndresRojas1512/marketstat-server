@@ -47,7 +47,6 @@ IHost host = Host.CreateDefaultBuilder(args)
             x.AddConsumer<FactSalaryAnalyticsConsumer>();
             
             x.AddConsumer<AuthDataConsumer>();
-            x.AddConsumer<AuthLoginConsumer>();
             
             x.AddConsumer<DimDateDataConsumer>();
             x.AddConsumer<DimDateReadConsumer>();
@@ -90,7 +89,6 @@ IHost host = Host.CreateDefaultBuilder(args)
                 
                 cfg.ReceiveEndpoint("market-stat-data-auth", e => {
                     e.ConfigureConsumer<AuthDataConsumer>(context);
-                    e.ConfigureConsumer<AuthLoginConsumer>(context);
                 });
             });
         });

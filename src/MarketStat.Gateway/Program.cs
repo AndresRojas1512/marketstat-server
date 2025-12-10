@@ -33,6 +33,7 @@ builder.Services.AddMassTransit(x =>
     x.AddRequestClient<IGetFactSalarySummaryRequest>();
     x.AddRequestClient<IGetFactSalaryTimeSeriesRequest>();
     x.AddRequestClient<IGetPublicRolesRequest>();
+    x.AddRequestClient<ISubmitRegisterCommand>();
     
     x.AddRequestClient<ILoginRequest>();
     

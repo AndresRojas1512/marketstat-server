@@ -9,28 +9,47 @@ namespace MarketStat.Gateway.Controllers.Auth;
 [Route("api/v1/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IRequestClient<ISubmitRegisterCommand> _registerClient;
     private readonly IRequestClient<ILoginRequest> _loginClient;
 
-    public AuthController(IPublishEndpoint publishEndpoint, IRequestClient<ILoginRequest> loginClient)
+    public AuthController(
+        IRequestClient<ISubmitRegisterCommand> registerClient,
+        IRequestClient<ILoginRequest> loginClient)
     {
-        _publishEndpoint = publishEndpoint;
+        _registerClient = registerClient;
         _loginClient = loginClient;
     }
 
     [HttpPost("register")]
-    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto dto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        await _publishEndpoint.Publish<ISubmitRegisterCommand>(new
+
+        var response = await _registerClient.GetResponse<IRegisterResponse, IRegisterFailedResponse>(new
         {
-            dto.Username, dto.Password, dto.Email, dto.FullName, dto.IsAdmin
+            dto.Username, 
+            dto.Password, 
+            dto.Email, 
+            dto.FullName, 
+            dto.IsAdmin
         });
-        return Accepted();
+
+        if (response.Is(out Response<IRegisterResponse>? success))
+        {
+            return Ok(success.Message.User);
+        }
+
+        if (response.Is(out Response<IRegisterFailedResponse>? fail))
+        {
+            return BadRequest(new { Message = fail.Message.Reason });
+        }
+
+        return StatusCode(500, new { Message = "An internal error occurred during registration." });
     }
 
     [HttpPost("login")]
@@ -38,10 +57,17 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var response = await _loginClient.GetResponse<ILoginResponse, ILoginFailedResponse>(new
         {
-            dto.Username, dto.Password
+            dto.Username, 
+            dto.Password
         });
+
         if (response.Is(out Response<ILoginResponse>? success))
         {
             return Ok(new AuthResponseDto
@@ -56,9 +82,12 @@ public class AuthController : ControllerBase
                 }
             });
         }
-        return Unauthorized(new
+
+        if (response.Is(out Response<ILoginFailedResponse>? fail))
         {
-            Message = "Invalid credentials"
-        });
+            return Unauthorized(new { Message = fail.Message.Reason });
+        }
+
+        return Unauthorized(new { Message = "Invalid credentials" });
     }
 }
