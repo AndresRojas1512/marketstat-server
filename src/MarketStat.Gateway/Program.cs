@@ -70,8 +70,6 @@ try
         });
     });
     
-    builder.Services.AddSwaggerGen();
-
     builder.Services.AddOpenTelemetry()
         .ConfigureResource(resource => resource
             .AddService("MarketStat.Gateway"))
@@ -80,7 +78,14 @@ try
             tracing
                 .AddAspNetCoreInstrumentation()
                 .AddMassTransitInstrumentation()
-                .AddOtlpExporter();
+                .AddOtlpExporter(opts =>
+                {
+                    var endpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+                    if (!string.IsNullOrEmpty(endpoint))
+                    {
+                        opts.Endpoint = new Uri(endpoint);
+                    }
+                });
         });
 
     builder.Services.AddMassTransit(x =>

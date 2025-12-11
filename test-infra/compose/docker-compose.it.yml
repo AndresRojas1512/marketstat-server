@@ -73,6 +73,7 @@ services:
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
       - SERVICE_NAME=marketstat-gateway
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     expose:
       - "8080"
   
@@ -90,6 +91,7 @@ services:
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
       - SERVICE_NAME=marketstat-gateway
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     expose:
       - "8080"
   
@@ -107,6 +109,7 @@ services:
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
       - SERVICE_NAME=marketstat-gateway
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     expose:
       - "8080"
   
@@ -123,6 +126,7 @@ services:
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
   
   domain_2:
     build:
@@ -137,6 +141,7 @@ services:
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
   
   domain_3:
     build:
@@ -151,6 +156,7 @@ services:
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
 
   data_1:
     build:
@@ -166,6 +172,7 @@ services:
       - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
       - ConnectionStrings__MarketStatRead=Host=db_replica;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
       - SERVICE_NAME=marketstat-data
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
       - RunMigrations=true
   
   data_2:
@@ -182,6 +189,7 @@ services:
       - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
       - ConnectionStrings__MarketStatRead=Host=db_replica;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
       - SERVICE_NAME=marketstat-data
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
       - RunMigrations=false
   
   data_3:
@@ -198,6 +206,7 @@ services:
       - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_analyst;Password=msanalyst
       - ConnectionStrings__MarketStatRead=Host=db_replica;Port=5432;Database=marketstat;Username=marketstat_reader;Password=msreader
       - SERVICE_NAME=marketstat-data
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
       - RunMigrations=false
   
   gateway_mirror:
@@ -214,6 +223,7 @@ services:
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo
       - SERVICE_NAME=marketstat-gateway-mirror
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     expose:
       - "8080"
 
@@ -234,6 +244,25 @@ services:
       - gateway_2
       - gateway_3
       - gateway_mirror
+      - consul
+
+  consul:
+    image: hashicorp/consul:1.18
+    container_name: ms_consul
+    restart: always
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    command: agent -server -bind=0.0.0.0 -client=0.0.0.0 -bootstrap-expect=1 -ui
+  
+  registrator:
+    image: hypolas/registrator:latest
+    container_name: ms_registrator
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+    command: -internal consul://ms_consul:8500
+    depends_on:
       - consul
   
   pgadmin:
@@ -299,24 +328,16 @@ services:
     depends_on:
       - loki
 
-  consul:
-    image: hashicorp/consul:1.18
-    container_name: ms_consul
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: ms_jaeger
     restart: always
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "8500:8500"
-      - "8600:8600/udp"
-    command: agent -server -bind=0.0.0.0 -client=0.0.0.0 -bootstrap-expect=1 -ui
-  
-  registrator:
-    image: hypolas/registrator:latest
-    container_name: ms_registrator
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock
-    command: -internal consul://ms_consul:8500
-    depends_on:
-      - consul
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
 
 volumes:
   rabbitmq_data:

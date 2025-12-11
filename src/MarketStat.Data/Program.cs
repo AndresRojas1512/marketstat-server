@@ -51,7 +51,14 @@ try
                     tracing
                         .AddMassTransitInstrumentation()
                         .AddSource("MarketStat.Data")
-                        .AddOtlpExporter();
+                        .AddOtlpExporter(opts =>
+                        {
+                            var endpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+                            if (!string.IsNullOrEmpty(endpoint))
+                            {
+                                opts.Endpoint = new Uri(endpoint);
+                            }
+                        });
                 });
             
             services.AddSingleton<IConfiguration>(hostContext.Configuration);
