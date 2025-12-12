@@ -10,7 +10,6 @@ import json
 import csv
 import datetime
 
-# --- CONFIGURATION ---
 ITERATIONS = 100
 RESULTS_FILE = "benchmark_final_report.csv"
 COMPOSE_FILE = "docker-compose.benchmark.yml"
@@ -18,8 +17,7 @@ MONITOR_FILE = "docker-compose.monitoring.yml"
 PROMETHEUS_URL = "http://localhost:9091" 
 
 DUMMY_ENV = {
-    "REPO_IMPLEMENTATION": "BASELINE", 
-    "API_PORT": "5055"
+    "REPO_IMPLEMENTATION": "BASELINE", "API_PORT": "5055"
 }
 
 CONFIGS = [
@@ -31,11 +29,14 @@ CONFIGS = [
 def run_cmd(cmd, env=None, bg=False, suppress_output=False, check=True):
     cmd_env = os.environ.copy()
     cmd_env.update(DUMMY_ENV) 
-    if env: cmd_env.update(env)
+    if env:
+        cmd_env.update(env)
     
-    if not suppress_output: print(f"[$] {cmd}")
+    if not suppress_output:
+        print(f"[$] {cmd}")
     
-    if bg: return subprocess.Popen(cmd, shell=True, env=cmd_env)
+    if bg:
+        return subprocess.Popen(cmd, shell=True, env=cmd_env)
     
     subprocess.run(
         cmd, 
@@ -45,13 +46,7 @@ def run_cmd(cmd, env=None, bg=False, suppress_output=False, check=True):
         stdout=subprocess.DEVNULL if suppress_output else None, 
         stderr=subprocess.DEVNULL if suppress_output else None
     )
-
-def free_port(port):
-    try:
-        cmd = f"lsof -t -i:{port}"
-        pid = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL).decode().strip()
-        if pid: subprocess.run(f"kill -9 {pid}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except: pass
+    
 
 def wait_for_health(port, mode, timeout=60):
     print(f"    [...] Waiting for {mode}...", end="", flush=True)
