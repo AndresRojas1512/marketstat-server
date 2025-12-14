@@ -2,168 +2,107 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-import json
-import glob
-import numpy as np
 
 # Configuration
 CSV_FILE = 'benchmark_final_report.csv'
-JSON_DIR = 'results'
 OUTPUT_DIR = 'charts'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Consistent Color Palette
+# Consistent Color Palette matching Grafana
 PALETTE = {
-    "BASELINE": "#1f77b4", # Blue
-    "EF_SQL":   "#ff7f0e", # Orange
-    "DAPPER":   "#2ca02c"  # Green
+    "BASELINE": "#d62728", # Red (Danger/Heavy)
+    "EF_SQL":   "#1f77b4", # Blue (Standard)
+    "DAPPER":   "#2ca02c"  # Green (Fast)
 }
 
+# Set global style
 sns.set_theme(style="whitegrid")
-plt.rcParams.update({'figure.figsize': (12, 7), 'font.size': 12})
+plt.rcParams.update({
+    'figure.figsize': (12, 7), 
+    'font.size': 12,
+    'axes.titlesize': 14,
+    'axes.labelsize': 12
+})
 
-def load_and_plot_summaries():
-    """Generates bar/box plots from the CSV summary data."""
+def generate_charts():
     try:
         df = pd.read_csv(CSV_FILE)
     except FileNotFoundError:
-        print(f"Error: {CSV_FILE} not found.")
+        print(f"Error: {CSV_FILE} not found. Run the benchmark first.")
         return
 
-    # Filter valid runs
+    # Filter out crashes
     df_valid = df[df['Status'].isin(['SUCCESS', 'THRESHOLD_FAIL'])]
-    print(f"Summary Data: {len(df_valid)} valid runs found.")
-
-    if df_valid.empty: return
-
-    # 1. Throughput
-    plt.figure()
-    sns.barplot(x='Implementation', y='Req/s', data=df, errorbar='sd', palette=PALETTE)
-    plt.title('Throughput (Requests/Sec)')
-    plt.tight_layout()
-    plt.savefig(f'{OUTPUT_DIR}/1_throughput.png')
-
-    # 2. P95 Latency
-    plt.figure()
-    sns.boxplot(x='Implementation', y='P95', data=df_valid, palette=PALETTE)
-    plt.title('P95 Latency Distribution (ms)')
-    plt.tight_layout()
-    plt.savefig(f'{OUTPUT_DIR}/2_latency_p95.png')
-
-    # 3. Memory Footprint (Max)
-    plt.figure()
-    sns.boxplot(x='Implementation', y='Max_Memory_MB', data=df_valid, palette=PALETTE)
-    plt.title('Peak Memory Usage (MB)')
-    plt.tight_layout()
-    plt.savefig(f'{OUTPUT_DIR}/3_memory_peak.png')
-
-    # 4. Total Allocations (CRITICAL FOR MENTOR)
-    plt.figure()
-    sns.barplot(x='Implementation', y='Total_Alloc_MB', data=df_valid, errorbar='sd', palette=PALETTE)
-    plt.title('Total Memory Allocated per Run (MB) - "Memory Churn"')
-    plt.ylabel('MegaBytes Allocated')
-    plt.tight_layout()
-    plt.savefig(f'{OUTPUT_DIR}/4_allocations_total.png')
-
-    # 5. GC Time (CPU Overhead)
-    plt.figure()
-    sns.barplot(x='Implementation', y='GC_Time_Sec', data=df_valid, errorbar='sd', palette=PALETTE)
-    plt.title('CPU Time Lost to Garbage Collection (Seconds)')
-    plt.tight_layout()
-    plt.savefig(f'{OUTPUT_DIR}/5_gc_overhead.png')
-
-    print(">>> Summary charts generated.")
-
-def parse_time_series_from_jsons():
-    """Reads all JSONs to build time-series datasets."""
-    print(">>> Parsing JSON time-series data (this may take a moment)...")
+    print(f"Loaded {len(df_valid)} valid runs for analysis.")
     
-    memory_data = []
-    allocation_data = []
-    
-    # Find all JSON reports
-    files = glob.glob(os.path.join(JSON_DIR, "report_*.json"))
-    
-    for fpath in files:
-        try:
-            # Extract implementation name from filename
-            filename = os.path.basename(fpath)
-            
-            if "EF_SQL" in filename:
-                impl = "EF_SQL"
-            elif "DAPPER" in filename:
-                impl = "DAPPER"
-            elif "BASELINE" in filename:
-                impl = "BASELINE"
-            else:
-                continue
-
-            with open(fpath, 'r') as f:
-                data = json.load(f)
-                
-            # Get the vectors
-            ts_data = data.get('custom_metrics', {}).get('time_series', {})
-            mem_points = ts_data.get('memory_committed_bytes', [])
-            alloc_points = ts_data.get('allocation_rate_bytes_sec', [])
-            
-            if not mem_points: continue
-
-            # Normalize Time: Start at T=0
-            start_time = float(mem_points[0][0])
-            
-            # Resample Memory Data
-            for point in mem_points:
-                t_rel = float(point[0]) - start_time
-                val_mb = float(point[1]) / (1024 * 1024)
-                # Filter out long tails > 30s (benchmark duration)
-                if t_rel <= 30:
-                    memory_data.append({'Time': t_rel, 'MB': val_mb, 'Implementation': impl})
-
-            # Resample Allocation Rate Data
-            if alloc_points:
-                start_time_alloc = float(alloc_points[0][0])
-                for point in alloc_points:
-                    t_rel = float(point[0]) - start_time_alloc
-                    val_mb_s = float(point[1]) / (1024 * 1024)
-                    if t_rel <= 30:
-                        allocation_data.append({'Time': t_rel, 'MB_Sec': val_mb_s, 'Implementation': impl})
-                        
-        except Exception:
-            continue
-
-    return pd.DataFrame(memory_data), pd.DataFrame(allocation_data)
-
-def plot_time_series_curves(df_mem, df_alloc):
-    """Plots confidence band curves using Seaborn."""
-    if df_mem.empty:
-        print("Warning: No time-series data found. (Did you run the new runner?)")
+    if df_valid.empty:
+        print("No valid data to plot.")
         return
 
-    # 6. Memory Curve (The "Leak" Graph)
+    # ---------------------------------------------------------
+    # CHART 1: LATENCY BOX PLOT (Requirement 4b - Distribution)
+    # ---------------------------------------------------------
+    # We use P95 as the standard "User Experience" metric
     plt.figure()
-    sns.lineplot(data=df_mem, x='Time', y='MB', hue='Implementation', palette=PALETTE)
-    plt.title('Memory Usage Over Time (Mean ± 95% CI)')
-    plt.xlabel('Time (Seconds)')
-    plt.ylabel('Committed Memory (MB)')
+    sns.boxplot(x='Implementation', y='P95_Latency_ms', data=df_valid, palette=PALETTE)
+    plt.title('Latency Distribution (P95) - Lower & Tighter is Better')
+    plt.ylabel('Response Time (ms)')
+    plt.xlabel('Repository Implementation')
     plt.tight_layout()
-    plt.savefig(f'{OUTPUT_DIR}/6_curve_memory.png')
+    plt.savefig(f'{OUTPUT_DIR}/1_latency_distribution_box.png')
+    print("Generated: 1_latency_distribution_box.png")
 
-    # 7. Allocation Rate (The "Pressure" Graph)
-    if not df_alloc.empty:
-        plt.figure()
-        sns.lineplot(data=df_alloc, x='Time', y='MB_Sec', hue='Implementation', palette=PALETTE)
-        plt.title('Allocation Rate Over Time (GC Pressure)')
-        plt.xlabel('Time (Seconds)')
-        plt.ylabel('Allocations (MB/sec)')
-        plt.tight_layout()
-        plt.savefig(f'{OUTPUT_DIR}/7_curve_allocation_rate.png')
+    # ---------------------------------------------------------
+    # CHART 2: MEMORY ENDURANCE (Requirement 2 - Degradation)
+    # ---------------------------------------------------------
+    plt.figure()
+    # This chart proves if the app "leaks" over time (Requirement 2)
+    sns.lineplot(x='Iteration', y='Max_Memory_MB', hue='Implementation', data=df_valid, palette=PALETTE, linewidth=2)
+    plt.title('Memory Endurance Test (100 Sequential Runs)')
+    plt.ylabel('Peak RAM Usage (MB)')
+    plt.xlabel('Run Number (1-100)')
+    plt.legend(title='Implementation', loc='upper left')
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/2_memory_endurance_trend.png')
+    print("Generated: 2_memory_endurance_trend.png")
 
-    print(">>> Time-series curves generated.")
+    # ---------------------------------------------------------
+    # CHART 3: LATENCY HISTOGRAM (Requirement 4c - Histogram)
+    # ---------------------------------------------------------
+    plt.figure()
+    # A histogram of the P95 latencies shows "Stability Probability"
+    sns.histplot(data=df_valid, x="P95_Latency_ms", hue="Implementation", 
+                 palette=PALETTE, element="step", bins=20, kde=True)
+    plt.title('Stability Histogram: Frequency of P95 Latencies')
+    plt.xlabel('P95 Latency (ms)')
+    plt.ylabel('Count of Runs')
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/3_latency_histogram.png')
+    print("Generated: 3_latency_histogram.png")
+
+    # ---------------------------------------------------------
+    # CHART 4: THE "TAX" BILL (GC Cost)
+    # ---------------------------------------------------------
+    plt.figure()
+    sns.barplot(x='Implementation', y='GC_Seconds', data=df_valid, errorbar='sd', palette=PALETTE)
+    plt.title('The Cost of Abstraction: Time Lost to Garbage Collection')
+    plt.ylabel('Avg Seconds Paused per Run')
+    plt.xlabel('')
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/4_gc_cost_bar.png')
+    print("Generated: 4_gc_cost_bar.png")
+
+    # ---------------------------------------------------------
+    # CHART 5: CPU EFFICIENCY
+    # ---------------------------------------------------------
+    plt.figure()
+    sns.barplot(x='Implementation', y='Max_CPU_Cores', data=df_valid, errorbar='sd', palette=PALETTE)
+    plt.title('Computational Efficiency (Peak CPU Cores)')
+    plt.ylabel('Cores Used (Max 2.0)')
+    plt.xlabel('')
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/5_cpu_efficiency.png')
+    print("Generated: 5_cpu_efficiency.png")
 
 if __name__ == "__main__":
-    # 1. Plot the basic CSV stats
-    load_and_plot_summaries()
-    
-    # 2. Parse JSONs and plot the advanced curves
-    mem_df, alloc_df = parse_time_series_from_jsons()
-    plot_time_series_curves(mem_df, alloc_df)
+    generate_charts()

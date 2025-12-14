@@ -23,39 +23,29 @@ public class FactSalaryRepositoryEfSql : IFactSalaryRepository
     public async Task<List<SalaryDistributionBucket>> GetSalaryDistributionAsync(ResolvedSalaryFilter filter)
     {
         var (whereSql, sqlParams) = BuildWhereClause(filter);
-        
+    
         var sql = $@"
-            WITH RawData AS (
-                SELECT salary_amount
+        SELECT 
+            CAST(MIN(salary_amount) AS numeric) as ""lower_bound"",
+            CAST(MAX(salary_amount) AS numeric) as ""upper_bound"",
+            COUNT(*) as ""bucket_count""
+        FROM (
+            SELECT 
+                salary_amount,
+                width_bucket(salary_amount, min_val, max_val + 0.001, bucket_count) as bucket_index
+            FROM (
+                SELECT 
+                    salary_amount,
+                    MIN(salary_amount) OVER() as min_val,
+                    MAX(salary_amount) OVER() as max_val,
+                    GREATEST(2, FLOOR(LOG(2.0, GREATEST(COUNT(*) OVER(), 1))) + 2)::int as bucket_count
                 FROM marketstat.fact_salaries fs
                 LEFT JOIN marketstat.dim_date d ON fs.date_id = d.date_id
                 WHERE {whereSql}
-            ),
-            Stats AS (
-                SELECT MIN(salary_amount) as min_val, MAX(salary_amount) as max_val, COUNT(*) as total_count
-                FROM RawData
-            ),
-            Config AS (
-                SELECT 
-                    min_val, max_val, total_count, -- FIX: Pass this through
-                    GREATEST(2, FLOOR(LOG(2.0, GREATEST(total_count, 1))) + 2) as bucket_count
-                FROM Stats
-            ),
-            BucketParams AS (
-                SELECT 
-                    min_val, max_val, bucket_count, total_count, -- FIX: Pass this through
-                    CASE WHEN bucket_count > 0 THEN (max_val - min_val) / bucket_count ELSE 0 END as width
-                FROM Config
-            )
-            SELECT 
-                CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val, CAST(bucket_count AS INT)), CAST(bucket_count AS INT)) - 1) * width AS numeric) as ""lower_bound"",
-                CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val, CAST(bucket_count AS INT)), CAST(bucket_count AS INT))) * width AS numeric) as ""upper_bound"",
-                COUNT(*) as ""bucket_count""
-            FROM RawData
-            CROSS JOIN BucketParams
-            WHERE total_count > 0 AND width > 0
-            GROUP BY 1, 2
-            ORDER BY 1";
+            ) calc_data
+        ) buckets
+        GROUP BY bucket_index
+        ORDER BY bucket_index";
 
         var dtos = await _context.Set<SalaryDistributionBucketDto>()
             .FromSqlRaw(sql, sqlParams.ToArray())

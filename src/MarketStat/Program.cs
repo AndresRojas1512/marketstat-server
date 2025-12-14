@@ -59,6 +59,7 @@ try
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
+            .AddProcessInstrumentation()
             .AddPrometheusExporter());
 
     builder.Services.AddCors(options =>

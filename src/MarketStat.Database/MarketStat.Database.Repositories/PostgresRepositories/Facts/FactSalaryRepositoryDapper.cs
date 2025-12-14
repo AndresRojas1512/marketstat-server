@@ -32,46 +32,32 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
         var whereSql = BuildWhereClause(filter, parameters);
         
         var sql = $@"
-            WITH RawData AS (
-                SELECT salary_amount
-                FROM marketstat.fact_salaries fs
-                LEFT JOIN marketstat.dim_date d ON fs.date_id = d.date_id
-                WHERE {whereSql}
-            ),
-            Stats AS (
-                SELECT MIN(salary_amount) as min_val, MAX(salary_amount) as max_val, COUNT(*) as total_count
-                FROM RawData
-            ),
-            Config AS (
-                SELECT 
-                    min_val, max_val, total_count,
-                    GREATEST(2, FLOOR(LOG(2.0, GREATEST(total_count, 1))) + 2) as bucket_count
-                FROM Stats
-            ),
-            BucketParams AS (
-                SELECT 
-                    min_val, max_val, bucket_count, total_count,
-                    CASE WHEN bucket_count > 0 THEN (max_val - min_val) / bucket_count ELSE 0 END as width
-                FROM Config
-            )
             SELECT 
-                CASE 
-                    WHEN width = 0 THEN CAST(min_val AS numeric)
-                    ELSE CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val + 0.001, CAST(bucket_count AS INT)), CAST(bucket_count AS INT)) - 1) * width AS numeric) 
-                END as LowerBound,
-                CASE 
-                    WHEN width = 0 THEN CAST(max_val AS numeric)
-                    ELSE CAST(min_val + (LEAST(width_bucket(salary_amount, min_val, max_val + 0.001, CAST(bucket_count AS INT)), CAST(bucket_count AS INT))) * width AS numeric) 
-                END as UpperBound,
+                bucket_index,
+                MIN(salary_amount) as LowerBound,
+                MAX(salary_amount) as UpperBound,
                 COUNT(*) as BucketCount
-            FROM RawData
-            CROSS JOIN BucketParams
-            WHERE total_count > 0
-            GROUP BY 1, 2
-            ORDER BY 1";
+            FROM (
+                SELECT 
+                    salary_amount,
+                    width_bucket(salary_amount, min_val, max_val + 0.001, bucket_count) as bucket_index
+                FROM (
+                    SELECT 
+                        salary_amount,
+                        MIN(salary_amount) OVER() as min_val,
+                        MAX(salary_amount) OVER() as max_val,
+                        GREATEST(2, FLOOR(LOG(2.0, GREATEST(COUNT(*) OVER(), 1))) + 2)::int as bucket_count
+                    FROM marketstat.fact_salaries fs
+                    LEFT JOIN marketstat.dim_date d ON fs.date_id = d.date_id
+                    WHERE {whereSql}
+                ) calc_data
+            ) buckets
+            GROUP BY bucket_index
+            ORDER BY bucket_index";
 
         using var db = CreateConnection();
         var result = await db.QueryAsync<SalaryDistributionBucket>(sql, parameters, commandTimeout: AnalyticalTimeoutSeconds);
+        
         return result.ToList();
     }
 
