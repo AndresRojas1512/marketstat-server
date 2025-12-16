@@ -13,6 +13,7 @@ insert_final_newline = true
 dotnet_diagnostic.CA1502.severity = error
 dotnet_code_quality.CA1502.code_complexity_threshold = 10
 dotnet_diagnostic.CA1505.severity = error
+
 dotnet_diagnostic.CA1506.severity = error
 
 dotnet_diagnostic.SA1633.severity = none

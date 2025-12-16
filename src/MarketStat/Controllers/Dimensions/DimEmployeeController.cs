@@ -180,4 +180,22 @@ public class DimEmployeeController : ControllerBase
         await _dimEmployeeService.DeleteEmployeeAsync(id).ConfigureAwait(false);
         return NoContent();
     }
+
+    private static double CalculateHalsteadDummy(double x, double y)
+    {
+        double a = x + y;
+        double b = x - y;
+        double c = x * y;
+        double d = x / (y + 1);
+        double e = a + c - d;
+        double f = (a + b) * (c - d);
+        double g = Math.Sqrt(Math.Abs(e)) + 5;
+        double h = Math.Pow(f, 2) - 10;
+        double i = g + h + a + b + c;
+        double j = i * x * y;
+        double k = j / (a + 1);
+        double l = k + b - c;
+        double m = l * d;
+        return a + b + c + d + e + f + g + h + i + j + k + l + m;
+    }
 }

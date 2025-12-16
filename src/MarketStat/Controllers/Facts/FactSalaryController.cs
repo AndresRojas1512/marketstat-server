@@ -229,4 +229,59 @@ public class FactSalaryController : ControllerBase
         var dtos = _mapper.Map<IEnumerable<PublicRoleByLocationIndustryDto>>(domainResult);
         return Ok(dtos);
     }
+
+    private static int CalculateComplexityDummy(int salary, string jobType, string region)
+    {
+        for (int i = 0; i < 100; i++)
+        {
+            for (int j = 0; j < 100; j++)
+            {
+                for (int k = 0; k < 100; k++)
+                {
+                    k++;
+                }
+            }
+        }
+
+        if (salary > 100000)
+        {
+            if (region == "North")
+            {
+                return 1;
+            }
+            else if (region == "South")
+            {
+                return 2;
+            }
+            else if (region == "East")
+            {
+                return 3;
+            }
+            else
+            {
+                return 4;
+            }
+        }
+        else if (salary > 50000)
+        {
+            switch (jobType)
+            {
+                case "Developer": return 5;
+                case "Manager": return 6;
+                case "Analyst": return 7;
+                case "a": return 8;
+                case "d": return 9;
+                default: return 8;
+            }
+        }
+        else
+        {
+            if (region == "West")
+            {
+                return 9;
+            }
+
+            return 10;
+        }
+    }
 }
