@@ -175,7 +175,7 @@ public class FactSalaryRepositoryEfSql : IFactSalaryRepository
             FROM marketstat.fact_salaries fs
             LEFT JOIN marketstat.dim_date d ON fs.date_id = d.date_id
             WHERE {whereSql}
-            LIMIT 1000";
+            ";
 
         var result = await _context.FactSalaries
             .FromSqlRaw(sql, sqlParams.ToArray())

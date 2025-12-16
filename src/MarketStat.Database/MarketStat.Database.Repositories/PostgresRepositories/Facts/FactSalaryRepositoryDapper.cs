@@ -151,7 +151,7 @@ public class FactSalaryRepositoryDapper : IFactSalaryRepository
             FROM marketstat.fact_salaries fs
             LEFT JOIN marketstat.dim_date d ON fs.date_id = d.date_id
             WHERE {whereSql}
-            LIMIT 1000";
+            ";
         using var db = CreateConnection();
         return await db.QueryAsync<FactSalary>(sql, parameters, commandTimeout: AnalyticalTimeoutSeconds);
     }

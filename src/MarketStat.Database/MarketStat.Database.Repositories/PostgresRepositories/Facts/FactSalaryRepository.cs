@@ -58,7 +58,7 @@ public class FactSalaryRepository : BaseRepository, IFactSalaryRepository
             var query = GetFilteredSalariesQuery(resolvedFilters);
             
             var dbModels = await query
-                .Take(1000)
+                // .Take(1000)
                 .AsNoTracking()
                 .ToListAsync();
                 

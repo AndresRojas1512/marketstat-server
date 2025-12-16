@@ -1,33 +1,6 @@
 version: "3.9"
 
 services:
-  api:
-    image: marketstat-api:benchmark
-    build:
-      context: ../
-      dockerfile: src/MarketStat/Dockerfile
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_administrator;Password=andresrmlnx15;CommandTimeout=300;Pooling=true;MinPoolSize=10;MaxPoolSize=100
-      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
-      - JwtSettings__Issuer=marketstat-demo
-      - JwtSettings__Audience=marketstat-demo
-      - Serilog__WriteTo__1__Args__path=/dev/null
-      - REPO_IMPLEMENTATION=${REPO_IMPLEMENTATION}
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=MarketStat.API.${REPO_IMPLEMENTATION}
-    ports:
-      - "${API_PORT}:8080"
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 4G
-    networks:
-      - benchmark-net
-
   db:
     image: postgres:16-alpine
     environment:
@@ -43,19 +16,119 @@ services:
       retries: 10
     networks:
       - benchmark-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
 
-  k6:
+  api-baseline:
+    image: marketstat-api:benchmark
+    build:
+      context: ../
+      dockerfile: src/MarketStat/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_administrator;Password=andresrmlnx15;CommandTimeout=300;Pooling=true;MinPoolSize=10;MaxPoolSize=100
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+      - REPO_IMPLEMENTATION=BASELINE
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=MarketStat.API.BASELINE
+    ports:
+      - "5055:8080"
+    networks:
+      - benchmark-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+
+  api-efsql:
+    image: marketstat-api:benchmark
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_administrator;Password=andresrmlnx15;CommandTimeout=300;Pooling=true;MinPoolSize=10;MaxPoolSize=100
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+      - REPO_IMPLEMENTATION=EF_SQL
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=MarketStat.API.EF_SQL
+    ports:
+      - "5056:8080"
+    networks:
+      - benchmark-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+
+  api-dapper:
+    image: marketstat-api:benchmark
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_administrator;Password=andresrmlnx15;CommandTimeout=300;Pooling=true;MinPoolSize=10;MaxPoolSize=100
+      - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
+      - JwtSettings__Issuer=marketstat-demo
+      - JwtSettings__Audience=marketstat-demo
+      - REPO_IMPLEMENTATION=DAPPER
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=MarketStat.API.DAPPER
+    ports:
+      - "5057:8080"
+    networks:
+      - benchmark-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+
+  k6-baseline:
     image: grafana/k6:latest
     user: "root"
     volumes:
       - ./k6-scripts:/scripts
       - ./results:/results
-    depends_on:
-      - api
     environment:
-      - API_URL=http://api:8080/api
+      - API_URL=http://api-baseline:8080/api
     networks:
       - benchmark-net
+    profiles: ["tools"]
+
+  k6-efsql:
+    image: grafana/k6:latest
+    user: "root"
+    volumes:
+      - ./k6-scripts:/scripts
+      - ./results:/results
+    environment:
+      - API_URL=http://api-efsql:8080/api
+    networks:
+      - benchmark-net
+    profiles: ["tools"]
+
+  k6-dapper:
+    image: grafana/k6:latest
+    user: "root"
+    volumes:
+      - ./k6-scripts:/scripts
+      - ./results:/results
+    environment:
+      - API_URL=http://api-dapper:8080/api
+    networks:
+      - benchmark-net
+    profiles: ["tools"]
 
 networks:
   benchmark-net:
