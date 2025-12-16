@@ -11,10 +11,9 @@ import datetime
 import statistics 
 import shutil
 
-# --- CONFIGURATION ---
 ITERATIONS = 5
-RESULTS_FILE = "serialization_benchmark.csv"           # <--- CHANGED: Distinct Output
-SCRIPT_FILE = "/scripts/stress-test-serialization.js"  # <--- CHANGED: Target Serialization Script
+RESULTS_FILE = "serialization_benchmark.csv"
+SCRIPT_FILE = "/scripts/stress-test-serialization.js"
 COMPOSE_FILE = "docker-compose.benchmark.yml"
 MONITOR_FILE = "docker-compose.monitoring.yml"
 PROMETHEUS_URL = "http://localhost:9091" 
@@ -61,7 +60,6 @@ def run_cmd(cmd, env=None, bg=False, suppress_output=False, check=True):
     
     return result
 
-# --- LOCAL BUILD STEP ---
 def build_locally():
     print(">>> 1. BUILDING APPLICATION LOCALLY (Host Machine)...")
     
@@ -96,7 +94,6 @@ def wait_for_health(port, mode, timeout=60):
     print(f"\n    [X] {mode} failed to start.")
     return False
 
-# --- PROMETHEUS QUERIES ---
 
 def query_range(query, start_t, end_t, step='2s'):
     try:
@@ -119,10 +116,10 @@ def query_scalar(query):
 
 def fetch_metrics(mode):
     service = f"MarketStat.API.{mode}"
-    window = "90s"
+    window = "15s"
     
     end_t = time.time()
-    start_t = end_t - 90 
+    start_t = end_t - 15
 
     mem_query = f'process_runtime_dotnet_gc_committed_memory_size_bytes{{service_name="{service}"}}'
     cpu_query = f'process_cpu_time_seconds_total{{service_name="{service}"}}'
@@ -158,7 +155,6 @@ def fetch_metrics(mode):
 def init_csv():
     with open(RESULTS_FILE, mode='w', newline='') as file:
         writer = csv.writer(file)
-        # Identical headers to the sequential runner
         writer.writerow([
             "Iteration", "Implementation", "Status", "Req/s", 
             "P50_Latency_ms", "P75_Latency_ms", "P90_Latency_ms", "P95_Latency_ms", "P99_Latency_ms", 
@@ -182,7 +178,7 @@ def save_result(iteration, mode, status, metrics=None, summary=None):
                 round(dur.get('p(99)', 0), 2),
                 summary.get('memory', {}).get('max', 0),
                 summary.get('memory', {}).get('med', 0),
-                summary.get('cpu', {}).get('max', 0),    # Captures CPU now
+                summary.get('cpu', {}).get('max', 0),
                 summary.get('gc_seconds', 0)
             ])
 
@@ -206,7 +202,6 @@ def main():
         run_cmd(f"docker compose -f {COMPOSE_FILE} up -d db", suppress_output=True)
         time.sleep(10)
 
-        # Seeding
         print(">>> Checking Database Seeding...")
         seed_env = {"REPO_IMPLEMENTATION": "BASELINE", "API_PORT": "5055"}
         run_cmd(f"docker compose -f {COMPOSE_FILE} up -d api", env=seed_env, suppress_output=True)
@@ -232,7 +227,6 @@ def main():
                 continue
             
             print("    [!] Warming up JIT & Connection Pools...", end="", flush=True)
-            # CHANGED: Using SCRIPT_FILE variable
             run_cmd(f"docker compose -f {COMPOSE_FILE} run --rm -e API_URL=http://api:8080/api k6 run --vus 10 --duration 10s {SCRIPT_FILE}", env=env, suppress_output=True, check=False)
             print(" Done.")
 
@@ -241,14 +235,12 @@ def main():
                 
                 print(f"    [Run {i}/{ITERATIONS}] {mode}...", end="", flush=True)
                 
-                # CHANGED: Naming convention to 'serial_' to match your JSON files
                 json_filename = f"serial_{mode}_{i}.json"
                 local_path = os.path.join("results", json_filename)
                 
                 if os.path.exists(local_path): os.remove(local_path)
                 
                 try:
-                    # CHANGED: Using SCRIPT_FILE variable
                     k6_cmd = (
                         f"docker compose -f {COMPOSE_FILE} run --rm "
                         f"-e API_URL=http://api:8080/api "
@@ -268,7 +260,6 @@ def main():
                     try:
                         with open(local_path, "r+") as f:
                             data = json.load(f)
-                            # Threshold check logic is robust enough to handle serial scripts too
                             err = data['metrics']['error_rate'].get('rate', 0)
                             status = "SUCCESS" if err < 0.10 else "THRESHOLD_FAIL"
                             

@@ -3,19 +3,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-# --- CONFIGURATION CHANGES ---
-CSV_FILE = 'serialization_benchmark.csv'      # Targets the new CSV
-OUTPUT_DIR = 'charts_serialization'           # Targets a new folder
+CSV_FILE = 'serialization_benchmark.csv'
+OUTPUT_DIR = 'charts_serialization'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Consistent Color Palette matching Grafana
 PALETTE = {
-    "BASELINE": "#d62728", # Red (Danger/Heavy)
-    "EF_SQL":   "#1f77b4", # Blue (Standard)
-    "DAPPER":   "#2ca02c"  # Green (Fast)
+    "BASELINE": "#d62728",
+    "EF_SQL":   "#1f77b4",
+    "DAPPER":   "#2ca02c"
 }
 
-# Set global style
 sns.set_theme(style="whitegrid")
 plt.rcParams.update({
     'figure.figsize': (12, 7), 
@@ -31,7 +28,6 @@ def generate_charts():
         print(f"Error: {CSV_FILE} not found. Run 'runner_serialization.py' first.")
         return
 
-    # Filter out crashes
     df_valid = df[df['Status'].isin(['SUCCESS', 'THRESHOLD_FAIL'])]
     print(f"Loaded {len(df_valid)} valid runs for analysis.")
     
@@ -39,9 +35,7 @@ def generate_charts():
         print("No valid data to plot.")
         return
 
-    # ---------------------------------------------------------
-    # CHART 1: LATENCY BOX PLOT
-    # ---------------------------------------------------------
+    # chart 1: latency box plot
     plt.figure()
     sns.boxplot(x='Implementation', y='P95_Latency_ms', data=df_valid, palette=PALETTE)
     plt.title('Serialization Latency (P95) - Mapping 1000 Objects')
@@ -51,11 +45,8 @@ def generate_charts():
     plt.savefig(f'{OUTPUT_DIR}/1_serial_latency_box.png')
     print(f"Generated: {OUTPUT_DIR}/1_serial_latency_box.png")
 
-    # ---------------------------------------------------------
-    # CHART 2: MEMORY USAGE (Allocations)
-    # ---------------------------------------------------------
+    # chart 2: memory usage allocations
     plt.figure()
-    # Using barplot here is often cleaner for short benchmarks (5 runs) than lineplot
     sns.barplot(x='Implementation', y='Max_Memory_MB', data=df_valid, palette=PALETTE, errorbar='sd')
     plt.title('Memory Cost: Peak RAM used to serialize 1000 items')
     plt.ylabel('Peak RAM Usage (MB)')
@@ -64,9 +55,7 @@ def generate_charts():
     plt.savefig(f'{OUTPUT_DIR}/2_serial_memory_bar.png')
     print(f"Generated: {OUTPUT_DIR}/2_serial_memory_bar.png")
 
-    # ---------------------------------------------------------
-    # CHART 3: STABILITY HISTOGRAM
-    # ---------------------------------------------------------
+    # chart 3: stability histogram
     plt.figure()
     sns.histplot(data=df_valid, x="P95_Latency_ms", hue="Implementation", 
                  palette=PALETTE, element="step", bins=10, kde=True)
@@ -77,9 +66,7 @@ def generate_charts():
     plt.savefig(f'{OUTPUT_DIR}/3_serial_latency_histogram.png')
     print(f"Generated: {OUTPUT_DIR}/3_serial_latency_histogram.png")
 
-    # ---------------------------------------------------------
-    # CHART 4: THE "TAX" BILL (GC Cost)
-    # ---------------------------------------------------------
+    # chart 4: gc cost
     plt.figure()
     sns.barplot(x='Implementation', y='GC_Seconds', data=df_valid, errorbar='sd', palette=PALETTE)
     plt.title('The Cost of Mapping: Time Lost to Garbage Collection')
@@ -89,10 +76,7 @@ def generate_charts():
     plt.savefig(f'{OUTPUT_DIR}/4_serial_gc_cost.png')
     print(f"Generated: {OUTPUT_DIR}/4_serial_gc_cost.png")
 
-    # ---------------------------------------------------------
-    # CHART 5: CPU EFFICIENCY
-    # ---------------------------------------------------------
-    # Now valid because runner_serialization.py captures CPU!
+    # chart 5: cpu efficiency
     plt.figure()
     sns.barplot(x='Implementation', y='Max_CPU_Cores', data=df_valid, errorbar='sd', palette=PALETTE)
     plt.title('Serialization CPU Efficiency (Peak Cores)')

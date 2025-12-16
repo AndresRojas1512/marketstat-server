@@ -11,7 +11,7 @@ services:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_administrator;Password=andresrmlnx15
+      - ConnectionStrings__MarketStat=Host=db;Port=5432;Database=marketstat;Username=marketstat_administrator;Password=andresrmlnx15;CommandTimeout=300;Pooling=true;MinPoolSize=10;MaxPoolSize=100
       - JwtSettings__Key=BiTFRKXvMfhuw3Juh6XrF4HE4Xd2-Ey98pS9QBsKfdo
       - JwtSettings__Issuer=marketstat-demo
       - JwtSettings__Audience=marketstat-demo

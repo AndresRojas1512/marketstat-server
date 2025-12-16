@@ -9,9 +9,8 @@ import json
 import csv
 import datetime
 import statistics 
-import shutil # Added for cleanup
+import shutil
 
-# --- CONFIGURATION ---
 ITERATIONS = 5
 RESULTS_FILE = "benchmark_final_report.csv"
 COMPOSE_FILE = "docker-compose.benchmark.yml"
@@ -60,21 +59,16 @@ def run_cmd(cmd, env=None, bg=False, suppress_output=False, check=True):
     
     return result
 
-# --- NEW: LOCAL BUILD STEP ---
 def build_locally():
     print(">>> 1. BUILDING APPLICATION LOCALLY (Host Machine)...")
     
-    # Path to the .csproj relative to server/benchmarks/
     project_path = "../src/MarketStat/MarketStat.csproj"
-    # Output path relative to server/benchmarks/ (which is 'server/published')
     output_path = "../published"
     
-    # Clean previous build
     if os.path.exists(output_path):
         shutil.rmtree(output_path)
         
     try:
-        # Run dotnet publish
         cmd = f"dotnet publish {project_path} -c Release -o {output_path}"
         run_cmd(cmd, suppress_output=False)
         print(">>> Build Successful. Artifacts ready in 'server/published'.")
@@ -99,7 +93,6 @@ def wait_for_health(port, mode, timeout=60):
     print(f"\n    [X] {mode} failed to start.")
     return False
 
-# --- PROMETHEUS QUERIES (UPDATED FOR NEW METRIC NAME) ---
 
 def query_range(query, start_t, end_t, step='2s'):
     try:
@@ -122,14 +115,13 @@ def query_scalar(query):
 
 def fetch_metrics(mode):
     service = f"MarketStat.API.{mode}"
-    window = "90s"
+    window = "16s"
     
     end_t = time.time()
-    start_t = end_t - 90 
+    start_t = end_t - 16
 
     mem_query = f'process_runtime_dotnet_gc_committed_memory_size_bytes{{service_name="{service}"}}'
     
-    # FIX: Using the new OpenTelemetry Process metric name
     cpu_query = f'process_cpu_time_seconds_total{{service_name="{service}"}}'
     
     gc_query = f'process_runtime_dotnet_gc_duration_nanoseconds_total{{service_name="{service}"}}'
@@ -193,7 +185,6 @@ def save_result(iteration, mode, status, metrics=None, summary=None):
 
 def main():
     try:
-        # STEP 1: Local Build
         build_locally()
         
         init_csv()
@@ -201,7 +192,6 @@ def main():
 
         print(f"=== MARKETSTAT ENDURANCE BENCHMARK ({ITERATIONS} Runs/Impl) ===")
         
-        # Force a rebuild of the Docker image to pick up the new local artifacts
         print(">>> 2. PACKAGING DOCKER IMAGE...")
         run_cmd(f"docker compose -f {COMPOSE_FILE} build --no-cache api", suppress_output=False)
         
