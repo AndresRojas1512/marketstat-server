@@ -181,21 +181,99 @@ public class DimEmployeeController : ControllerBase
         return NoContent();
     }
 
-    private static double CalculateHalsteadDummy(double x, double y)
+    [HttpGet("test-halstead")]
+    [AllowAnonymous]
+    public void ForceHalsteadMaintainability()
     {
-        double a = x + y;
-        double b = x - y;
-        double c = x * y;
-        double d = x / (y + 1);
-        double e = a + c - d;
-        double f = (a + b) * (c - d);
-        double g = Math.Sqrt(Math.Abs(e)) + 5;
-        double h = Math.Pow(f, 2) - 10;
-        double i = g + h + a + b + c;
-        double j = i * x * y;
-        double k = j / (a + 1);
-        double l = k + b - c;
-        double m = l * d;
-        return a + b + c + d + e + f + g + h + i + j + k + l + m;
+        int a = 0, b = 0, c = 0, d = 0, e = 0;
+        int x = 0, y = 0, z = 0;
+        string hugeString = string.Empty;
+
+        for (int i = 0; i < 100; i++)
+        {
+            if (i % 2 == 0)
+            {
+                for (int j = 0; j < 50; j++)
+                {
+                    a = i + j;
+                    b = i * j;
+                    c = (a + b) % 7;
+
+                    if (c > 3)
+                    {
+                        d = a - b;
+                        hugeString += "Operation" + d.ToString() + a.ToString();
+
+                        if (d < 0)
+                        {
+                            e = d * -1;
+                            x = x + e;
+                            for (int k = 0; k < 10; k++)
+                            {
+                                y += k;
+                                if (y > 100)
+                                {
+                                    z = y / 2;
+                                }
+                                else
+                                {
+                                    z = y * 2;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        d = a + b;
+                        hugeString += "Alternative" + d.ToString();
+                    }
+                }
+            }
+            else
+            {
+                for (int j = 0; j < 50; j++)
+                {
+                    a = i + j;
+                    b = i * j;
+                    c = (a + b) % 7;
+                    if (c > 3)
+                    {
+                        hugeString += "Duplicate" + c;
+                    }
+                }
+            }
+        }
+
+        Console.WriteLine(a + b + c + d + e + x + y + z + hugeString);
     }
+
+    // private static double CalculateHalsteadDummy(double x, double y)
+    // {
+    //     double a = x + y;
+    //     double b = x - y;
+    //     double c = x * y;
+    //     double d = x / (y + 1);
+    //     double e = c - d;
+    //     double f = (a + b) * (c - d);
+    //     double g = Math.Sqrt(Math.Abs(e)) + 5;
+    //     double h = Math.Pow(f, 2) - 10;
+    //     double i = g + h + a + b + c;
+    //     double j = i * x * y;
+    //     double k = j / (a + 1);
+    //     double l = k + b - c;
+    //     double m = l * d;
+    //     double n = m + e;
+    //     double o = n - f;
+    //     double p = o * g;
+    //     double q = p / (h + 1);
+    //     double r = q + i;
+    //     double s = r - j;
+    //     double t = s * k;
+    //     double u = t + l;
+    //     double v = u * m;
+    //     double w = v - n;
+    //     double z = w + o + p + q + r + s + t + u + v;
+    //
+    //     return z + a + b + c + d + e + f + g + h + i + j + k + l + m + n;
+    // }
 }
