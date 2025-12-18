@@ -70,6 +70,7 @@ try
         });
     });
     
+    
     builder.Services.AddOpenTelemetry()
         .ConfigureResource(resource => resource
             .AddService("MarketStat.Gateway"))
