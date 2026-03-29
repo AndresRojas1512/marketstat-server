@@ -16,11 +16,13 @@ namespace MarketStat.Database.Context
                 .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build();
 
-            var connectionString = configuration.GetConnectionString("DesignTimeConnection");
+            var connectionString =
+                configuration.GetConnectionString("MarketStatAdmin")
+                ?? configuration.GetConnectionString("MarketStat");
             if (string.IsNullOrEmpty(connectionString))
             {
                 throw new InvalidOperationException(
-                    "The 'DesignTimeConnection' string was not found in appsettings.Development.json");
+                    "The 'MarketStatAdmin' or fallback 'MarketStat' connection string was not found.");
             }
 
             var optionsBuilder = new DbContextOptionsBuilder<MarketStatDbContext>();

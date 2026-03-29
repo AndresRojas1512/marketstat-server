@@ -1,0 +1,42 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build_app:
+  stage: build
+  script:
+    - ./scripts/ci/build.sh
+  artifacts:
+    paths:
+      - artifacts/publish/
+    expire_in: 1 day
+
+test_app:
+  stage: test
+  script:
+    - export SSH_KEY_PATH="${SSH_PRIVATE_KEY}"
+    - ./scripts/ci/test.sh
+
+deploy_app:
+  stage: deploy
+  dependencies:
+    - build_app
+  script:
+    - export SSH_KEY_PATH="${SSH_PRIVATE_KEY}"
+    - ./scripts/ci/deploy.sh
+  environment:
+    name: marketstat-vm1
+    url: $DEPLOY_PUBLIC_URL
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+      when: manual
+      allow_failure: true
+    - when: never
+
+notify_pipeline:
+  stage: .post
+  script:
+    - ./scripts/ci/notify.py
+  rules:
+    - when: always

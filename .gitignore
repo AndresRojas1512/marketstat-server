@@ -3,5 +3,5 @@
 diagrams/
 .vscode/
 .idea/
-
 src/MarketStat/Logs/
+artifacts/
