@@ -27,11 +27,11 @@ using MarketStat.Services.Dimensions.DimLocationService;
 using MarketStat.Services.Dimensions.DimJobService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Serilog;
 using Serilog.Events;
+using Microsoft.AspNetCore.HttpOverrides;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -220,8 +220,19 @@ try
 
 
     var app = builder.Build();
+    
+    var forwardedHeadersOptions = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor
+                           | ForwardedHeaders.XForwardedProto
+                           | ForwardedHeaders.XForwardedHost
+    };
 
+    forwardedHeadersOptions.KnownNetworks.Clear();
+    forwardedHeadersOptions.KnownProxies.Clear();
 
+    app.UseForwardedHeaders(forwardedHeadersOptions);
+    
     app.UseSerilogRequestLogging(options =>
     {
         options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms User: {User} ClientIP: {ClientIP}";
@@ -246,7 +257,6 @@ try
         });
     }
 
-    app.UseHttpsRedirection();
     app.UseRouting();
     app.UseCors("AllowAngularClient");
 
@@ -267,15 +277,17 @@ try
             var configuration = services.GetRequiredService<IConfiguration>();
             try
             {
-                var defaultConnectionString = configuration.GetConnectionString("MarketStat");
-                var adminCb = new NpgsqlConnectionStringBuilder(defaultConnectionString)
+                var adminConnectionString =
+                    configuration.GetConnectionString("MarketStatAdmin")
+                    ?? configuration.GetConnectionString("MarketStat")
+                    ?? throw new InvalidOperationException("Missing connection string 'MarketStatAdmin' or fallback 'MarketStat'.");
+
+                var adminCb = new NpgsqlConnectionStringBuilder(adminConnectionString)
                 {
-                    Username = "marketstat_administrator",
-                    Password = "andresrmlnx15",
                     IncludeErrorDetail = true
                 };
             
-                logger.LogInformation("Initializing Database Migration context as 'marketstat_administrator'...");
+                logger.LogInformation("Initializing Database Migration context using 'MarketStatAdmin' connection string (fallback: 'MarketStat').");
                 var adminOptions = new DbContextOptionsBuilder<MarketStatDbContext>()
                     .UseNpgsql(adminCb.ConnectionString, sqlOpts =>
                     {
@@ -298,7 +310,7 @@ try
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "Database migration failed. The application cannot stat.");
+                logger.LogCritical(ex, "Database migration failed. The application cannot start.");
                 throw;
             }
         }

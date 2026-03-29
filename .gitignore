@@ -3,5 +3,7 @@
 diagrams/
 .vscode/
 .idea/
-
 src/MarketStat/Logs/
+artifacts/
+
+__pycache__/
