@@ -6,19 +6,18 @@ cd "$ROOT_DIR"
 
 : "${DEPLOY_HOST:?DEPLOY_HOST is required}"
 : "${DEPLOY_USER:?DEPLOY_USER is required}"
-: "${SSH_KEY_PATH:?SSH_KEY_PATH is required}"
-
-if [[ ! -f "${SSH_KEY_PATH}" ]]; then
-  echo "[ssh] Missing SSH key file: ${SSH_KEY_PATH}"
-  exit 1
-fi
+: "${SSH_PRIVATE_KEY_B64:?SSH_PRIVATE_KEY_B64 is required}"
 
 SSH_KEY_FILE="$(mktemp)"
 trap 'rm -f "${SSH_KEY_FILE}"' EXIT
 
-tr -d '\r' < "${SSH_KEY_PATH}" > "${SSH_KEY_FILE}"
-printf '\n' >> "${SSH_KEY_FILE}"
+printf '%s' "${SSH_PRIVATE_KEY_B64}" | base64 -d > "${SSH_KEY_FILE}"
 chmod 600 "${SSH_KEY_FILE}"
+
+if ! ssh-keygen -y -f "${SSH_KEY_FILE}" >/dev/null 2>&1; then
+  echo "[ssh] Invalid decoded private key"
+  exit 1
+fi
 
 DEPLOY_PORT="${DEPLOY_PORT:-22}"
 REMOTE_TMP_DIR="${REMOTE_TMP_DIR:-/tmp/marketstat-nginx-test}"
