@@ -8,6 +8,13 @@ cd "$ROOT_DIR"
 : "${DEPLOY_USER:?DEPLOY_USER is required}"
 : "${SSH_KEY_PATH:?SSH_KEY_PATH is required}"
 
+if [[ ! -f "${SSH_KEY_PATH}" ]]; then
+  echo "[ssh] Missing SSH key file: ${SSH_KEY_PATH}"
+  exit 1
+fi
+
+chmod 600 "${SSH_KEY_PATH}"
+
 DEPLOY_PORT="${DEPLOY_PORT:-22}"
 REMOTE_TMP_DIR="${REMOTE_TMP_DIR:-/tmp/marketstat-nginx-test}"
 LOCAL_NGINX_CONF="${LOCAL_NGINX_CONF:-deploy/nginx/marketstat.conf}"
