@@ -34,11 +34,17 @@ SSH_OPTS=(
   -o StrictHostKeyChecking=accept-new
 )
 
+SCP_OPTS=(
+  -i "${SSH_KEY_FILE}"
+  -P "${DEPLOY_PORT}"
+  -o StrictHostKeyChecking=accept-new
+)
+
 echo "[test-nginx] Preparing remote temp directory..."
 ssh "${SSH_OPTS[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "rm -rf '${REMOTE_TMP_DIR}' && mkdir -p '${REMOTE_TMP_DIR}'"
 
 echo "[test-nginx] Uploading candidate nginx config..."
-scp "${SSH_OPTS[@]}" "${LOCAL_NGINX_CONF}" "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_TMP_DIR}/marketstat.conf"
+scp "${SCP_OPTS[@]}" "${LOCAL_NGINX_CONF}" "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_TMP_DIR}/marketstat.conf"
 
 echo "[test-nginx] Creating temporary nginx root config..."
 ssh "${SSH_OPTS[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "cat > '${REMOTE_TMP_DIR}/nginx-test.conf' <<'NGINXCONF'

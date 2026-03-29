@@ -48,14 +48,20 @@ SSH_OPTS=(
   -o StrictHostKeyChecking=accept-new
 )
 
+SCP_OPTS=(
+  -i "${SSH_KEY_FILE}"
+  -P "${DEPLOY_PORT}"
+  -o StrictHostKeyChecking=accept-new
+)
+
 echo "[deploy] Creating remote release directory..."
 ssh "${SSH_OPTS[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p '${REMOTE_RELEASE_DIR}'"
 
 echo "[deploy] Uploading application archive..."
-scp "${SSH_OPTS[@]}" "${ARCHIVE_PATH}" "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_RELEASE_DIR}/app.tar.gz"
+scp "${SCP_OPTS[@]}" "${ARCHIVE_PATH}" "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_RELEASE_DIR}/app.tar.gz"
 
 echo "[deploy] Uploading nginx config..."
-scp "${SSH_OPTS[@]}" "${LOCAL_NGINX_CONF}" "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_RELEASE_DIR}/marketstat.conf"
+scp "${SCP_OPTS[@]}" "${LOCAL_NGINX_CONF}" "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_RELEASE_DIR}/marketstat.conf"
 
 echo "[deploy] Extracting release, switching symlink, updating nginx, restarting app..."
 ssh "${SSH_OPTS[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" "
