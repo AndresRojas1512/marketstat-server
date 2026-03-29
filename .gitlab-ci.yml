@@ -3,6 +3,10 @@ stages:
   - test
   - deploy
 
+default:
+  tags:
+    - vm2-shell
+
 build_app:
   stage: build
   script:
