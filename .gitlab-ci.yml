@@ -19,7 +19,6 @@ build_app:
 test_app:
   stage: test
   script:
-    - export SSH_KEY_PATH="${SSH_PRIVATE_KEY}"
     - ./scripts/ci/test.sh
 
 deploy_app:
@@ -27,7 +26,6 @@ deploy_app:
   dependencies:
     - build_app
   script:
-    - export SSH_KEY_PATH="${SSH_PRIVATE_KEY}"
     - ./scripts/ci/deploy.sh
   environment:
     name: marketstat-vm1
