@@ -13,7 +13,12 @@ if [[ ! -f "${SSH_KEY_PATH}" ]]; then
   exit 1
 fi
 
-chmod 600 "${SSH_KEY_PATH}"
+SSH_KEY_FILE="$(mktemp)"
+trap 'rm -f "${SSH_KEY_FILE}"' EXIT
+
+tr -d '\r' < "${SSH_KEY_PATH}" > "${SSH_KEY_FILE}"
+printf '\n' >> "${SSH_KEY_FILE}"
+chmod 600 "${SSH_KEY_FILE}"
 
 DEPLOY_PORT="${DEPLOY_PORT:-22}"
 RELEASE_ID="${RELEASE_ID:-$(date -u +%Y%m%d%H%M%S)}"
@@ -39,7 +44,7 @@ echo "[deploy] Creating archive ${ARCHIVE_PATH}..."
 tar -C artifacts/publish -czf "${ARCHIVE_PATH}" .
 
 SSH_OPTS=(
-  -i "${SSH_KEY_PATH}"
+  -i "${SSH_KEY_FILE}"
   -p "${DEPLOY_PORT}"
   -o StrictHostKeyChecking=accept-new
 )

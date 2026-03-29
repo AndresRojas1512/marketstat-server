@@ -13,7 +13,12 @@ if [[ ! -f "${SSH_KEY_PATH}" ]]; then
   exit 1
 fi
 
-chmod 600 "${SSH_KEY_PATH}"
+SSH_KEY_FILE="$(mktemp)"
+trap 'rm -f "${SSH_KEY_FILE}"' EXIT
+
+tr -d '\r' < "${SSH_KEY_PATH}" > "${SSH_KEY_FILE}"
+printf '\n' >> "${SSH_KEY_FILE}"
+chmod 600 "${SSH_KEY_FILE}"
 
 DEPLOY_PORT="${DEPLOY_PORT:-22}"
 REMOTE_TMP_DIR="${REMOTE_TMP_DIR:-/tmp/marketstat-nginx-test}"
@@ -25,7 +30,7 @@ if [[ ! -f "${LOCAL_NGINX_CONF}" ]]; then
 fi
 
 SSH_OPTS=(
-  -i "${SSH_KEY_PATH}"
+  -i "${SSH_KEY_FILE}"
   -p "${DEPLOY_PORT}"
   -o StrictHostKeyChecking=accept-new
 )
