@@ -15,12 +15,6 @@ using System.Security.Claims;
 using System.Text;
 using MarketStat.Database.Core.Repositories.Account;
 using MarketStat.Database.Repositories.PostgresRepositories.Account;
-using MarketStat.GraphQL.Mutations.Auth;
-using MarketStat.GraphQL.Mutations.Dimensions;
-using MarketStat.GraphQL.Mutations.Facts;
-using MarketStat.GraphQL.Queries.Auth;
-using MarketStat.GraphQL.Queries.Dimensions;
-using MarketStat.GraphQL.Queries.Facts;
 using MarketStat.Middleware;
 using MarketStat.Services.Auth.AuthService;
 using MarketStat.Services.Dimensions.DimLocationService;
@@ -116,35 +110,6 @@ try
     
     builder.Services.AddControllers();
     builder.Services.AddAutoMapper(typeof(Program).Assembly);
-
-    builder.Services
-        .AddGraphQLServer()
-        .AddAuthorization()
-        .AddQueryType(q => q.Name("Query"))
-        .AddTypeExtension<FactSalaryQuery>()
-        .AddTypeExtension<DimDateQuery>()
-        .AddTypeExtension<DimEducationQuery>()
-        .AddTypeExtension<DimEmployeeQuery>()
-        .AddTypeExtension<DimEmployerQuery>()
-        .AddTypeExtension<DimIndustryFieldQuery>()
-        .AddTypeExtension<DimJobQuery>()
-        .AddTypeExtension<DimLocationQuery>()
-        .AddTypeExtension<AuthQuery>()
-        
-        .AddMutationType(m => m.Name("Mutation"))
-        .AddTypeExtension<FactSalaryMutation>()
-        .AddTypeExtension<DimDateMutation>()
-        .AddTypeExtension<DimEducationMutation>()
-        .AddTypeExtension<DimEmployeeMutation>()
-        .AddTypeExtension<DimEmployerMutation>()
-        .AddTypeExtension<DimIndustryFieldMutation>()
-        .AddTypeExtension<DimJobMutation>()
-        .AddTypeExtension<DimLocationMutation>()
-        .AddTypeExtension<AuthMutation>()
-        
-        .AddProjections()
-        .AddFiltering()
-        .AddSorting();
     
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
@@ -247,15 +212,13 @@ try
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-    if (app.Environment.IsDevelopment())
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(c => {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "MarketStat API v1");
-            c.RoutePrefix = string.Empty;
-            c.ConfigObject.AdditionalItems["persistAuthorization"] = true;
-        });
-    }
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MarketStat API v1");
+        c.RoutePrefix = "swagger";
+        c.ConfigObject.AdditionalItems["persistAuthorization"] = true;
+    });
 
     app.UseRouting();
     app.UseCors("AllowAngularClient");
@@ -264,7 +227,6 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
-    app.MapGraphQL("/api/v2");
 
     var runMigrations = Convert.ToBoolean(builder.Configuration["RunMigrations"] ?? "false");
 
