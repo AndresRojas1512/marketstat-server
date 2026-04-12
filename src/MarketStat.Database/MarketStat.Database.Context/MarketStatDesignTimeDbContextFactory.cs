@@ -9,16 +9,25 @@ namespace MarketStat.Database.Context
     {
         public MarketStatDbContext CreateDbContext(string[] args)
         {
-            var basePath = Directory.GetCurrentDirectory();
+            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "src", "MarketStat");
+
+            if (!Directory.Exists(basePath))
+            {
+                basePath = Directory.GetCurrentDirectory();
+            }
+
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(basePath)
                 .AddJsonFile("appsettings.json", optional: false)
                 .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddUserSecrets("e4558ce5-594b-4933-8204-562bf239a607")
+                .AddEnvironmentVariables()
                 .Build();
 
             var connectionString =
                 configuration.GetConnectionString("MarketStatAdmin")
                 ?? configuration.GetConnectionString("MarketStat");
+
             if (string.IsNullOrEmpty(connectionString))
             {
                 throw new InvalidOperationException(
@@ -26,7 +35,7 @@ namespace MarketStat.Database.Context
             }
 
             var optionsBuilder = new DbContextOptionsBuilder<MarketStatDbContext>();
-        
+
             optionsBuilder.UseNpgsql(connectionString, o =>
             {
                 o.MigrationsAssembly(typeof(MarketStatDbContext).Assembly.FullName);
