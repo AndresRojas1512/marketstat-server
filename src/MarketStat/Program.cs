@@ -35,6 +35,9 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
 
+
+
+
 try
 {
     Log.Information("--- MarketStat API: Starting host builder ---");
