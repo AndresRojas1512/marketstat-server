@@ -17,19 +17,21 @@ API REST para el análisis multidimensional de salarios en el mercado laboral ru
 
 ## Roles de acceso
 
-- **Usuario anónimo:** acceso a consultas agregadas y catálogos públicos.
-- **Analista:** acceso a resúmenes estadísticos, distribuciones salariales y series temporales.
-- **Administrador:** acceso a las operaciones de gestión de datos y a las funciones analíticas.
+| Rol | Acceso |
+| --- | --- |
+| Usuario anónimo | Consultas agregadas y catálogos públicos |
+| Analista | Resúmenes estadísticos, distribuciones salariales y series temporales |
+| Administrador | Gestión de datos y funciones analíticas |
 
 ## Arquitectura
 
 Arquitectura modular con separación de responsabilidades:
 
-- **API:** controladores HTTP, autenticación, autorización, configuración, middleware y documentación Swagger.
-- **Servicios:** lógica de aplicación, validación y coordinación de operaciones.
-- **Persistencia:** contexto de Entity Framework Core, repositorios PostgreSQL, modelos y migraciones.
-- **Contratos y dominio:** entidades, DTO, convertidores, enumeraciones y excepciones comunes.
-- **Pruebas:** pruebas unitarias, de repositorios, de integración y de extremo a extremo.
+- Controladores HTTP, autenticación, autorización, configuración, middleware y documentación Swagger en la capa de API.
+- Lógica de aplicación, validación y coordinación de operaciones en la capa de servicios.
+- Contexto de Entity Framework Core, repositorios PostgreSQL, modelos y migraciones en la capa de persistencia.
+- Entidades, DTO, convertidores, enumeraciones y excepciones comunes en los módulos de contratos y dominio.
+- Tests unitarios, de repositorios, de integración y de extremo a extremo.
 
 ```text
 src/
@@ -37,7 +39,7 @@ src/
 ├── MarketStat.Common/             # Dominio, DTO, convertidores y excepciones
 ├── MarketStat.Database/           # Contexto, modelos y repositorios
 ├── MarketStat.Services/           # Servicios de aplicación
-└── MarketStat.Tests/              # Pruebas automatizadas
+└── MarketStat.Tests/              # Tests automatizados
 ```
 
 ## Tecnologías
@@ -66,7 +68,7 @@ Prefijo base: `/api/v1`.
 | Series temporales | `/api/v1/factsalaries/timeseries` | Analista y administrador |
 | Consulta agregada de puestos | `/api/v1/factsalaries/public/roles` | Público |
 | Registros salariales | `/api/v1/factsalaries` | Administrador |
-| Dimensiones | `/api/v1/dimdates`, `/dimlocations`, `/dimeducations`, `/dimemployees`, `/dimemployers`, `/dimindustryfields` y `/dimjobs` | Administrador, con catálogos públicos concretos |
+| Dimensiones | `/api/v1/dimdates`, `/api/v1/dimlocations`, `/api/v1/dimeducations`, `/api/v1/dimemployees`, `/api/v1/dimemployers`, `/api/v1/dimindustryfields` y `/api/v1/dimjobs` | Administrador, con catálogos públicos concretos |
 
 Swagger UI:
 
@@ -80,7 +82,7 @@ Contrato OpenAPI: [`openapi/openapi.yaml`](openapi/openapi.yaml).
 
 - .NET SDK 8.0
 - PostgreSQL 16
-- Docker y Docker Compose para ejecutar la infraestructura de pruebas
+- Docker y Docker Compose para ejecutar la infraestructura de tests
 - `dotnet-ef` para aplicar migraciones desde la línea de comandos
 
 ## Configuración
@@ -123,14 +125,14 @@ dotnet run --project src/MarketStat/MarketStat.csproj
 
 API: `http://localhost:5000`.
 
-## Pruebas
+## Tests
 
-Niveles de pruebas:
+Niveles de tests:
 
-- pruebas unitarias de servicios con xUnit y Moq
-- pruebas de repositorios con Entity Framework Core InMemory
-- pruebas de integración con PostgreSQL mediante Testcontainers
-- pruebas E2E de la API con `WebApplicationFactory`, PostgreSQL y Testcontainers
+- Tests unitarios de servicios con xUnit y Moq.
+- Tests de repositorios con Entity Framework Core InMemory.
+- Tests de integración con PostgreSQL mediante Testcontainers.
+- Tests E2E de la API con `WebApplicationFactory`, PostgreSQL y Testcontainers.
 
 Ejecución completa en contenedores, equivalente al flujo de GitHub Actions:
 
@@ -145,45 +147,90 @@ Ejecución directa con el SDK de .NET:
 dotnet test src/MarketStat.sln
 ```
 
-Requisito para las pruebas de integración y E2E: acceso a un daemon de Docker.
+Requisito para los tests de integración y E2E: acceso a un daemon de Docker.
 
 ## Integración y despliegue continuos
 
-- **GitHub Actions:** automatización de la compilación de la imagen de pruebas, ejecución de pruebas unitarias, de integración y E2E, y publicación del informe de Allure en GitHub Pages.
-- **GitLab CI/CD:** automatización de las etapas de compilación, pruebas y despliegue mediante los scripts de [`scripts/ci`](scripts/ci).
+- Automatización de la compilación de la imagen de tests, ejecución de tests unitarios, de integración y E2E, y publicación del informe de Allure en GitHub Pages mediante GitHub Actions.
+- Automatización de las etapas de compilación, tests y despliegue mediante GitLab CI/CD y los scripts de [`scripts/ci`](scripts/ci).
 
 ## Implementaciones por rama
 
+| Rama | Alcance |
+| --- | --- |
+| `develop` | API monolítica modular y CI/CD |
+| `feature/microservice` | Arquitectura distribuida y mensajería |
+| `test/benchmark` | Comparación de rendimiento de persistencia |
+| `test/integration` | Integración con PostgreSQL y tests E2E |
+| `feature/ha-scaling-monitoring` | Alta disponibilidad, escalado y observabilidad |
+| `test/external` | Exportación de informes a almacenamiento S3 |
+
 ### `develop`
 
-API monolítica modular sobre ASP.NET Core, con capas de API, servicios, dominio y persistencia. Operaciones REST, PostgreSQL mediante Entity Framework Core, autenticación JWT, autorización por roles, Swagger/OpenAPI y Serilog. Pruebas unitarias, de repositorios, de integración y E2E. Automatización con GitHub Actions y GitLab CI/CD, despliegue remoto mediante SSH, Nginx y `systemd`, e informes Allure.
+Implementación principal de MarketStat como API monolítica modular. La API, la lógica de aplicación y la persistencia forman una única unidad desplegable, con separación interna de responsabilidades.
+
+- Exposición de operaciones REST para autenticación, gestión de dimensiones y análisis salarial, con documentación Swagger/OpenAPI.
+- Persistencia en PostgreSQL mediante Entity Framework Core, autenticación JWT, autorización por roles y logs estructurados con Serilog.
+- Tests unitarios, de repositorios, de integración y E2E, con generación de informes Allure.
+- Automatización mediante GitHub Actions y GitLab CI/CD, con despliegue remoto por SSH, proxy inverso Nginx y ejecución como servicio `systemd`.
 
 ### `feature/microservice`
 
-Separación en `MarketStat.Gateway`, `MarketStat.Domain` y `MarketStat.Data`. Flujo de escritura: `HTTP → Gateway → RabbitMQ → Domain → RabbitMQ → Data → PostgreSQL`. Comandos asíncronos con respuesta `202 Accepted` y consultas mediante solicitud-respuesta de MassTransit.
+Variante distribuida con separación entre entrada HTTP, lógica de dominio y acceso a datos mediante `MarketStat.Gateway`, `MarketStat.Domain` y `MarketStat.Data`. La comunicación entre servicios se realiza mediante contratos de mensajería con MassTransit y RabbitMQ.
 
-Tres instancias por servicio, balanceo con Nginx, registro con Consul y Registrator, y PostgreSQL primaria-réplica. Trazabilidad con OpenTelemetry y Jaeger. Logs centralizados con Serilog, Loki, Promtail y Grafana. Compilación matricial de imágenes y pruebas mediante GitHub Actions.
+- Procesamiento de escrituras mediante el flujo `HTTP → Gateway → RabbitMQ → Domain → RabbitMQ → Data → PostgreSQL`, con comandos asíncronos y respuesta `202 Accepted`.
+- Procesamiento de consultas mediante el patrón solicitud-respuesta de MassTransit.
+- Escalado horizontal con tres instancias por servicio, balanceo Nginx, registro con Consul y Registrator, y topología PostgreSQL primaria-réplica.
+- Trazabilidad distribuida con OpenTelemetry y Jaeger, y centralización de logs con Serilog, Loki, Promtail y Grafana.
+- Compilación matricial de imágenes y ejecución de tests mediante GitHub Actions.
 
 ### `test/benchmark`
 
-Comparación de tres implementaciones de persistencia: Entity Framework Core con LINQ, Entity Framework Core con SQL parametrizado y Dapper con Npgsql. Misma base de datos, datos generados con `DbSeeder` y límites equivalentes de CPU y memoria.
+Entorno de benchmark para comparar el rendimiento de tres estrategias de acceso a datos bajo la misma carga, base de datos y límites de recursos.
 
-Escenarios k6 secuenciales, paralelos y de serialización. Medición de solicitudes por segundo, latencias P50–P99, memoria, CPU y recolección de basura mediante OpenTelemetry, Prometheus y Grafana. Resultados en JSON y CSV, con gráficos generados mediante pandas, Matplotlib y Seaborn.
+| Variante | Acceso a datos |
+| --- | --- |
+| `BASELINE` | Entity Framework Core y LINQ |
+| `EF_SQL` | SQL parametrizado mediante `FromSqlRaw` |
+| `DAPPER` | Dapper y Npgsql |
+
+- Preparación de un conjunto común de datos mediante `DbSeeder` y asignación equivalente de CPU y memoria a cada variante.
+- Ejecución de escenarios k6 secuenciales, paralelos y orientados a medir la serialización de colecciones.
+- Medición de solicitudes por segundo, latencias P50–P99, memoria, CPU y tiempo de recolección de basura mediante OpenTelemetry y Prometheus.
+- Persistencia de resultados en JSON y CSV, visualización en Grafana y generación de gráficos con pandas, Matplotlib y Seaborn.
 
 ### `test/integration`
 
-Pruebas de repositorios y servicios contra una instancia efímera de PostgreSQL 16 mediante Testcontainers. Migraciones de Entity Framework Core, datos de referencia y restablecimiento entre casos mediante Respawn. Cobertura de CRUD, filtros, distribuciones, percentiles, agregaciones y series temporales.
+Suite para validar repositorios, servicios y endpoints HTTP contra PostgreSQL 16 y un servidor Kestrel ejecutados en entornos aislados.
 
-Pruebas E2E sobre Kestrel y una base de datos aislada. Captura PCAP con TShark, ejecución contenedorizada e informes Allure mediante GitHub Actions.
+- Creación de instancias PostgreSQL mediante Testcontainers, aplicación de migraciones de Entity Framework Core y carga de datos de referencia.
+- Restablecimiento del estado de PostgreSQL entre casos mediante Respawn.
+- Cobertura de operaciones CRUD, filtros multidimensionales, distribuciones, percentiles, agregaciones y series temporales.
+- Tests E2E sobre Kestrel con captura del tráfico TCP en formato PCAP mediante TShark.
+- Ejecución contenedorizada y publicación de informes Allure mediante GitHub Actions.
 
 ### `feature/ha-scaling-monitoring`
 
-Topología con una API principal, dos instancias de lectura y una instancia espejo. Replicación asíncrona de PostgreSQL mediante streaming y `pg_basebackup`. Enrutamiento Nginx de `GET` y `HEAD` con ponderación `2:1:1`, escrituras hacia la instancia principal y acceso independiente mediante `/mirror`.
+Topología para validar alta disponibilidad, separación del tráfico de lectura y escritura, replicación de datos y observabilidad de la API monolítica.
 
-TLS, HTTP/2, HTTP/3 sobre QUIC, Gzip y caché estática. Registro de servicios con Consul y Registrator. Logs centralizados con Promtail, Loki y Grafana. Interfaces REST v1 y GraphQL v2 con Hot Chocolate. Validación del balanceo mediante Apache Benchmark.
+| Tráfico | Destino |
+| --- | --- |
+| `GET` y `HEAD` | API principal y dos instancias de lectura, ponderación `2:1:1` |
+| Escrituras | API principal |
+| `/mirror` | Instancia espejo |
+
+- Replicación asíncrona de PostgreSQL mediante streaming y creación de la réplica con `pg_basebackup`.
+- Enrutamiento por método HTTP mediante Nginx, con TLS, HTTP/2, HTTP/3 sobre QUIC, compresión Gzip y caché de contenido estático.
+- Registro de instancias con Consul y Registrator, y centralización de logs con Promtail, Loki y Grafana.
+- Exposición simultánea de las interfaces REST v1 y GraphQL v2 mediante Hot Chocolate.
+- Validación de la distribución ponderada del tráfico mediante Apache Benchmark.
 
 ### `test/external`
 
-Exportación autenticada de resúmenes salariales en JSON mediante `POST /api/reports/salary-summary/export`. Abstracción `IReportStorageService` e implementación S3 con AWS SDK for .NET, compatible con Amazon S3 y Yandex Object Storage.
+Integración con un servicio externo de almacenamiento de objetos compatible con S3 para exportar y conservar informes salariales.
 
-Validación E2E de autenticación, generación, carga `PutObject` y URL resultante. Simulación del servicio S3 mediante WireMock, ejecución con Docker Compose y captura de tráfico con TShark.
+- Generación de un resumen salarial a partir de filtros mediante `POST /api/reports/salary-summary/export`, serialización en JSON, almacenamiento del archivo y devolución de su URL.
+- Acceso autenticado para los roles `Admin` y `Analyst`.
+- Abstracción mediante `IReportStorageService` e implementación S3 con AWS SDK for .NET, configurable para Amazon S3 y Yandex Object Storage.
+- Validación E2E de autenticación, generación del informe, solicitud `PutObject` y URL resultante mediante WireMock.
+- Ejecución del entorno con Docker Compose y captura del tráfico HTTP mediante TShark.
